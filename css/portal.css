@@ -247,3 +247,6 @@ fieldset { min-width: 0; }
 .site-f { display: flex; gap: .6rem; flex-wrap: wrap; } .site-f select, .site-f .srch { min-width: 0; flex: 1 1 180px; }
 .navrow { display: grid; grid-template-columns: 130px minmax(0, 1fr) minmax(0, 1fr); gap: .5rem; align-items: center; } @media (max-width: 640px) { .navrow { grid-template-columns: minmax(0, 1fr); } }
 .clr { display: flex; gap: .5rem; align-items: center; } .clr input[type=color] { width: 48px; height: 40px; padding: 2px; flex: none; }
+/* সেটিংসের সাব-মেনু */
+.snav { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; padding: .35rem; background: #fff; border: 1px solid var(--line); border-radius: 14px; } .snav a { padding: .5rem .85rem; border-radius: 10px; font-weight: 600; font-size: .9rem; color: var(--ink2); text-decoration: none; white-space: nowrap; } .snav a:hover { background: var(--pxl); } .snav a[aria-current=page] { background: var(--p); color: #fff; }
+@media (max-width: 640px) { .snav { flex-wrap: nowrap; overflow-x: auto; } }
