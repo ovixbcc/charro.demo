@@ -18,6 +18,7 @@
     ['schedule', 'শিডিউল অনুরোধ', 'Schedule requests', 'calendar', 'schedule'],
     ['content', 'কনটেন্ট ও ঘোষণা', 'Content & banners', 'chat', 'content'],
     ['pricing', 'কুপন, রেফারেল ও প্রাইসিং', 'Coupons, referral, pricing', 'plus', 'pricing'],
+    ['referral', 'রেফারেল (স্টুডেন্ট ও টিচার)', 'Referral (students & teachers)', 'users', 'pricing'],
     ['reviews', 'রিভিউ', 'Reviews', 'check', 'reviews'],
     ['support', 'সাপোর্ট', 'Support', 'phone', 'support'],
     ['policies', 'পলিসি ম্যানেজার', 'Policies', 'shield', 'policies'],
@@ -193,13 +194,35 @@
 
   /* ---------- প্রাইসিং, কুপন, রেফারেল ---------- */
   def.pricing = ['pricing', () => {
-    const s = DB.settings, rs = s.refS, rt = s.refT;
     return UI.card(T('কুপন তৈরি', 'Create coupon'), `<form data-pf="coupon" data-by="admin" class="fgrid">${UI.fi({ name: 'code', label: T('কোড', 'Code'), req: 1, half: 1 })}${UI.fi({ name: 'type', label: T('ধরন', 'Type'), half: 1, opts: [['pct', T('শতকরা %', 'Percent')], ['flat', T('ফিক্সড ৳', 'Fixed ৳')]] })}${UI.fi({ name: 'v', label: T('পরিমাণ', 'Value'), type: 'number', req: 1, half: 1, min: 1 })}${UI.fi({ name: 'scope', label: T('প্রযোজ্য (সব / টিচারের সব কোর্স / একটি কোর্স)', 'Applies to (all / a teacher\'s courses / one course)'), opts: PX.scopeOpts('') })}${UI.fi({ name: 'limit', label: T('সর্বোচ্চ ব্যবহার', 'Max uses'), type: 'number', val: 100, half: 1 })}${UI.fi({ name: 'expiry', label: T('মেয়াদ', 'Expiry'), type: 'date', val: '2026-12-31', half: 1 })}<div class="fld"><button class="btn btn-p btn-sm">${T('তৈরি', 'Create')}</button></div></form>`) +
       UI.card(T('সব কুপন (অ্যাডমিন ও টিচার)', 'All coupons'), PX.couponTbl(DB.coupons, true)) +
-      UI.card(T('রেফারেল বোনাস কনফিগ', 'Referral bonus config'), `<form data-pf="refcfg" class="fgrid">${UI.fi({ name: 'st', label: T('স্টুডেন্ট রেফারেল ধরন', 'Student type'), half: 1, opts: [['pct', T('শতকরা %', 'Percent')], ['fixed', T('ফিক্সড ৳', 'Fixed')]], val: rs.type })}${UI.fi({ name: 'sv', label: T('স্টুডেন্ট বোনাস', 'Student value'), type: 'number', half: 1, val: rs.v, min: 0 })}${UI.fi({ name: 'tt', label: T('টিচার রেফারেল ধরন', 'Teacher type'), half: 1, opts: [['pct', T('শতকরা %', 'Percent')], ['fixed', T('ফিক্সড ৳', 'Fixed')]], val: rt.type })}${UI.fi({ name: 'tv', label: T('টিচার বোনাস', 'Teacher value'), type: 'number', half: 1, val: rt.v, min: 0 })}<div class="fld"><button class="btn btn-p btn-sm">${T('সংরক্ষণ', 'Save')}</button></div></form>`) +
+      `<div class="alert info">${ic('check')}<div><p>${T('রেফারেল বোনাস কনফিগ ও তালিকা এখন আলাদা “রেফারেল” মেনুতে — স্টুডেন্ট ও টিচারের জন্য আলাদা।', 'Referral bonus settings and lists moved to the separate “Referral” menu — separate for students and teachers.')} <a href="#a-referral">${T('রেফারেল খুলুন', 'Open referral')}</a></p></div></div>` +
       UI.card(T('ক্লাসের ধরন', 'Class types'), UI.tbl([T('ধরন', 'Type'), T('সিট', 'Seats')], DB.classTypes.map(c => [esc(c.bn), n(c.seats)])) + `<p class="soft">${T('মূল্য ও মেয়াদ (১/৩/৬/১২ মাস) টিচার কোর্স তৈরির সময় নির্ধারণ করে; অ্যাডমিন অনুমোদনের সময় যাচাই করে।', 'Tenure and price are set by teachers at course creation; admin reviews them.')}</p>`);
   }];
-  F.refcfg = (f, d) => { DB.settings.refS = { type: d.st, v: +d.sv }; DB.settings.refT = { type: d.tt, v: +d.tv }; PX.toast(T('সংরক্ষিত', 'Saved')); };
+  /* ---------- রেফারেল: স্টুডেন্ট ও টিচার আলাদা ---------- */
+  DB.refAll = DB.refAll || (() => {
+    const me = DB.me || {}, crm = DB.crm || [];
+    const st = (i) => crm[i] ? { n: crm[i].name, id: crm[i].sid } : { n: '—', id: '' };
+    const s = DB.refS.map(x => Object.assign({ by: { n: me.name, id: me.sid } }, x, { paid: x.bonus > 0 }));
+    s.push({ by: st(2), name: 'নাফিসা আক্তার', date: '2026-11-12', status: 'enrolled', bonus: 200, paid: false }, { by: st(3), name: 'ফাহিম রেজা', date: '2026-11-14', status: 'joined', bonus: 0, paid: false }, { by: st(4), name: 'মাহিয়া খান', date: '2026-11-19', status: 'enrolled', bonus: 200, paid: false });
+    const tf = i => TEACHERS[i] ? { n: TEACHERS[i].n.bn, id: TEACHERS[i].pid } : { n: '—', id: '' };
+    const t = DB.refT.map(x => Object.assign({ by: tf(0) }, x, { paid: x.bonus > 0 }));
+    t.push({ by: tf(1), name: 'শামীম আহমেদ', date: '2026-11-10', status: 'approved', bonus: 500, paid: false }, { by: tf(2), name: 'তামান্না ইয়াসমিন', date: '2026-11-17', status: 'applied', bonus: 0, paid: false });
+    return { s, t };
+  })();
+  const RF_ST = { joined: ['warn', 'যুক্ত হয়েছে', 'Joined'], enrolled: ['ok', 'এনরোল করেছে', 'Enrolled'], applied: ['warn', 'আবেদন করেছে', 'Applied'], approved: ['ok', 'অনুমোদিত', 'Approved'] };
+  const rfConv = x => x.status === 'enrolled' || x.status === 'approved';
+  def.referral = ['pricing', () => {
+    const k = PX.S.tab.rf || 's', st = k === 's', cfg = st ? DB.settings.refS : DB.settings.refT, rows = DB.refAll[k];
+    const conv = rows.filter(rfConv), due = conv.filter(x => !x.paid).reduce((a, x) => a + x.bonus, 0), paid = rows.filter(x => x.paid).reduce((a, x) => a + x.bonus, 0);
+    const rate = cfg.type === 'pct' ? n(cfg.v) + '%' : mny(cfg.v);
+    return UI.tabs('rf', [['s', T('স্টুডেন্ট রেফারেল', 'Student referral')], ['t', T('টিচার রেফারেল', 'Teacher referral')]], k) +
+      `<div class="kpis">${UI.kpi(T('মোট রেফারেল', 'Total referrals'), n(rows.length))}${UI.kpi(st ? T('এনরোল হয়েছে', 'Enrolled') : T('অনুমোদিত', 'Approved'), n(conv.length), '', 'ok')}${UI.kpi(T('বোনাস বাকি', 'Bonus due'), mny(due), '', due ? 'warn' : '')}${UI.kpi(T('বোনাস পরিশোধিত', 'Bonus paid'), mny(paid), '', 'ok')}</div>` +
+      UI.card(st ? T('স্টুডেন্ট রেফারেল বোনাস কনফিগ', 'Student referral bonus config') : T('টিচার রেফারেল বোনাস কনফিগ', 'Teacher referral bonus config'), `<form data-pf="refcfg" data-k="${k}" class="fgrid">${UI.fi({ name: 'type', label: T('ধরন', 'Type'), half: 1, opts: [['pct', st ? T('শতকরা % (প্রথম পেমেন্টের)', 'Percent (of first payment)') : T('শতকরা %', 'Percent')], ['fixed', T('ফিক্সড ৳', 'Fixed ৳')]], val: cfg.type })}${UI.fi({ name: 'v', label: T('বোনাস', 'Bonus'), type: 'number', half: 1, val: cfg.v, min: 0, req: 1 })}<div class="fld"><p class="soft">${st ? T('বন্ধুকে রেফার করলে এনরোলমেন্টের পর স্টুডেন্ট পাবেন: ', 'A student earns this after the referred friend enrolls: ') : T('অন্য টিচারকে রেফার করলে অনুমোদনের পর টিচার পাবেন: ', 'A teacher earns this after the referred teacher is approved: ')}<b>${rate}</b></p><button class="btn btn-p btn-sm">${T('সংরক্ষণ', 'Save')}</button></div></form>`) +
+      UI.card(st ? T('স্টুডেন্ট রেফারেল তালিকা', 'Student referral list') : T('টিচার রেফারেল তালিকা', 'Teacher referral list'), UI.tbl([st ? T('রেফারকারী স্টুডেন্ট', 'Referring student') : T('রেফারকারী টিচার', 'Referring teacher'), st ? T('রেফার করা স্টুডেন্ট', 'Referred student') : T('রেফার করা টিচার', 'Referred teacher'), T('তারিখ', 'Date'), T('অবস্থা', 'Status'), T('বোনাস', 'Bonus'), T('বোনাস অবস্থা', 'Bonus status'), ''], rows.map((x, i) => [`<b>${esc(x.by.n)}</b>`, esc(x.name), fd(x.date), UI.chip(T(RF_ST[x.status][1], RF_ST[x.status][2]), RF_ST[x.status][0]), x.bonus ? mny(x.bonus) : '—', !rfConv(x) ? '—' : x.paid ? UI.chip(T('পরিশোধিত', 'Paid'), 'ok') : UI.chip(T('বাকি', 'Due'), 'warn'), rfConv(x) && !x.paid ? `<button class="btn btn-p btn-sm" data-pa="refpay" data-k="${k}" data-i="${i}">${T('পরিশোধ', 'Mark paid')}</button>` : ''])));
+  }];
+  F.refcfg = (f, d) => { const k = f.dataset.k, v = +d.v; if (!(v >= 0) || (d.type === 'pct' && v > 100)) { PX.toast(T('বোনাসের পরিমাণ ঠিক নয়', 'Invalid bonus value')); return; } DB.settings[k === 's' ? 'refS' : 'refT'] = { type: d.type, v }; PX.toast(T('সংরক্ষিত', 'Saved')); PX.refresh(); };
+  A.refpay = a => { const x = DB.refAll[a.dataset.k][+a.dataset.i]; if (!x) return; x.paid = true; PX.toast(T('বোনাস পরিশোধ হিসেবে চিহ্নিত', 'Bonus marked as paid')); PX.refresh(); };
 
   /* ---------- রিভিউ ---------- */
   def.reviews = ['reviews', () => {
