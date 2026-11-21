@@ -185,9 +185,26 @@
   A.paywd = a => { const p = DB.pays.find(x => x.id === a.dataset.id && x.sid === 'u1' && x.status === 'pending'); if (!p) return; p.status = 'withdrawn'; PX.toast(T('পেমেন্ট/এনরোলমেন্ট রিকোয়েস্ট প্রত্যাহার হয়েছে', 'Payment / enrolment request withdrawn')); PX.refresh(); };
   A.copy = () => PX.toast(T('কোড কপি হয়েছে', 'Code copied'));
   A.freein = a => { if (!DB.freeIn.includes(a.dataset.id)) DB.freeIn.push(a.dataset.id); PX.toast(T('ফ্রি কোর্সে এনরোল হয়েছে', 'Enrolled')); PX.refresh(); };
+  const epsOn = () => !!(window.PGW && PGW.epsOn());
   A.paynow = a => {
-    const e = PX.myEnr(a.dataset.cid), st = DB.settings.channels, pend = DB.pays.find(p => p.sid === 'u1' && p.cid === e.cid && p.status === 'pending');
-    PX.modal(T('সাবস্ক্রিপশন পরিশোধ', 'Pay subscription'), `<p><b>${ctitle(e.cid)}</b> — ${mny(e.per)}</p>${pend ? `<div class="alert warn">${ic('clock')}<div><b>${T('ক্যাশ পেমেন্টের অনুরোধ জমা আছে', 'Cash request pending')}</b><p>${T('অ্যাডমিন নিশ্চিত করলেই ক্লাস আবার চালু হবে।', 'Classes resume once admin confirms.')}</p></div></div>` : `<div class="paybox"><label class="po dis"><input type="radio" disabled><span>${T('অনলাইন পেমেন্ট (বিকাশ/কার্ড)', 'Online payment (bKash/card)')} <em>${T('এখন অবৈধ/অনুপলব্ধ', 'Currently unavailable')}</em></span></label><label class="po"><input type="radio" checked><span>${T('ক্যাশ পেমেন্ট', 'Cash payment')}</span></label></div><form data-pf="cash" data-cid="${e.cid}"><button class="btn btn-p">${T('ক্যাশ পেমেন্টের অনুরোধ পাঠান', 'Send cash payment request')}</button></form>`}`);
+    const e = PX.myEnr(a.dataset.cid), pend = DB.pays.find(p => p.sid === 'u1' && p.cid === e.cid && p.status === 'pending'), on = epsOn();
+    const pendBox = `<div class="alert warn">${ic('clock')}<div><b>${T('ক্যাশ পেমেন্টের অনুরোধ জমা আছে', 'Cash request pending')}</b><p>${T('অ্যাডমিন নিশ্চিত করলেই ক্লাস আবার চালু হবে।', 'Classes resume once admin confirms.')}</p></div></div>`;
+    const ge = (window.PGW && PGW.get().eps) || {}, epsLbl = T(ge.bn || 'অনলাইন পেমেন্ট (EPS)', ge.en || 'Online payment (EPS)');
+    const opts = `<div class="paybox">${on ? `<label class="po"><input type="radio" name="pm" value="eps" checked><span>${esc(epsLbl)} <em>${T('বিকাশ, নগদ, কার্ড ও ব্যাংকিং', 'bKash, Nagad, cards & banking')}</em></span></label>` : `<label class="po dis"><input type="radio" disabled><span>${T('অনলাইন পেমেন্ট (বিকাশ/কার্ড)', 'Online payment (bKash/card)')} <em>${T('এখন অনুপলব্ধ', 'Currently unavailable')}</em></span></label>`}<label class="po"><input type="radio" name="pm" value="cash" ${on ? '' : 'checked'}><span>${T('ক্যাশ পেমেন্ট', 'Cash payment')}</span></label></div>`;
+    PX.modal(T('সাবস্ক্রিপশন পরিশোধ', 'Pay subscription'), `<p><b>${ctitle(e.cid)}</b> — ${mny(e.per)}</p>${pend ? pendBox : `<form data-pf="paysub" data-cid="${e.cid}">${opts}<p class="err" id="eps-sub-err" style="color:#c0392b"></p><button class="btn btn-p">${T('পেমেন্ট করুন', 'Pay now')}</button></form>`}`);
+  };
+  F.paysub = async (f, d) => {
+    const cid = f.dataset.cid, e = PX.myEnr(cid), pm = (f.querySelector('input[name=pm]:checked') || {}).value;
+    if (pm !== 'eps') { F.cash(f); return; }
+    const er = f.querySelector('#eps-sub-err'), btn = f.querySelector('button'), me = ME(), lbl = btn.innerHTML, oid = 'SUB-' + String(100000 + Math.floor(Math.random() * 899999));
+    er.textContent = ''; btn.disabled = true; btn.textContent = T('EPS-এ নেওয়া হচ্ছে…', 'Redirecting to EPS…');
+    try {
+      const r = await fetch('/api/eps/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: e.per, orderId: oid, name: me.name, phone: me.phone, email: me.email || '', product: CH.L(COURSE(cid).title) + ' (subscription)' }) });
+      const j = await r.json().catch(() => ({}));
+      if (!j.ok) throw new Error(j.code === 'NOT_CONFIGURED' ? T('অনলাইন পেমেন্ট এখনও সম্পূর্ণ চালু হয়নি। ক্যাশ পেমেন্ট বেছে নিন।', 'Online payment is not set up yet. Please choose cash.') : (j.error || 'Payment could not start'));
+      try { localStorage.setItem('chaatro_eps_pending', JSON.stringify({ kind: 'sub', txn: j.txn, cid, amount: e.per, oid, name: me.name, phone: me.phone, email: me.email || '', at: Date.now() })); } catch (x) {}
+      location.href = j.redirectUrl;
+    } catch (x) { er.textContent = x.message; btn.disabled = false; btn.innerHTML = lbl; }
   };
   F.cash = (f) => { const cid = f.dataset.cid, e = PX.myEnr(cid); DB.pays.unshift({ id: 'p' + DB.nextPid++, sid: 'u1', cid, amount: e.per, ch: 'cash', status: 'pending', date: TODAY, note: 'ক্যাশ অনুরোধ' }); PX.closeModal(); PX.toast(T('অনুরোধ জমা হয়েছে, অ্যাডমিন নিশ্চিত করবে', 'Request submitted')); PX.refresh(); };
   F.chat = (f, d) => { PX.chat(f.dataset.cid).push({ from: f.dataset.role === 't' ? TEACH('t01').n.bn : ME().name, role: f.dataset.role, text: d.text, at: T('এইমাত্র', 'now') }); PX.S.focusChat = true; PX.refresh(); };
@@ -213,4 +230,12 @@
   };
   F.review = (f, d) => { if (!d.overall) { PX.toast(T('রেটিং দিন', 'Please rate')); return; } const s = PX.session(f.dataset.sid); DB.reviews.push({ sid: s.id, cid: s.cid, uid: 'u1', name: ME().name, overall: +d.overall, issues: +d.overall <= 3 ? (d.issues || []) : [], comment: d.comment, date: TODAY }); PX.closeModal(); PX.toast(T('রিভিউয়ের জন্য ধন্যবাদ', 'Thanks for your review')); PX.refresh(); };
   PX.ISS = ISS;
+  /* সফল EPS সাবস্ক্রিপশন পেমেন্ট (লোকাল রেকর্ড) ডেমো ডেটায় প্রয়োগ */
+  try {
+    (JSON.parse(localStorage.getItem('chaatro_eps_paid') || '[]') || []).forEach(r => {
+      if (DB.pays.some(p => p.txn === r.txn) || !PX.myEnr(r.cid)) return;
+      const id = 'p' + DB.nextPid++; DB.pays.unshift({ id, sid: 'u1', cid: r.cid, amount: r.amount, ch: 'EPS', status: 'pending', date: r.date, note: 'EPS ' + r.txn, txn: r.txn });
+      PX.confirmPay(id);
+    });
+  } catch (e) {}
 })();

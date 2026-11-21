@@ -879,6 +879,12 @@
     let d; try { const r = await fetch('/api/eps/verify?txn=' + encodeURIComponent(txn)); d = await r.json(); } catch (e) { d = { ok: false }; }
     if (!d.ok) { show('close', lang === 'bn' ? 'যাচাই করা যায়নি' : 'Could not verify', lang === 'bn' ? 'কিছুক্ষণ পর আবার চেষ্টা করুন বা সাপোর্টে যোগাযোগ করুন। লেনদেন আইডি: ' + txn : 'Try again shortly or contact support. Transaction ID: ' + txn); return; }
     if (d.status === 'SUCCESS') {
+      if (pend && pend.txn === txn && pend.kind === 'sub') {
+        if (d.amount != null && Math.abs(d.amount - pend.amount) > 0.5) { show('close', lang === 'bn' ? 'পরিমাণ মেলেনি' : 'Amount mismatch', (lang === 'bn' ? 'সাপোর্টে যোগাযোগ করুন। লেনদেন আইডি: ' : 'Please contact support. Transaction ID: ') + txn); return; }
+        if (!pend.done) { try { const l = JSON.parse(localStorage.getItem('chaatro_eps_paid') || '[]'); if (!l.some(x => x.txn === txn)) l.push({ txn, cid: pend.cid, amount: pend.amount, date: new Date().toISOString().slice(0, 10) }); localStorage.setItem('chaatro_eps_paid', JSON.stringify(l)); pend.done = true; localStorage.setItem(PEND, JSON.stringify(pend)); } catch (e) {} }
+        show('check', lang === 'bn' ? 'পেমেন্ট সফল হয়েছে' : 'Payment successful', (lang === 'bn' ? 'আপনার সাবস্ক্রিপশন পরিশোধ হয়েছে, ক্লাস চালু থাকবে। লেনদেন আইডি: ' : 'Your subscription is paid and classes stay active. Transaction ID: ') + txn, `<div class="btns"><a class="btn btn-p" href="#s-pay">${lang === 'bn' ? 'পেমেন্ট ইতিহাস দেখুন' : 'View payment history'}</a></div>`);
+        return;
+      }
       const c = pend && pend.txn === txn ? byId(COURSES, pend.cid) : null;
       if (pend && pend.txn === txn && !pend.done && c) {
         if (d.amount != null && Math.abs(d.amount - pend.amount) > 0.5) { show('close', lang === 'bn' ? 'পরিমাণ মেলেনি' : 'Amount mismatch', (lang === 'bn' ? 'সাপোর্টে যোগাযোগ করুন। লেনদেন আইডি: ' : 'Please contact support. Transaction ID: ') + txn); return; }
