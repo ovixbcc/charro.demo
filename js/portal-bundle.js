@@ -15,11 +15,12 @@
 
   PX.sec.a.bundles = () => {
     if (!can()) return UI.card('', `<div class="alert bad">${ic('shield')}<div><b>${T('এই লেভেলে অ্যাক্সেস নেই', 'No access at this level')}</b></div></div>`);
-    const items = COURSES.map(c => [c.id, `${L(c.title)} · ${mny(price(c))}`]);
+    const items = COURSES.map(c => [c.id, `${L(c.title)} — ${L(PX.TEACH(c.teacher).n)} · #${c.pid || ''} · ${mny(price(c))}`]);
     const form = `<form data-pf="bundle" class="fgrid bd-f">
       ${UI.fi({ name: 'title', label: T('বান্ডেলের নাম', 'Bundle name'), req: 1 })}
       ${UI.fi({ name: 'desc', label: T('সংক্ষিপ্ত বিবরণ', 'Short description'), rows: 2 })}
       ${UI.fi({ name: 'disc', label: T('বান্ডেল ছাড় (%)', 'Bundle discount (%)'), type: 'number', val: 10, min: 1, half: 1, req: 1, hint: T('১–৭০; সব কোর্সের দামের যোগফল থেকে কাটা হবে', '1–70; taken off the sum of course prices') })}
+      <div class="fld bd-srch"><label for="bdq">${T('টিচার বা কোর্সের নাম / আইডি দিয়ে খুঁজুন', 'Search by teacher or course name / ID')}</label><div class="bd-srow"><input id="bdq" type="search" data-pi="bdq" placeholder="${T('যেমন: তানভীর, গণিত, 3001', 'e.g. Tanvir, Math, 3001')}" autocomplete="off"><button type="button" class="btn btn-o btn-sm" data-pa="bdall">${T('দেখানো সবগুলো বেছে নিন', 'Select all shown')}</button></div><small class="hint" id="bdq-n"></small></div>
       ${UI.checks('cs', items, [], T('কোর্স বেছে নিন (৩টি, ৪টি বা যত খুশি)', 'Pick courses (3, 4 or as many as you like)')).replace(/name="cs"/g, 'name="cs" data-pc="bdpick"')}
       <div class="fld"><div id="bd-prev">${prevHtml([], 10)}</div><small class="err" id="bd-err" role="alert"></small><button class="btn btn-p">${T('বান্ডেল তৈরি করুন', 'Create bundle')}</button></div></form>`.replace('name="disc"', 'name="disc" data-pc="bdpick"');
     const rows = BUNDLES.map(b => { const k = bundleCalc(b); return [`<b>${esc(L(b.title))}</b><small class="soft">${k.cs.map(c => esc(L(c.title))).join(' + ')}</small>`, n(k.cs.length), `${mny(k.price)} <s>${mny(k.total)}</s>`, n(b.disc) + '%', esc(byL(b)), statusChip(b), `<button class="btn btn-o btn-sm" data-pa="bdtoggle" data-id="${b.id}">${b.active ? T('বন্ধ করুন', 'Disable') : T('চালু করুন', 'Enable')}</button> <button class="btn btn-o btn-sm" data-pa="bddel" data-id="${b.id}">${T('মুছুন', 'Delete')}</button>`]; });
@@ -27,6 +28,12 @@
       UI.card(T('সব বান্ডেল', 'All bundles'), rows.length ? UI.tbl([T('বান্ডেল', 'Bundle'), T('কোর্স', 'Courses'), T('দাম', 'Price'), T('ছাড়', 'Off'), T('কে বানিয়েছেন', 'Created by'), T('অবস্থা', 'Status'), ''], rows) : UI.empty(T('এখনো কোনো বান্ডেল নেই', 'No bundles yet'))) +
       `<p class="soft">${T('চালু বান্ডেল হোম পেজে ও ', 'Live bundles show on the home page and at ')}<a href="#bundles">/#bundles</a>${T(' পেজে দেখায়।', '.')}</p>`;
   };
+  PX.CHG.bdq = el => {
+    const q = el.value.toLowerCase().trim(), f = el.form; let shown = 0;
+    f.querySelectorAll('.ck-g .ck').forEach(l => { const ok = !q || l.textContent.toLowerCase().includes(q); l.hidden = !ok; if (ok) shown++; });
+    const h = document.getElementById('bdq-n'); if (h) h.textContent = q ? T(shown + 'টি কোর্স পাওয়া গেছে', shown + ' course(s) found') : '';
+  };
+  PX.ACT.bdall = a => { const f = a.closest('form'); f.querySelectorAll('.ck-g .ck:not([hidden]) input').forEach(i => { i.checked = true; }); PX.CHG.bdpick(f.querySelector('[name=cs]')); };
   PX.CHG.bdpick = el => {
     const f = el.form, ids = Array.from(f.querySelectorAll('[name=cs]:checked')).map(x => x.value), disc = Math.min(70, Math.max(1, +f.elements.disc.value || 0));
     document.getElementById('bd-prev').innerHTML = prevHtml(ids, disc);

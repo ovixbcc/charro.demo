@@ -267,6 +267,7 @@
     e.preventDefault();
     const fn = PX.FORMS[f.dataset.pf]; if (fn) fn(f, fdata(f));
   });
+  document.addEventListener('input', e => { const el = e.target.closest && e.target.closest('[data-pi]'); if (el && PX.CHG[el.dataset.pi]) PX.CHG[el.dataset.pi](el); });
   document.addEventListener('change', e => {
     const el = e.target.closest('[data-pc]'); if (!el) return;
     const fn = PX.CHG[el.dataset.pc]; if (fn) fn(el, e);

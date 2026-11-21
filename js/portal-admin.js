@@ -69,9 +69,9 @@
 
   /* ---------- টিচার CRM ---------- */
   def.teachers = ['teachers', () => {
-    const rows = TEACHERS.map(t => { const e = PX.teacherEarn(t.id), bd = DB.banned[t.id]; return [`<b>${esc(t.n.bn)}</b><small>${esc(L(t.inst))}</small>`, n(COURSES.filter(c => c.teacher === t.id).length), n(new Set(COURSES.filter(c => c.teacher === t.id).flatMap(c => PX.roster(c.id).map(u => u.id))).size), mny(e.gross), `<input class="sh" type="number" min="0" max="100" value="${e.share}" data-pc="share" data-tid="${t.id}"> %`, bd ? UI.chip(T('ব্যান', 'Banned'), 'bad') : UI.chip(T('সক্রিয়', 'Active'), 'ok'), `<button class="btn btn-o btn-sm" data-pa="ban" data-tid="${t.id}">${bd ? T('আনব্যান', 'Unban') : T('ব্যান', 'Ban')}</button>`]; });
-    const ap = DB.apps.filter(a => a.status === 'approved').map(a => [`<b>${esc(a.name)}</b><small>${esc(a.inst)}</small>`, '0', '0', mny(0), '—', UI.chip(T('নতুন', 'New'), 'info'), '']);
-    return UI.card(T('সব টিচার', 'All teachers'), UI.tbl([T('টিচার', 'Teacher'), T('কোর্স', 'Courses'), T('স্টুডেন্ট', 'Students'), T('কালেকশন', 'Gross'), T('কোম্পানি শেয়ার', 'Company share'), T('অবস্থা', 'Status'), ''], rows.concat(ap)));
+    const rows = TEACHERS.map(t => { const e = PX.teacherEarn(t.id), bd = DB.banned[t.id]; return [`<b>${esc(t.n.bn)}</b><small>${esc(L(t.inst))}</small>`, groupChip(t.id), n(COURSES.filter(c => c.teacher === t.id).length), n(new Set(COURSES.filter(c => c.teacher === t.id).flatMap(c => PX.roster(c.id).map(u => u.id))).size), mny(e.gross), `<input class="sh" type="number" min="0" max="100" value="${e.share}" data-pc="share" data-tid="${t.id}"> %`, bd ? UI.chip(T('ব্যান', 'Banned'), 'bad') : UI.chip(T('সক্রিয়', 'Active'), 'ok'), `<button class="btn btn-o btn-sm" data-pa="ban" data-tid="${t.id}">${bd ? T('আনব্যান', 'Unban') : T('ব্যান', 'Ban')}</button>`]; });
+    const ap = DB.apps.filter(a => a.status === 'approved').map(a => [`<b>${esc(a.name)}</b><small>${esc(a.inst)}</small>`, '—', '0', '0', mny(0), '—', UI.chip(T('নতুন', 'New'), 'info'), '']);
+    return UI.card(T('সব টিচার', 'All teachers'), UI.tbl([T('টিচার', 'Teacher'), T('গ্রুপ', 'Group'), T('কোর্স', 'Courses'), T('স্টুডেন্ট', 'Students'), T('কালেকশন', 'Gross'), T('কোম্পানি শেয়ার', 'Company share'), T('অবস্থা', 'Status'), ''], rows.concat(ap))) + `<p class="soft">${T('“কোম্পানি শেয়ার” টিচারের গ্রুপের পেমেন্ট টার্ম অনুযায়ী হিসাব হয়। এখানে সংখ্যা বদলালে ওই টিচারের জন্য আলাদা ফিক্সড % চালু হয় (গ্রুপের নিয়ম বাদ দিয়ে)।', 'Company share follows the teacher\'s group payment terms. Typing a number here sets a custom fixed % for that teacher and overrides the group rule.')}</p>`;
   }];
   A.ban = a => { DB.banned[a.dataset.tid] = !DB.banned[a.dataset.tid]; PX.refresh(); };
   PX.CHG.share = el => { const v = Math.max(0, Math.min(100, +el.value || 0)); DB.settings.shareTid[el.dataset.tid] = v; PX.toast(T('শেয়ার হার হালনাগাদ', 'Share updated')); PX.refresh(); };
@@ -270,6 +270,70 @@
   def.settings = ['settings', () => { const s = DB.settings; return UI.card(T('পেমেন্ট চ্যানেল', 'Payment channels'), `<form data-pf="setf" class="fgrid"><label class="ck"><input type="checkbox" name="cash" ${s.channels.cash ? 'checked' : ''}><span>${T('ক্যাশ পেমেন্ট', 'Cash')}</span></label><label class="ck"><input type="checkbox" name="bkash" ${s.channels.bkash ? 'checked' : ''}><span>${T('বিকাশ (অনলাইন) — ডেমোতে অবৈধ', 'bKash (online) — invalid in demo')}</span></label><label class="ck"><input type="checkbox" name="ssl" ${s.channels.ssl ? 'checked' : ''}><span>${T('কার্ড/গেটওয়ে — ডেমোতে অবৈধ', 'Card gateway — invalid in demo')}</span></label>${UI.fi({ name: 'share', label: T('ডিফল্ট কোম্পানি শেয়ার %', 'Default company share %'), type: 'number', min: 0, val: s.share, half: 1 })}<div class="fld"><button class="btn btn-p btn-sm">${T('সংরক্ষণ', 'Save')}</button></div></form><p class="soft">${T('কোম্পানি শেয়ারের হার নমুনা (৩০%); চূড়ান্ত হার BRD অনুযায়ী বসবে।', 'Company share is a sample (30%); final value per BRD.')}</p>`); }];
   F.setf = (f, d) => { const s = DB.settings; s.channels = { cash: !!d.cash, bkash: !!d.bkash, ssl: !!d.ssl }; s.share = Math.max(0, Math.min(100, +d.share || 0)); PX.toast(T('সেটিংস সংরক্ষিত', 'Saved')); PX.refresh(); };
 
+
+
+  /* ---------- টিচার গ্রুপ ও পেমেন্ট টার্ম ---------- */
+  DB.tgroups = DB.tgroups || [
+    { id: 'g1', name: 'Premium teachers', kind: 'tier', first: 25, next: 20, members: ['t01', 't05'] },
+    { id: 'g2', name: 'New teachers', kind: 'pct', pct: 35, members: ['t02', 't03'] },
+    { id: 'g3', name: 'Fixed-fee teachers', kind: 'amt', amt: 300, members: ['t04'] },
+  ];
+  const groupOf = tid => DB.tgroups.find(g => g.members.includes(tid));
+  const baseKey = id => String(id).replace(/-.*$/, '');
+  const rankOf = (tid, cid) => { if (!cid) return 0; const keys = []; COURSES.filter(c => c.teacher === tid).forEach(c => { const k = baseKey(c.id); if (!keys.includes(k)) keys.push(k); }); return Math.max(0, keys.indexOf(baseKey(cid))); };
+  PX.feeFor = (tid, cid, amt) => {
+    if (tid in DB.settings.shareTid) return Math.round(amt * DB.settings.shareTid[tid] / 100);
+    const g = groupOf(tid); if (!g) return Math.round(amt * DB.settings.share / 100);
+    if (g.kind === 'pct') return Math.round(amt * g.pct / 100);
+    if (g.kind === 'tier') return Math.round(amt * (rankOf(tid, cid) === 0 ? g.first : g.next) / 100);
+    if (g.kind === 'amt') return Math.min(amt, g.amt);
+    return Math.max(0, amt - g.tfix);
+  };
+  PX.teacherEarn = tid => {
+    const cs = COURSES.filter(c => c.teacher === tid).map(c => c.id); let gross = 0, company = 0;
+    DB.pays.filter(p => p.status === 'confirmed' && cs.includes(p.cid)).forEach(p => { gross += p.amount; company += PX.feeFor(tid, p.cid, p.amount); });
+    (DB.p2p || []).forEach(x => { if (x.tid === tid && (x.status === 'paid' || x.status === 'done')) { gross += x.price; company += PX.feeFor(tid, null, x.price); } });
+    const paid = DB.payouts.filter(p => p.tid === tid).reduce((a, p) => a + p.amount, 0), mine = gross - company;
+    return { gross, share: gross ? Math.round(company / gross * 1000) / 10 : (tid in DB.settings.shareTid ? DB.settings.shareTid[tid] : DB.settings.share), company, mine, paid, due: Math.max(0, mine - paid) };
+  };
+  const KINDS = { pct: ['ফিক্সড শতাংশ (প্রতি পেমেন্টে প্ল্যাটফর্ম ফি %)', 'Fixed % (platform fee on every payment)'], tier: ['ভ্যারিয়েবল: প্রথম কোর্সে এক হার, পরের কোর্সে আরেক হার', 'Variable: one % on the first course, another on later courses'], amt: ['ফিক্সড টাকা (প্রতি পেমেন্টে প্ল্যাটফর্ম ফি ৳)', 'Fixed amount (platform fee ৳ per payment)'], tfix: ['ফিক্সড পেমেন্ট টিচারকে (প্রতি পেমেন্টে টিচার ৳, বাকিটা প্ল্যাটফর্ম ফি)', 'Fixed payment to teacher (teacher gets ৳ per payment, rest is platform fee)'] };
+  const termTxt = g => g.kind === 'pct' ? T(`ফিক্সড ${n(g.pct)}% প্ল্যাটফর্ম ফি`, `Fixed ${g.pct}% platform fee`) : g.kind === 'tier' ? T(`প্রথম কোর্সে ${n(g.first)}%, পরের কোর্সে ${n(g.next)}% (ভ্যারিয়েবল)`, `${g.first}% on first course, ${g.next}% on later courses (variable)`) : g.kind === 'amt' ? T(`ফিক্সড ${mny(g.amt)} প্ল্যাটফর্ম ফি প্রতি পেমেন্টে`, `Fixed ${mny(g.amt)} platform fee per payment`) : T(`টিচার পান ফিক্সড ${mny(g.tfix)} প্রতি পেমেন্টে`, `Teacher gets fixed ${mny(g.tfix)} per payment`);
+  const exTxt = g => { const a = 3000, fee = g.kind === 'pct' ? Math.round(a * g.pct / 100) : g.kind === 'tier' ? Math.round(a * g.first / 100) : g.kind === 'amt' ? Math.min(a, g.amt) : Math.max(0, a - g.tfix); return `${mny(a)} → ${T('প্ল্যাটফর্ম', 'platform')} ${mny(fee)} / ${T('টিচার', 'teacher')} ${mny(a - fee)}`; };
+  const groupChip = tid => { const g = groupOf(tid); return tid in DB.settings.shareTid ? UI.chip(T('কাস্টম %', 'Custom %'), 'warn') : g ? UI.chip(esc(g.name), 'info') : `<small class="soft">${T('ডিফল্ট', 'Default')}</small>`; };
+  const listUI = def.teachers[1];
+  const groupsUI = () => UI.card(T('টিচার গ্রুপ ও পেমেন্ট টার্ম', 'Teacher groups & payment terms'), `<div class="pm-bar"><button class="btn btn-p btn-sm" data-pa="tgform">${ic('plus')} ${T('নতুন গ্রুপ', 'New group')}</button></div>` +
+    UI.tbl([T('গ্রুপ', 'Group'), T('পেমেন্ট টার্ম', 'Payment terms'), T('৳৩,০০০ পেমেন্টে (প্রথম কোর্স)', 'On a ৳3,000 payment (first course)'), T('টিচার', 'Teachers'), ''], DB.tgroups.map(g => [`<b>${esc(g.name)}</b>`, termTxt(g), exTxt(g), g.members.length ? g.members.map(id => esc(L(TEACH(id).n))).join(', ') : '—', `<button class="btn btn-o btn-sm" data-pa="tgform" data-id="${g.id}">${T('এডিট', 'Edit')}</button> <button class="btn btn-o btn-sm" data-pa="tgdel" data-id="${g.id}">${T('মুছুন', 'Delete')}</button>`]).concat([[`<b>${T('ডিফল্ট (কোনো গ্রুপে নেই)', 'Default (no group)')}</b>`, T(`ফিক্সড ${n(DB.settings.share)}% প্ল্যাটফর্ম ফি`, `Fixed ${DB.settings.share}% platform fee`), '', TEACHERS.filter(t => !groupOf(t.id)).length + ' ' + T('জন', 'teachers'), `<small class="soft">${T('সেটিংসে বদলানো যায়', 'Editable in Settings')}</small>`]])) +
+    `<p class="soft">${T('একজন টিচার একটি গ্রুপেই থাকতে পারেন। টিচারের নিজস্ব কাস্টম % থাকলে সেটা গ্রুপের নিয়মের চেয়ে অগ্রাধিকার পায়। “প্রথম কোর্স” মানে ওই টিচারের প্রথম তৈরি করা কোর্স (১-টু-১ ও গ্রুপ সংস্করণ একই কোর্স ধরা হয়)। P2P সমস্যা সমাধানের পেমেন্টও এই টার্ম মানে।', 'A teacher can be in one group. A teacher\'s custom % takes priority over the group rule. “First course” is the teacher\'s first created course (its 1-to-1 and group versions count as one). P2P problem-solving payments follow these terms too.')}</p>`);
+  def.teachers = ['teachers', () => { const k = PX.S.tab.tg || 'list'; return UI.tabs('tg', [['list', T('সব টিচার', 'All teachers')], ['groups', T('গ্রুপ ও পেমেন্ট টার্ম', 'Groups & payment terms')]], k) + (k === 'groups' ? groupsUI() : listUI()); }];
+  A.tgform = a => {
+    const g = a.dataset.id ? DB.tgroups.find(x => x.id === a.dataset.id) : null, v = (k, d) => g && g[k] != null ? g[k] : d;
+    const opt = (k, html) => `<div class="tg-opt" data-k="${k}" style="flex:1 1 100%" ${(g ? g.kind : 'pct') === k ? '' : 'hidden'}>${html}</div>`;
+    PX.modal(g ? T('গ্রুপ এডিট', 'Edit group') : T('নতুন টিচার গ্রুপ', 'New teacher group'), `<form data-pf="tgroup" data-id="${g ? g.id : ''}" class="fgrid">
+      ${UI.fi({ name: 'name', label: T('গ্রুপের নাম', 'Group name'), val: v('name', ''), req: 1 })}
+      ${UI.fi({ name: 'kind', label: T('পেমেন্ট টার্মের ধরন', 'Payment term type'), val: g ? g.kind : 'pct', opts: Object.keys(KINDS).map(k => [k, T(KINDS[k][0], KINDS[k][1])]) }).replace('name="kind"', 'name="kind" data-pc="tgkind"')}
+      ${opt('pct', UI.fi({ name: 'pct', label: T('প্ল্যাটফর্ম ফি (%)', 'Platform fee (%)'), type: 'number', min: 0, val: v('pct', 30) }))}
+      ${opt('tier', UI.fi({ name: 'first', label: T('প্রথম কোর্সে প্ল্যাটফর্ম ফি (%)', 'Platform fee on first course (%)'), type: 'number', min: 0, val: v('first', 30), half: 1 }) + UI.fi({ name: 'next', label: T('পরের কোর্সগুলোতে প্ল্যাটফর্ম ফি (%)', 'Platform fee on later courses (%)'), type: 'number', min: 0, val: v('next', 20), half: 1 }))}
+      ${opt('amt', UI.fi({ name: 'amt', label: T('প্রতি পেমেন্টে প্ল্যাটফর্ম ফি (৳)', 'Platform fee per payment (৳)'), type: 'number', min: 0, val: v('amt', 300) }))}
+      ${opt('tfix', UI.fi({ name: 'tfix', label: T('প্রতি পেমেন্টে টিচার পাবেন (৳)', 'Teacher gets per payment (৳)'), type: 'number', min: 0, val: v('tfix', 2000) }))}
+      <div class="fld bd-srch"><label for="tgq">${T('টিচার খুঁজে গ্রুপে যোগ করুন', 'Search teachers to add')}</label><input id="tgq" type="search" data-pi="tgq" placeholder="${T('নাম বা আইডি', 'Name or ID')}" autocomplete="off"></div>
+      ${UI.checks('mem', TEACHERS.map(t => [t.id, `${L(t.n)} · #${t.pid}${groupOf(t.id) && (!g || groupOf(t.id).id !== g.id) ? ' (' + groupOf(t.id).name + ')' : ''}`]), g ? g.members : [], T('এই গ্রুপের টিচার', 'Teachers in this group'))}
+      <div class="fld"><small class="err" id="tg-err" role="alert"></small><button class="btn btn-p">${T('সংরক্ষণ', 'Save')}</button></div></form>`, 1);
+  };
+  PX.CHG.tgkind = el => el.form.querySelectorAll('.tg-opt').forEach(o => { o.hidden = o.dataset.k !== el.value; });
+  PX.CHG.tgq = el => { const q = el.value.toLowerCase().trim(); el.form.querySelectorAll('.ck-g .ck').forEach(l => { l.hidden = !!q && !l.textContent.toLowerCase().includes(q); }); };
+  F.tgroup = (f, d) => {
+    const er = f.querySelector('#tg-err'), name = (d.name || '').trim(), kind = d.kind, num = k => Math.max(0, +d[k] || 0);
+    if (!name) { er.textContent = T('গ্রুপের নাম দিন', 'Enter a group name'); return; }
+    if (DB.tgroups.some(x => x.id !== f.dataset.id && x.name.toLowerCase() === name.toLowerCase())) { er.textContent = T('এই নামে গ্রুপ আছে', 'A group with this name exists'); return; }
+    const rec = { id: f.dataset.id || 'g' + (Math.max(0, ...DB.tgroups.map(x => +x.id.slice(1))) + 1), name, kind, members: (d.mem || []).slice() };
+    if (kind === 'pct') { rec.pct = num('pct'); if (rec.pct > 100) { er.textContent = T('% ১০০ এর বেশি হতে পারে না', '% cannot exceed 100'); return; } }
+    if (kind === 'tier') { rec.first = num('first'); rec.next = num('next'); if (rec.first > 100 || rec.next > 100) { er.textContent = T('% ১০০ এর বেশি হতে পারে না', '% cannot exceed 100'); return; } }
+    if (kind === 'amt') rec.amt = num('amt'); if (kind === 'tfix') rec.tfix = num('tfix');
+    DB.tgroups.forEach(x => { x.members = x.members.filter(id => !rec.members.includes(id)); });
+    const i = DB.tgroups.findIndex(x => x.id === rec.id); if (i >= 0) DB.tgroups[i] = rec; else DB.tgroups.push(rec);
+    PX.closeModal(); PX.toast(T('গ্রুপ সংরক্ষিত', 'Group saved')); PX.refresh();
+  };
+  A.tgdel = a => { const i = DB.tgroups.findIndex(x => x.id === a.dataset.id); if (i >= 0) DB.tgroups.splice(i, 1); PX.toast(T('গ্রুপ মুছে ফেলা হয়েছে; টিচাররা ডিফল্ট টার্মে ফিরেছেন', 'Group deleted; teachers are back on default terms')); PX.refresh(); };
 
   /* ---------- প্রোগ্রাম ও কোর্স টাইপ ম্যানেজার ---------- */
   const PCOLS = ['#8C52FF', '#6B34E0', '#4A2BA8', '#241545', '#7A3FF0', '#17102B'];
