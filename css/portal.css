@@ -212,3 +212,8 @@ fieldset { min-width: 0; }
   .pt-body { padding: .8rem .7rem 3rem; }
 }
 .fld { grid-template-columns: minmax(0, 1fr); } .pf { min-width: 0; }
+
+/* payout modal */
+.po-tabs { display: flex; gap: .5rem; margin: 1rem 0 .8rem; flex-wrap: wrap; }
+.m-box .pm-g { margin-bottom: 1rem; }
+.m-box .pm > .chip, .m-box .pm > span.chip { justify-self: start; }

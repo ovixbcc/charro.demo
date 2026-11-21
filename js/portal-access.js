@@ -51,7 +51,7 @@
 
   /* রাইট আটকানো: রিড-অনলি লেভেলে বদলানোর কাজগুলো চলবে না */
   const ACTW = { ban: 'teachers', coff: 'courses', con: 'courses', bdtoggle: 'courses', bddel: 'courses', stublock: 'students', payok: 'payments', paynout: 'payouts', remind: 'subs', subtoggle: 'subs', rqok: 'schedule', rqno: 'schedule', antog: 'content', andel: 'content', poldel: 'policies', emtog: 'staff', tkclose: 'support', cptoggle: 'pricing' };
-  const FRMW = { apdec: 'applications', cdec: 'courses', bundle: 'courses', enroll: 'students', stunote: 'students', newstu: 'students', manpay: 'payments', ann: 'content', feat: 'content', coupon: 'pricing', refcfg: 'pricing', pol: 'policies', emp: 'staff', setf: 'settings', tkreply: 'support' };
+  const FRMW = { apdec: 'applications', cdec: 'courses', bundle: 'courses', enroll: 'students', stunote: 'students', newstu: 'students', manpay: 'payments', manpayout: 'payouts', ann: 'content', feat: 'content', coupon: 'pricing', refcfg: 'pricing', pol: 'policies', emp: 'staff', setf: 'settings', tkreply: 'support' };
   const CHGW = { share: 'teachers', perm2: 'staff', permseg: 'staff' };
   const deny = () => PX.toast(T('রিড-অনলি অ্যাক্সেস: এই কাজের অনুমতি নেই', 'Read-only access: you cannot make this change'));
   const wrap = (store, map) => Object.keys(map).forEach(name => {

@@ -7,6 +7,17 @@
   const wl = k => { const w = WAL.find(x => x[0] === k); return w ? T(w[2], w[1]) : '—'; };
   PX.cashRate = k => (WAL.find(x => x[0] === k) || [0, 0, 0, 0])[3];
   DB.payAcc = DB.payAcc || {};
+  /* ডেমো পেমেন্ট তথ্য: পেআউট টেস্টের জন্য */
+  const B = (bankName, accName, accNo, routing, branch) => ({ bankName, accName, accNo, routing, branch });
+  Object.assign(DB.payAcc, {
+    t01: { pref: 'wallet', bank: null, wallet: { type: 'bkash', phone: '01711001001' } },
+    t02: { pref: 'bank', bank: B('Dutch-Bangla Bank', 'Farhana Islam', '1051234567890', '090261234', 'Mohakhali'), wallet: null },
+    t03: { pref: 'wallet', bank: null, wallet: { type: 'nagad', phone: '01822334455' } },
+    t04: { pref: 'bank', bank: B('BRAC Bank', 'Nusrat Jahan', '1501203456001', '060261726', 'Dhanmondi'), wallet: { type: 'bkash', phone: '01933445566' } },
+    t05: { pref: 'bank', bank: B('City Bank', 'Rakibul Hasan', '3101456789012', '225261234', 'Gulshan'), wallet: null },
+    t06: { pref: 'wallet', bank: null, wallet: { type: 'gpay', phone: '01644556677' } },
+    t07: { pref: 'wallet', bank: B('Islami Bank Bangladesh', 'Ariful Islam', '20501234567890', '125261234', 'Mirpur'), wallet: { type: 'bkash', phone: '01555667788' } }
+  });
   const acc = tid => DB.payAcc[tid] || (DB.payAcc[tid] = { pref: '', bank: null, wallet: null });
   const mask = s => String(s).length > 4 ? '••••' + String(s).slice(-4) : s;
   const prefOf = a => (a.pref === 'wallet' && a.wallet) ? 'wallet' : (a.pref === 'bank' && a.bank) ? 'bank' : a.wallet ? 'wallet' : a.bank ? 'bank' : '';
