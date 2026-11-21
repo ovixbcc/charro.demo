@@ -656,3 +656,11 @@ button { cursor: pointer; }
 .vb-w .vg{color:#fff}.vb-w .vg-c{background:rgba(255,255,255,.14);border-color:#fff}.vb-w .vg-c i{border-color:transparent}.vb-w .vg.wait .vg-c{background:#FFF1E6;color:var(--warn)}
 .bdg{display:inline-block;width:var(--s);height:var(--s);flex:none}.bdg svg,.bdg img{width:100%;height:100%;object-fit:cover;border-radius:50%}.bdg svg{border-radius:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18))}.bdg.lk{opacity:.55;filter:grayscale(1)}
 .bdg-strip{display:flex;gap:.35rem;margin-top:.7rem;flex-wrap:wrap}
+/* দামের স্টাইল: মূল দাম লাল কাটা, আসল দাম সি-গ্রিন, ছাড়ের অঙ্ক */
+:root{--sea:#0E9F7E;--sea-bg:#E3F8F1}
+.pr{display:inline-flex;align-items:baseline;gap:.4rem;flex-wrap:wrap}
+.pr-new,.cc-price b.pr-new,.sum dd.pr-new{color:var(--sea);font-weight:800}
+.pr-old,.cc-price s,.sum s,.opt small s,.checkout s{color:#E03131!important;text-decoration:line-through;text-decoration-thickness:2px;font-weight:500}
+.pr-off,.cc-price b.pr-off{color:var(--sea);font-style:normal;font-size:.82rem;font-weight:700;background:var(--sea-bg);padding:.05rem .4rem;border-radius:99px}
+.sum dd.pr-off{background:none;padding:0;font-size:inherit}
+.sum .tot dd{color:var(--sea)}

@@ -168,8 +168,8 @@
         </ul>
         <p class="cc-start">${ic('play')}${t(g ? 'starts' : 'starts_one')} <b>${fdate(c.start)}</b>${seats != null ? ` · <span class="${seats <= 3 ? 'warn' : ''}">${t('seats_left')} ${num(seats)}/${num(ctSeats(gf))}</span>` : ''}</p>
         <div class="cc-price">
-          ${g ? `<div><small>${esc(ctName(gf))}</small><b>${money(g.fullD)}</b> <s>${money(g.fullA)}</s></div>` : ''}
-          ${one ? `<div><small>${esc(ctName('one'))}</small><b>${money(one.fullD)}</b> <s>${money(one.fullA)}</s></div>` : ''}
+          ${g ? `<div><small>${esc(ctName(gf))}</small>${prc(g.fullA, g.fullD)}</div>` : ''}
+          ${one ? `<div><small>${esc(ctName('one'))}</small>${prc(one.fullA, one.fullD)}</div>` : ''}
         </div>
         <a class="btn btn-p btn-block" href="#course-${c.id}">${t('details')}${ic('arrow')}</a>
       </div>
@@ -360,7 +360,7 @@
       <div class="cc-body"><div class="tags"><span class="tag tag-bd">${num(k.cs.length)} ${t('bd_n')}</span></div>
         <h3 class="cc-title"><a href="#bundle-${b.id}">${esc(L(b.title))}</a></h3>
         <ul class="bd-l">${k.cs.slice(0, 4).map(c => `<li>${ic('check')}${esc(L(c.title))}</li>`).join('')}${k.cs.length > 4 ? `<li class="mute">+ ${num(k.cs.length - 4)} ${t('bd_more')}</li>` : ''}</ul>
-        <div class="cc-price"><div><small>${t('bd_price')}</small><b>${money(k.price)}</b> <s>${money(k.total)}</s></div><div><small>${t('bd_you_save')}</small><b class="okm">${money(k.save)}</b></div></div>
+        <div class="cc-price"><div><small>${t('bd_price')}</small>${prc(k.total, k.price)}</div></div>
         <a class="btn btn-p btn-block" href="#bundle-${b.id}">${t('details')}${ic('arrow')}</a></div></article>`;
   }
   function viewBundles() {
@@ -378,12 +378,14 @@
       <section class="blk"><h2>${t('bd_incl')}</h2><div class="grid grid-c2">${k.cs.map(courseCard).join('')}</div></section></div>
       <aside class="cd-side"><div class="checkout"><h3>${t('bd_summary')}</h3>
         <ul class="ck-l">${k.cs.map(c => `<li><span>${esc(L(c.title))}</span><b>${money(pricingFor(c)[c.formats[0]].fullD)}</b></li>`).join('')}</ul>
-        <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s>${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')} (${num(b.disc)}%)</dt><dd>− ${money(k.save)}</dd></div><div class="tot"><dt>${t('bd_price')}</dt><dd>${money(k.price)}</dd></div></dl>
+        <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s class="pr-old">${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')} (${num(b.disc)}%)</dt><dd class="pr-off">− ${money(k.save)}</dd></div><div class="tot"><dt>${t('bd_price')}</dt><dd class="pr-new">${money(k.price)}</dd></div></dl>
         <a class="btn btn-p btn-block btn-lg" href="#bpay-${b.id}">${t('bd_enrol')}${ic('arrow')}</a><p class="co-note">${ic('video')}${t('bd_note')}</p></div></aside></div>`;
   }
   function viewBundlePay(id) {
     const b = byId(BUNDLES, id); if (!b || !b.active) return view404();
-    const k = bundleCalc(b); if (k.cs.length < 2) return view404();
+    const k = bdFinal(b); if (k.cs.length < 2) return view404();
+    const cpn = `<div class="coupon"><label for="bcpn">${t('co_coupon')}</label><div class="cp-row"><input id="bcpn" type="text" value="${esc(BCO.id === b.id ? BCO.input : '')}" placeholder="BUNDLE10" autocomplete="off" autocapitalize="characters"><button type="button" class="btn btn-o" data-act="bapply" data-id="${b.id}">${t('apply')}</button></div>
+          <small class="${k.cp ? 'okm' : BCO.id === b.id && BCO.err ? 'err' : 'hint'}" role="status">${k.cp ? '✓ ' + esc(L(k.cp)) : BCO.id === b.id && BCO.err ? t('cp_bad') : t('cp_hint')}</small></div>`;
     return pagehead(t('ck_t'), t('ck_d'), `<span>/</span><a href="#bundle-${b.id}">${esc(L(b.title))}</a><span>/</span><span>${t('ck_t')}</span>`) +
       sec('', '', `<div class="ck-wrap" id="ck-wrap"><form class="bt-form" data-form="bcheckout" data-id="${b.id}" novalidate>
         <h3 class="fs-t">${t('ck_details')}</h3>
@@ -395,8 +397,8 @@
         <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button><p class="mute sm center">${t('ck_demo')}</p></form>
         <aside class="checkout"><h3>${t('ck_summary')}</h3><div class="ck-c" style="--cc:${progColor(k.cs[0].program)}"><span class="ck-code">${t('bd_tag')}</span><span><b>${esc(L(b.title))}</b><small>${num(k.cs.length)} ${t('bd_n')}</small></span></div>
           <ul class="ck-l">${k.cs.map(c => `<li><span>${esc(L(c.title))}</span><b>${money(pricingFor(c)[c.formats[0]].fullD)}</b></li>`).join('')}</ul>
-          <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s>${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')}</dt><dd>− ${money(k.save)}</dd></div><div class="tot"><dt>${t('sum_total')}</dt><dd>${money(k.price)}</dd></div></dl>
-          <a class="btn btn-o btn-block" href="#bundle-${b.id}">${t('ck_change')}</a><p class="co-note">${ic('video')}${t('bd_coupon_note')}</p></aside></div>`);
+          <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s class="pr-old">${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')}</dt><dd class="pr-off">− ${money(k.save)}</dd></div>${k.cut ? `<div class="ok"><dt>${t('sum_cp')}</dt><dd class="pr-off">− ${money(k.cut)}</dd></div>` : ''}<div class="tot"><dt>${t('sum_total')}</dt><dd class="pr-new">${money(k.final)}</dd></div></dl>${cpn}
+          <a class="btn btn-o btn-block" href="#bundle-${b.id}">${t('ck_change')}</a></aside></div>`);
   }
 
   function viewHome() {
@@ -476,6 +478,11 @@
     const p = pricingFor(c)[fmt];
     return [{ key: 'full', m: 0, actual: p.fullA, disc: p.fullD }, { key: 'month', m: 1, actual: p.perA, disc: p.perD }];
   }
+  /* দাম: মূল দাম লাল কাটা, আসল (ছাড়ের পর) দাম সি-গ্রিন, সঙ্গে ছাড়ের অঙ্ক */
+  const prc = (a, d) => `<span class="pr"><b class="pr-new">${money(d)}</b>${a > d ? ` <s class="pr-old">${money(a)}</s> <em class="pr-off">− ${money(a - d)}</em>` : ''}</span>`;
+  const BCO = { id: '', code: '', input: '', err: false };
+  const bcouponFor = (b, code) => { const cp = COUPONS[code]; return cp && cp.active !== false && (cp.scope === 'bundles' || cp.scope === 'b:' + b.id) ? cp : null; };
+  const bdFinal = b => { const k = bundleCalc(b), cp = BCO.id === b.id ? bcouponFor(b, BCO.code) : null, cut = cp ? (cp.type === 'pct' ? Math.round(k.price * cp.v / 100) : Math.min(cp.v, k.price)) : 0; return Object.assign({}, k, { cp, cut, final: k.price - cut }); };
   const cyc = (c, o) => (o.m === 0 ? 1 : Math.max(1, Math.ceil(c.months / o.m)));
   const planLabel = o => (o.m === 0 ? t('plan_full') : (lang === 'bn' ? 'প্রতি ' + num(o.m) + ' মাস পর পর' : 'Every ' + o.m + (o.m === 1 ? ' month' : ' months')));
   const firstOf = o => (o.m === 0 ? o.disc : (o.first != null ? o.first : o.disc));
@@ -510,7 +517,8 @@
         <div class="cp-row"><input id="cpn" type="text" value="${esc(st.input || '')}" placeholder="CHAATRO10" autocomplete="off" autocapitalize="characters"><button class="btn btn-o" data-act="apply">${t('apply')}</button></div>
         <small class="${cp ? 'okm' : st.err ? 'err' : 'hint'}" role="status">${cp ? '✓ ' + esc(L(cp)) : st.err ? t('cp_bad') : t('cp_hint')}</small></div>
       <dl class="sum">
-        <div><dt>${t('sum_price')}</dt><dd>${money(k.disc)}</dd></div>
+        ${k.actual > k.disc ? `<div><dt>${lang === 'bn' ? 'আসল দাম' : 'Actual price'}</dt><dd><s class="pr-old">${money(k.actual)}</s></dd></div><div class="ok"><dt>${lang === 'bn' ? 'ছাড়' : 'Discount'}</dt><dd class="pr-off">− ${money(k.actual - k.disc)}</dd></div>` : ''}
+        <div><dt>${t('sum_price')}</dt><dd class="pr-new">${money(k.disc)}</dd></div>
         ${k.cut ? `<div class="ok"><dt>${t('sum_cp')}</dt><dd>− ${money(k.cut)}</dd></div>` : ''}
         <div class="tot"><dt>${t('sum_total')}</dt><dd>${money(k.total)}</dd></div>
         <div class="now"><dt>${k.one ? t('sum_now') : t('sum_first')}</dt><dd>${money(k.now)}</dd></div>
@@ -1103,6 +1111,11 @@
     else if (act === 'prev') { showSlide(slide - 1); stopSlides(); }
     else if (act === 'dot') { showSlide(+a.dataset.i); stopSlides(); }
     else if (act === 'coupon-note') { location.hash = '#courses'; }
+    else if (act === 'bapply') {
+      const b = byId(BUNDLES, a.dataset.id), code = ($('#bcpn').value || '').trim().toUpperCase(); BCO.id = b.id; BCO.input = code;
+      if (bcouponFor(b, code)) { BCO.code = code; BCO.err = false; } else { BCO.code = ''; BCO.err = !!code; }
+      render(true);
+    }
     else if (act === 'apply') {
       const code = ($('#cpn').value || '').trim().toUpperCase(); CO.input = code;
       if (couponFor(byId(COURSES, CO.id), code)) { CO.code = code; CO.err = false; } else { CO.code = ''; CO.err = !!code; }
@@ -1152,7 +1165,7 @@
     showErrors(f, errs); if (Object.keys(errs).length) return;
     if (dest) { location.hash = dest; return; }
     if (kind === 'bcheckout') {
-      const b = byId(BUNDLES, f.dataset.id), k = bundleCalc(b), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
+      const b = byId(BUNDLES, f.dataset.id), k0 = bdFinal(b), k = Object.assign({}, k0, { price: k0.final }), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
       mkRc(f, oid, [[t('bd_tag'), L(b.title)]].concat(k.cs.map(x => [t('nav_courses'), L(x.title)])), money(k.price));
       $('#ck-wrap').innerHTML = `<div class="bt-form done-w"><div class="done"><span class="done-i">${ic('check')}</span><h3>${t('ck_done_t')}</h3><p>${t('ck_done_d')}</p>
         <dl class="sum"><div><dt>${t('order_id')}</dt><dd>${oid}</dd></div><div><dt>${t('bd_tag')}</dt><dd>${esc(L(b.title))}</dd></div><div><dt>${t('bd_n')}</dt><dd>${num(k.cs.length)}</dd></div><div><dt>${t('sum_total')}</dt><dd>${money(k.price)}</dd></div><div><dt>${t('f_name')}</dt><dd>${esc(f.elements.en_name.value.trim())}</dd></div><div><dt>${t('status')}</dt><dd>${t('ck_status')}</dd></div></dl>

@@ -213,10 +213,10 @@
       <a class="btn btn-o" href="#home">${T('সাইটে ফিরুন', 'Back to site')}</a></div></div>`;
   }
   /* কুপনের প্রযোজ্যতা: '' = সব কোর্স, 't:<টিচার>' = ওই টিচারের সব কোর্স, অন্যথায় নির্দিষ্ট কোর্স */
-  PX.scopeLabel = s => { if (!s) return T('সব কোর্স', 'All courses'); if (s.startsWith('t:')) { const t = TEACH(s.slice(2)); return T('সব কোর্স: ', 'All courses: ') + (t ? CH.L(t.n) : s.slice(2)); } const c = COURSE(s) || COURSE(s + '-1on1'); return c ? CH.L(c.title) : s; };
+  PX.scopeLabel = s => { if (!s) return T('সব কোর্স', 'All courses'); if (s === 'bundles') return T('সব বান্ডেল কোর্স', 'All bundles'); if (s.startsWith('b:')) { const b = CH.byId(BUNDLES, s.slice(2)); return T('বান্ডেল: ', 'Bundle: ') + (b ? CH.L(b.title) : s.slice(2)); } if (s.startsWith('t:')) { const t = TEACH(s.slice(2)); return T('সব কোর্স: ', 'All courses: ') + (t ? CH.L(t.n) : s.slice(2)); } const c = COURSE(s) || COURSE(s + '-1on1'); return c ? CH.L(c.title) : s; };
   PX.scopeOpts = tid => tid
     ? [['t:' + tid, T('আমার সব কোর্স', 'All my courses')]].concat(COURSES.filter(c => c.teacher === tid).map(c => [c.id, CH.L(c.title)]))
-    : [['', T('সব কোর্স (পুরো সাইট)', 'All courses (whole site)')]].concat(TEACHERS.map(t => ['t:' + t.id, T('সব কোর্স: ', 'All courses: ') + CH.L(t.n)]), COURSES.map(c => [c.id, CH.L(c.title)]));
+    : [['', T('সব কোর্স (পুরো সাইট)', 'All courses (whole site)')]].concat(TEACHERS.map(t => ['t:' + t.id, T('সব কোর্স: ', 'All courses: ') + CH.L(t.n)]), COURSES.map(c => [c.id, CH.L(c.title)]), [['bundles', T('সব বান্ডেল কোর্স', 'All bundles')]], BUNDLES.map(b => ['b:' + b.id, T('বান্ডেল: ', 'Bundle: ') + CH.L(b.title)]));
   PX.syncCoupons = () => { Object.keys(COUPONS).forEach(k => { if (!DB.coupons.some(c => c.code === k)) delete COUPONS[k]; }); DB.coupons.forEach(c => { COUPONS[c.code] = Object.assign(COUPONS[c.code] || {}, { type: c.type, v: c.v, scope: c.scope || '', active: c.active, bn: c.type === 'pct' ? CH.num(c.v) + '% ছাড়' : '৳' + CH.num(c.v) + ' ছাড়', en: c.type === 'pct' ? c.v + '% off' : '৳' + c.v + ' off' }); }); };
   PX.view = (role, sec, arg) => {
     PX.syncCoupons();
