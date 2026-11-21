@@ -166,3 +166,6 @@ hr { border: 0; border-top: 1.5px solid var(--line); margin: .3rem 0; }
 .att img{width:36px;height:36px;object-fit:cover;border-radius:8px}
 .att svg{width:20px;height:20px;color:#8C52FF;flex:none}
 .att span{display:flex;flex-direction:column;min-width:0}.att b{font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}.att small{color:#777;font-size:.72rem}
+.ph-wrap{display:flex;align-items:center;gap:1rem;grid-column:1/-1}
+.ph-prev{width:84px;height:84px;border-radius:50%;background:#f1e9ff;color:#8C52FF;display:grid;place-items:center;font-weight:800;font-size:2rem;overflow:hidden;flex:none}
+.ph-prev img{width:100%;height:100%;object-fit:cover}.ph-lg{width:72px;height:72px}
