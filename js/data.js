@@ -275,16 +275,27 @@ const FAQS = [
     a: { bn: '“বিকাম এ টিচার” পেজে ফর্ম পূরণ করে CV ও প্রয়োজনীয় ডকুমেন্ট আপলোড করুন। আমাদের টিম যাচাই করে অনুমোদন দিলে আপনি কোর্স চালু করতে পারবেন।', en: 'Fill in the form on the Become a Teacher page and upload your CV and documents. Once our team verifies and approves you, you can launch courses.' } },
 ];
 
+/* ---------- ক্লাসের ধরন (কোর্স টাইপ): অ্যাডমিন সিট-লিমিট বদলাতে ও নতুন ধরন বানাতে পারে ---------- */
+const CTYPES = [
+  { id: 'one', bn: '১-টু-১', en: '1-to-1', seats: 1, on: true, base: true },
+  { id: 'group', bn: 'গ্রুপ অফ ৭', en: 'Group of 7', seats: 7, on: true, base: true },
+];
+const ctype = id => CTYPES.find(x => x.id === id) || CTYPES[1];
+const ctSeats = id => ctype(id).seats;
+const progOn = id => { const p = PROGRAMS.find(x => x.id === id); return !p || !p.hidden; };
+const liveCourses = () => COURSES.filter(c => progOn(c.program));
+
 /* ---------- হিসাব / helpers ---------- */
 const round50 = x => Math.round(x / 50) * 50;
 
 function pricingFor(c) {
-  const mk = (mult, off) => {
+  const mk = (mult, off, seats) => {
     const fullA = round50(c.base * mult), fullD = round50(c.base * mult * off);
-    return { fullA, fullD, months: c.months, perA: round50(fullA * 1.1 / c.months), perD: round50(fullD * 1.1 / c.months), seats: mult === 1 ? 7 : 1 };
+    return { fullA, fullD, months: c.months, perA: round50(fullA * 1.1 / c.months), perD: round50(fullD * 1.1 / c.months), seats };
   };
-  const r = { group: mk(1, 0.88), one: mk(2.8, 0.9) };
-  if (c.plans) ['group', 'one'].forEach(f => { if (c.plans[f] && c.plans[f].length) r[f] = fromPlans(c, c.plans[f], r[f].seats); });
+  const r = { group: mk(1, 0.88, ctSeats('group')), one: mk(2.8, 0.9, 1) };
+  CTYPES.forEach(x => { if (!r[x.id]) r[x.id] = mk(1, 0.88, x.seats); });
+  if (c.plans) Object.keys(c.plans).forEach(f => { if (r[f] && c.plans[f] && c.plans[f].length) r[f] = fromPlans(c, c.plans[f], r[f].seats); });
   return r;
 }
 /* পেমেন্ট প্ল্যান: m = কত মাস পর পর (০ = একবারে), actual/disc = প্রতিবারের দাম, first = প্রথমবারের আলাদা দাম (ঐচ্ছিক) */
@@ -354,7 +365,7 @@ const BLOG = [
 
 /* প্রতিটি কোর্স একটি মাত্র ক্লাস-ধরনের: ১-টু-১ ও গ্রুপ আলাদা কোর্স */
 (function () {
-  const out = [], sfx = { one: [' · ১-টু-১', ' · 1-to-1'], group: [' · গ্রুপ (১-টু-৭)', ' · Group (1-to-7)'] };
+  const out = [], sfx = { one: [' · ১-টু-১', ' · 1-to-1'], group: [' · গ্রুপ অফ ৭', ' · Group of 7'] };
   const tag = (c, f) => { c.title = { bn: c.title.bn + sfx[f][0], en: c.title.en + sfx[f][1] }; return c; };
   COURSES.forEach(c => {
     const fs = c.formats.slice();

@@ -217,3 +217,4 @@ fieldset { min-width: 0; }
 .po-tabs { display: flex; gap: .5rem; margin: 1rem 0 .8rem; flex-wrap: wrap; }
 .m-box .pm-g { margin-bottom: 1rem; }
 .m-box .pm > .chip, .m-box .pm > span.chip { justify-self: start; }
+.pm-bar { display: flex; justify-content: flex-end; margin-bottom: .6rem; }

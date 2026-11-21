@@ -17,7 +17,7 @@
   setL('academic', { applications: 2, teachers: 2, courses: 2, students: 1, schedule: 2, support: 2, reviews: 2, content: 1 });
   setL('dev', { content: 2, pricing: 1, policies: 2, settings: 2 });
 
-  const PERM_OF = { home: null, profile: null, newcourse: 'courses', bundles: 'courses', referral: 'pricing' };
+  const PERM_OF = { home: null, profile: null, newcourse: 'courses', bundles: 'courses', referral: 'pricing', programs: 'courses' };
   const permKey = sec => sec in PERM_OF ? PERM_OF[sec] : sec;
   const lvl = k => (k ? (DB.levels[PX.S.level].perms[k] || 0) : 2);
   const curSec = () => { const m = location.hash.match(/^#a-([a-z0-9]+)/); return m ? m[1] : null; };
@@ -50,8 +50,8 @@
   PX.nav.a = () => navA().map(x => { const k = permKey(x.k); return k && lvl(k) === 1 ? Object.assign({}, x, { l: x.l + ' · ' + T('রিড', 'read') }) : x; });
 
   /* রাইট আটকানো: রিড-অনলি লেভেলে বদলানোর কাজগুলো চলবে না */
-  const ACTW = { ban: 'teachers', coff: 'courses', con: 'courses', bdtoggle: 'courses', bddel: 'courses', stublock: 'students', payok: 'payments', paynout: 'payouts', refpay: 'pricing', remind: 'subs', subtoggle: 'subs', rqok: 'schedule', rqno: 'schedule', antog: 'content', andel: 'content', poldel: 'policies', emtog: 'staff', tkclose: 'support', cptoggle: 'pricing' };
-  const FRMW = { apdec: 'applications', cdec: 'courses', bundle: 'courses', enroll: 'students', stunote: 'students', newstu: 'students', manpay: 'payments', manpayout: 'payouts', ann: 'content', feat: 'content', coupon: 'pricing', refcfg: 'pricing', pol: 'policies', emp: 'staff', setf: 'settings', tkreply: 'support' };
+  const ACTW = { ban: 'teachers', coff: 'courses', con: 'courses', bdtoggle: 'courses', bddel: 'courses', stublock: 'students', payok: 'payments', paynout: 'payouts', refpay: 'pricing', progtoggle: 'courses', cttoggle: 'courses', remind: 'subs', subtoggle: 'subs', rqok: 'schedule', rqno: 'schedule', antog: 'content', andel: 'content', poldel: 'policies', emtog: 'staff', tkclose: 'support', cptoggle: 'pricing' };
+  const FRMW = { apdec: 'applications', cdec: 'courses', bundle: 'courses', enroll: 'students', stunote: 'students', newstu: 'students', manpay: 'payments', manpayout: 'payouts', prog: 'courses', ctype: 'courses', ann: 'content', feat: 'content', coupon: 'pricing', refcfg: 'pricing', pol: 'policies', emp: 'staff', setf: 'settings', tkreply: 'support' };
   const CHGW = { share: 'teachers', perm2: 'staff', permseg: 'staff' };
   const deny = () => PX.toast(T('রিড-অনলি অ্যাক্সেস: এই কাজের অনুমতি নেই', 'Read-only access: you cannot make this change'));
   const wrap = (store, map) => Object.keys(map).forEach(name => {

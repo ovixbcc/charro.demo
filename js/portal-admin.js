@@ -11,6 +11,7 @@
     ['applications', 'টিচার আবেদন', 'Teacher applications', 'file', 'applications'],
     ['teachers', 'টিচার CRM', 'Teachers CRM', 'users', 'teachers'],
     ['courses', 'কোর্স অনুমোদন', 'Courses', 'book', 'courses'],
+    ['programs', 'প্রোগ্রাম ও কোর্স টাইপ', 'Programs & course types', 'book', 'courses'],
     ['students', 'স্টুডেন্ট CRM', 'Students CRM', 'user', 'students'],
     ['payments', 'পেমেন্ট', 'Payments', 'award', 'payments'],
     ['payouts', 'পেআউট ও আয়', 'Payouts & earnings', 'award', 'payouts'],
@@ -109,11 +110,11 @@
       <form data-pf="enroll" data-id="${u.id}" class="fgrid">${PX.idField('cq', T('কোর্সে এনরোল (কোর্স আইডি)', 'Enroll in course (course ID)'), 'c', true)}<div class="fld half"><label>&nbsp;</label><button class="btn btn-p btn-sm">${T('এনরোল', 'Enroll')}</button></div></form>
       <form data-pf="stunote" data-id="${u.id}">${UI.fi({ name: 'note', label: T('CRM নোট', 'CRM note'), rows: 2, val: (DB.notes[u.id] || '') })}<div class="btns"><button class="btn btn-o btn-sm">${T('নোট সংরক্ষণ', 'Save note')}</button> <button type="button" class="btn btn-o btn-sm danger" data-pa="stublock" data-id="${u.id}">${u.blocked ? T('আনব্লক', 'Unblock') : T('ব্লক', 'Block')}</button></div></form>`, true);
   };
-  F.enroll = (f, d) => { const u = stu(f.dataset.id), r = PX.pick1('c', d.cq); if (r.err) { PX.toast(r.err); return; } const c = r.v; if (u.courses.includes(c.id)) { PX.toast(T('স্টুডেন্ট এই কোর্সে আগেই আছে', 'Already enrolled')); return; } u.courses.push(c.id); DB.pays.push({ id: 'p' + DB.nextPid++, sid: u.id, cid: c.id, amount: pricingFor(c)[c.formats[0]].perD, ch: 'cash', status: 'pending', date: TODAY, note: 'অ্যাডমিন এনরোল' }); PX.closeModal(); PX.toast(T('এনরোল করা হয়েছে: ', 'Enrolled: ') + L(c.title)); PX.refresh(); };
+  F.enroll = (f, d) => { const u = stu(f.dataset.id), r = PX.pick1('c', d.cq); if (r.err) { PX.toast(r.err); return; } const c = r.v; if (u.courses.includes(c.id)) { PX.toast(T('স্টুডেন্ট এই কোর্সে আগেই আছে', 'Already enrolled')); return; } if (!c.formats.includes('one')) { if (c.seats <= 0) { PX.toast(T('এই ব্যাচের সিট পূর্ণ', 'This batch is full')); return; } c.seats--; } u.courses.push(c.id); DB.pays.push({ id: 'p' + DB.nextPid++, sid: u.id, cid: c.id, amount: pricingFor(c)[c.formats[0]].perD, ch: 'cash', status: 'pending', date: TODAY, note: 'অ্যাডমিন এনরোল' }); PX.closeModal(); PX.toast(T('এনরোল করা হয়েছে: ', 'Enrolled: ') + L(c.title)); PX.refresh(); };
   F.stunote = (f, d) => { DB.notes[f.dataset.id] = d.note; PX.toast(T('নোট সংরক্ষিত', 'Saved')); };
   A.stublock = a => { const u = stu(a.dataset.id); u.blocked = !u.blocked; PX.closeModal(); PX.refresh(); };
   A.qenrol = () => PX.modal(T('আইডি দিয়ে ম্যানুয়াল এনরোল', 'Manual enrolment by ID'), `<form data-pf="qenrol" class="fgrid">${PX.idField('sq', T('স্টুডেন্ট (আইডি / ফোন / নাম)', 'Student (ID / phone / name)'), 's', true)}${PX.idField('cq', T('কোর্স আইডি', 'Course ID'), 'c', true)}<div class="fld"><button class="btn btn-p">${T('এনরোল করুন', 'Enrol')}</button></div></form>`);
-  F.qenrol = (f, d) => { const s = PX.pick1('s', d.sq), c = PX.pick1('c', d.cq); if (s.err || c.err) { PX.toast(s.err || c.err); return; } const u = s.v; if (u.courses.includes(c.v.id)) { PX.toast(T('স্টুডেন্ট এই কোর্সে আগেই আছে', 'Already enrolled')); return; } u.courses.push(c.v.id); DB.pays.push({ id: 'p' + DB.nextPid++, sid: u.id, cid: c.v.id, amount: pricingFor(c.v)[c.v.formats[0]].perD, ch: 'cash', status: 'pending', date: TODAY, note: 'অ্যাডমিন এনরোল' }); PX.closeModal(); PX.toast(T('এনরোল করা হয়েছে: ', 'Enrolled: ') + u.name + ' → ' + L(c.v.title)); PX.refresh(); };
+  F.qenrol = (f, d) => { const s = PX.pick1('s', d.sq), c = PX.pick1('c', d.cq); if (s.err || c.err) { PX.toast(s.err || c.err); return; } const u = s.v; if (u.courses.includes(c.v.id)) { PX.toast(T('স্টুডেন্ট এই কোর্সে আগেই আছে', 'Already enrolled')); return; } if (!c.v.formats.includes('one')) { if (c.v.seats <= 0) { PX.toast(T('এই ব্যাচের সিট পূর্ণ', 'This batch is full')); return; } c.v.seats--; } u.courses.push(c.v.id); DB.pays.push({ id: 'p' + DB.nextPid++, sid: u.id, cid: c.v.id, amount: pricingFor(c.v)[c.v.formats[0]].perD, ch: 'cash', status: 'pending', date: TODAY, note: 'অ্যাডমিন এনরোল' }); PX.closeModal(); PX.toast(T('এনরোল করা হয়েছে: ', 'Enrolled: ') + u.name + ' → ' + L(c.v.title)); PX.refresh(); };
   A.newstu = () => PX.modal(T('নতুন স্টুডেন্ট', 'New student'), `<form data-pf="newstu" class="fgrid">${UI.fi({ name: 'name', label: T('নাম', 'Name'), req: 1, half: 1 })}${UI.fi({ name: 'phone', label: T('ফোন', 'Phone'), req: 1, half: 1 })}${UI.fi({ name: 'district', label: T('জেলা', 'District'), half: 1 })}${PX.idField('cq', T('কোর্স আইডি (ঐচ্ছিক)', 'Course ID (optional)'), 'c', false)}<div class="fld"><button class="btn btn-p">${T('তৈরি করুন', 'Create')}</button></div></form>`);
   F.newstu = (f, d) => { const id = 'u' + (DB.crm.length + 1), r = (d.cq || '').trim() ? PX.pick1('c', d.cq) : { v: null }; if (r.err) { PX.toast(r.err); return; } const sid = Math.max(20000, ...DB.crm.map(x => x.sid || 0)) + 1; DB.crm.push({ id, sid, name: d.name, phone: d.phone, email: id + '@example.com', district: d.district || '—', level: '—', joined: TODAY, courses: r.v ? [r.v.id] : [], notes: [], blocked: false, ref: '', guardian: { name: '—', phone: '—' } }); PX.closeModal(); PX.toast(T('স্টুডেন্ট তৈরি হয়েছে। আইডি: ', 'Student created. ID: ') + sid); PX.refresh(); };
 
@@ -197,7 +198,7 @@
     return UI.card(T('কুপন তৈরি', 'Create coupon'), `<form data-pf="coupon" data-by="admin" class="fgrid">${UI.fi({ name: 'code', label: T('কোড', 'Code'), req: 1, half: 1 })}${UI.fi({ name: 'type', label: T('ধরন', 'Type'), half: 1, opts: [['pct', T('শতকরা %', 'Percent')], ['flat', T('ফিক্সড ৳', 'Fixed ৳')]] })}${UI.fi({ name: 'v', label: T('পরিমাণ', 'Value'), type: 'number', req: 1, half: 1, min: 1 })}${UI.fi({ name: 'scope', label: T('প্রযোজ্য (সব / টিচারের সব কোর্স / একটি কোর্স)', 'Applies to (all / a teacher\'s courses / one course)'), opts: PX.scopeOpts('') })}${UI.fi({ name: 'limit', label: T('সর্বোচ্চ ব্যবহার', 'Max uses'), type: 'number', val: 100, half: 1 })}${UI.fi({ name: 'expiry', label: T('মেয়াদ', 'Expiry'), type: 'date', val: '2026-12-31', half: 1 })}<div class="fld"><button class="btn btn-p btn-sm">${T('তৈরি', 'Create')}</button></div></form>`) +
       UI.card(T('সব কুপন (অ্যাডমিন ও টিচার)', 'All coupons'), PX.couponTbl(DB.coupons, true)) +
       `<div class="alert info">${ic('check')}<div><p>${T('রেফারেল বোনাস কনফিগ ও তালিকা এখন আলাদা “রেফারেল” মেনুতে — স্টুডেন্ট ও টিচারের জন্য আলাদা।', 'Referral bonus settings and lists moved to the separate “Referral” menu — separate for students and teachers.')} <a href="#a-referral">${T('রেফারেল খুলুন', 'Open referral')}</a></p></div></div>` +
-      UI.card(T('ক্লাসের ধরন', 'Class types'), UI.tbl([T('ধরন', 'Type'), T('সিট', 'Seats')], DB.classTypes.map(c => [esc(c.bn), n(c.seats)])) + `<p class="soft">${T('মূল্য ও মেয়াদ (১/৩/৬/১২ মাস) টিচার কোর্স তৈরির সময় নির্ধারণ করে; অ্যাডমিন অনুমোদনের সময় যাচাই করে।', 'Tenure and price are set by teachers at course creation; admin reviews them.')}</p>`);
+      UI.card(T('ক্লাসের ধরন', 'Class types'), `<p class="soft">${T('কোর্স টাইপ (যেমন গ্রুপ অফ ৭), সর্বোচ্চ সিট ও নতুন টাইপ এখন আলাদা মেনুতে।', 'Course types (e.g. Group of 7), max seats and new types are managed in a separate menu.')} <a href="#a-programs">${T('প্রোগ্রাম ও কোর্স টাইপ খুলুন', 'Open Programs & course types')}</a></p><p class="soft">${T('মূল্য ও মেয়াদ (১/৩/৬/১২ মাস) টিচার কোর্স তৈরির সময় নির্ধারণ করে; অ্যাডমিন অনুমোদনের সময় যাচাই করে।', 'Tenure and price are set by teachers at course creation; admin reviews them.')}</p>`);
   }];
   /* ---------- রেফারেল: স্টুডেন্ট ও টিচার আলাদা ---------- */
   DB.refAll = DB.refAll || (() => {
@@ -268,6 +269,73 @@
   /* ---------- সেটিংস ---------- */
   def.settings = ['settings', () => { const s = DB.settings; return UI.card(T('পেমেন্ট চ্যানেল', 'Payment channels'), `<form data-pf="setf" class="fgrid"><label class="ck"><input type="checkbox" name="cash" ${s.channels.cash ? 'checked' : ''}><span>${T('ক্যাশ পেমেন্ট', 'Cash')}</span></label><label class="ck"><input type="checkbox" name="bkash" ${s.channels.bkash ? 'checked' : ''}><span>${T('বিকাশ (অনলাইন) — ডেমোতে অবৈধ', 'bKash (online) — invalid in demo')}</span></label><label class="ck"><input type="checkbox" name="ssl" ${s.channels.ssl ? 'checked' : ''}><span>${T('কার্ড/গেটওয়ে — ডেমোতে অবৈধ', 'Card gateway — invalid in demo')}</span></label>${UI.fi({ name: 'share', label: T('ডিফল্ট কোম্পানি শেয়ার %', 'Default company share %'), type: 'number', min: 0, val: s.share, half: 1 })}<div class="fld"><button class="btn btn-p btn-sm">${T('সংরক্ষণ', 'Save')}</button></div></form><p class="soft">${T('কোম্পানি শেয়ারের হার নমুনা (৩০%); চূড়ান্ত হার BRD অনুযায়ী বসবে।', 'Company share is a sample (30%); final value per BRD.')}</p>`); }];
   F.setf = (f, d) => { const s = DB.settings; s.channels = { cash: !!d.cash, bkash: !!d.bkash, ssl: !!d.ssl }; s.share = Math.max(0, Math.min(100, +d.share || 0)); PX.toast(T('সেটিংস সংরক্ষিত', 'Saved')); PX.refresh(); };
+
+
+  /* ---------- প্রোগ্রাম ও কোর্স টাইপ ম্যানেজার ---------- */
+  const PCOLS = ['#8C52FF', '#6B34E0', '#4A2BA8', '#241545', '#7A3FF0', '#17102B'];
+  const bnDig = x => String(x).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  const nCourses = (key, id) => COURSES.filter(c => key === 'p' ? c.program === id : c.formats[0] === id).length;
+  def.programs = ['courses', () => {
+    const progs = UI.card(T('প্রোগ্রাম', 'Programs'), `<div class="pm-bar"><button class="btn btn-p btn-sm" data-pa="progform">${ic('plus')} ${T('নতুন প্রোগ্রাম', 'New program')}</button></div>` +
+      UI.tbl([T('কোড', 'Code'), T('নাম', 'Name'), T('সংক্ষিপ্ত', 'Short'), T('কোর্স', 'Courses'), T('সাইটে', 'On site'), ''], PROGRAMS.map(p => [`<b>${esc(p.code)}</b>`, esc(L(p)), esc(L(p.s)), n(nCourses('p', p.id)), p.hidden ? UI.chip(T('লুকানো', 'Hidden'), 'warn') : UI.chip(T('দেখাচ্ছে', 'Visible'), 'ok'), `<button class="btn btn-o btn-sm" data-pa="progform" data-id="${p.id}">${T('এডিট', 'Edit')}</button> <button class="btn btn-o btn-sm" data-pa="progtoggle" data-id="${p.id}">${p.hidden ? T('দেখান', 'Show') : T('লুকান', 'Hide')}</button>`])) +
+      `<p class="soft">${T('লুকানো প্রোগ্রাম হোম পেজ, ফিল্টার ও টিচারের নতুন কোর্স ফর্ম থেকে সরে যায়, এবং ওই প্রোগ্রামের কোর্সগুলোও সাইটে দেখায় না। আবার “দেখান” দিলে ফিরে আসে।', 'A hidden program disappears from the home page, filters and the teacher course form, and its courses are not shown on the site. Click “Show” to bring it back.')}</p>`);
+    const cts = UI.card(T('কোর্স টাইপ (ক্লাসের ধরন)', 'Course types'), `<div class="pm-bar"><button class="btn btn-p btn-sm" data-pa="ctform">${ic('plus')} ${T('নতুন কোর্স টাইপ', 'New course type')}</button></div>` +
+      UI.tbl([T('নাম', 'Name'), T('সর্বোচ্চ স্টুডেন্ট', 'Max students'), T('কোর্স', 'Courses'), T('অবস্থা', 'Status'), ''], CTYPES.map(x => [`<b>${esc(L(x))}</b><small>${esc(T(x.en, x.bn))}</small>`, n(x.seats), n(nCourses('c', x.id)), x.on ? UI.chip(T('চালু', 'Active'), 'ok') : UI.chip(T('বন্ধ', 'Off'), 'warn'), `<button class="btn btn-o btn-sm" data-pa="ctform" data-id="${x.id}">${T('এডিট', 'Edit')}</button> <button class="btn btn-o btn-sm" data-pa="cttoggle" data-id="${x.id}">${x.on ? T('বন্ধ করুন', 'Turn off') : T('চালু করুন', 'Turn on')}</button>`])) +
+      `<p class="soft">${T('“সর্বোচ্চ স্টুডেন্ট” হলো ওই টাইপের একটি ব্যাচে সর্বোচ্চ কতজন এনরোল হতে পারবে (যেমন গ্রুপ অফ ৭ = ৭ জন)। বন্ধ করা টাইপ টিচারের নতুন কোর্স ফর্মে ও সাইটের ফিল্টারে আসে না; আগের কোর্স আগের মতোই চলে।', '“Max students” is how many can enrol in one batch of that type (e.g. Group of 7 = 7). A turned-off type is not offered in the teacher course form or site filter; existing courses keep running.')}</p>`);
+    return progs + cts;
+  }];
+  A.progform = a => {
+    const p = a.dataset.id ? PROGRAMS.find(x => x.id === a.dataset.id) : null, g = (o, k) => (o && o[k]) || '';
+    PX.modal(p ? T('প্রোগ্রাম এডিট', 'Edit program') : T('নতুন প্রোগ্রাম', 'New program'), `<form data-pf="prog" data-id="${p ? p.id : ''}" class="fgrid">
+      ${UI.fi({ name: 'code', label: T('কোড (ছোট)', 'Code (short)'), val: p ? p.code : '', half: 1, req: 1, ph: 'IBA' })}
+      ${UI.fi({ name: 'sbn', label: T('সংক্ষিপ্ত নাম (বাংলা)', 'Short name (Bangla)'), val: g(p && p.s, 'bn'), half: 1, req: 1 })}
+      ${UI.fi({ name: 'sen', label: T('সংক্ষিপ্ত নাম (English)', 'Short name (English)'), val: g(p && p.s, 'en'), half: 1, req: 1 })}
+      ${UI.fi({ name: 'bn', label: T('পুরো নাম (বাংলা)', 'Full name (Bangla)'), val: p ? p.bn : '', req: 1 })}
+      ${UI.fi({ name: 'en', label: T('পুরো নাম (English)', 'Full name (English)'), val: p ? p.en : '', req: 1 })}
+      ${UI.fi({ name: 'dbn', label: T('বিবরণ (বাংলা)', 'Description (Bangla)'), rows: 2, val: g(p && p.d, 'bn') })}
+      ${UI.fi({ name: 'den', label: T('বিবরণ (English)', 'Description (English)'), rows: 2, val: g(p && p.d, 'en') })}
+      <div class="fld"><small class="err" id="pg-err" role="alert"></small><button class="btn btn-p">${T('সংরক্ষণ', 'Save')}</button></div></form>`, 1);
+  };
+  F.prog = (f, d) => {
+    const v = k => (d[k] || '').trim(), er = f.querySelector('#pg-err');
+    if (!v('code') || !v('bn') || !v('en') || !v('sbn') || !v('sen')) { er.textContent = T('কোড ও নামগুলো দিন', 'Fill in the code and names'); return; }
+    const ex = f.dataset.id ? PROGRAMS.find(x => x.id === f.dataset.id) : null;
+    if (PROGRAMS.some(x => x !== ex && x.code.toLowerCase() === v('code').toLowerCase())) { er.textContent = T('এই কোড আগে থেকেই আছে', 'This code already exists'); return; }
+    const desc = { bn: v('dbn') || v('bn'), en: v('den') || v('en') };
+    if (ex) Object.assign(ex, { code: v('code'), bn: v('bn'), en: v('en'), s: { bn: v('sbn'), en: v('sen') }, d: desc });
+    else { const id = 'pg' + (Math.max(0, ...PROGRAMS.map(x => +(String(x.id).match(/^pg(\d+)$/) || [0, 0])[1])) + 1); PROGRAMS.push({ id, code: v('code'), bn: v('bn'), en: v('en'), s: { bn: v('sbn'), en: v('sen') }, d: desc, hidden: false }); CH.PCOLOR[id] = PCOLS[PROGRAMS.length % PCOLS.length]; }
+    PX.closeModal(); PX.toast(T('প্রোগ্রাম সংরক্ষিত', 'Program saved')); PX.refresh();
+  };
+  A.progtoggle = a => { const p = PROGRAMS.find(x => x.id === a.dataset.id); if (!p) return; p.hidden = !p.hidden; PX.toast(p.hidden ? T('প্রোগ্রাম লুকানো হয়েছে', 'Program hidden') : T('প্রোগ্রাম দেখানো হচ্ছে', 'Program visible')); PX.refresh(); };
+  A.ctform = a => {
+    const x = a.dataset.id ? CTYPES.find(y => y.id === a.dataset.id) : null, one = x && x.id === 'one';
+    PX.modal(x ? T('কোর্স টাইপ এডিট', 'Edit course type') : T('নতুন কোর্স টাইপ', 'New course type'), `<form data-pf="ctype" data-id="${x ? x.id : ''}" class="fgrid">
+      ${UI.fi({ name: 'seats', label: T('সর্বোচ্চ স্টুডেন্ট (প্রতি ব্যাচে)', 'Max students (per batch)'), type: 'number', min: one ? 1 : 2, val: x ? x.seats : 10, half: 1, req: 1, hint: one ? T('১-টু-১ এ সবসময় ১', '1-to-1 is always 1') : T('২ থেকে ১০০', '2 to 100') })}
+      ${UI.fi({ name: 'bn', label: T('নাম (বাংলা)', 'Name (Bangla)'), val: x ? x.bn : 'গ্রুপ অফ ১০', half: 1, req: 1 })}
+      ${UI.fi({ name: 'en', label: T('নাম (English)', 'Name (English)'), val: x ? x.en : 'Group of 10', half: 1, req: 1 })}
+      <div class="fld"><small class="hint">${T('নাম না বদলালে, সংখ্যা বদলালে “গ্রুপ অফ N” নামটি নিজে থেকে মিলে যাবে।', 'If you keep the default “Group of N” name, it follows the number automatically.')}</small><small class="err" id="ct-err" role="alert"></small><button class="btn btn-p">${T('সংরক্ষণ', 'Save')}</button></div></form>`);
+  };
+  F.ctype = (f, d) => {
+    const er = f.querySelector('#ct-err'), x = f.dataset.id ? CTYPES.find(y => y.id === f.dataset.id) : null, one = x && x.id === 'one', seats = one ? 1 : Math.round(+d.seats);
+    let bn = (d.bn || '').trim(), en = (d.en || '').trim();
+    if (!bn || !en) { er.textContent = T('দুই ভাষায় নাম দিন', 'Name is required in both languages'); return; }
+    if (!one && !(seats >= 2 && seats <= 100)) { er.textContent = T('সর্বোচ্চ স্টুডেন্ট ২ থেকে ১০০ এর মধ্যে হতে হবে', 'Max students must be between 2 and 100'); return; }
+    if (CTYPES.some(y => y !== x && (y.en.toLowerCase() === en.toLowerCase() || y.bn === bn))) { er.textContent = T('এই নামে আরেকটি টাইপ আছে', 'Another type has this name'); return; }
+    if (x) {
+      if (en === x.en && x.en === 'Group of ' + x.seats && seats !== x.seats) { en = 'Group of ' + seats; bn = 'গ্রুপ অফ ' + bnDig(seats); }
+      COURSES.filter(c => c.formats[0] === x.id).forEach(c => {
+        if (x.bn !== bn) c.title.bn = c.title.bn.endsWith(' · ' + x.bn) ? c.title.bn.slice(0, -x.bn.length) + bn : c.title.bn;
+        if (x.en !== en) c.title.en = c.title.en.endsWith(' · ' + x.en) ? c.title.en.slice(0, -x.en.length) + en : c.title.en;
+        if (!one && seats !== x.seats) c.seats = Math.max(0, seats - Math.max(0, x.seats - c.seats));
+      });
+      Object.assign(x, { bn, en, seats });
+    } else {
+      const id = 'ct' + (Math.max(0, ...CTYPES.map(y => +(String(y.id).match(/^ct(\d+)$/) || [0, 0])[1])) + 1);
+      CTYPES.push({ id, bn, en, seats, on: true });
+    }
+    PX.closeModal(); PX.toast(T('কোর্স টাইপ সংরক্ষিত', 'Course type saved')); PX.refresh();
+  };
+  A.cttoggle = a => { const x = CTYPES.find(y => y.id === a.dataset.id); if (!x) return; if (x.on && CTYPES.filter(y => y.on).length < 2) { PX.toast(T('অন্তত একটি টাইপ চালু থাকতে হবে', 'At least one type must stay on')); return; } x.on = !x.on; PX.refresh(); };
 
   Object.keys(def).forEach(k => { S[k] = guard(def[k][0], def[k][1]); });
 })();

@@ -74,7 +74,7 @@
     ],
     banned: {}, payouts: [{ id: 'po1', tid: 't01', amount: 6000, date: '2026-11-10', note: 'অক্টোবরের পেআউট' }, { id: 'po2', tid: 't05', amount: 5000, date: '2026-11-10', note: 'অক্টোবরের পেআউট' }],
     settings: { share: 30, shareTid: {}, channels: { ssl: false, bkash: false, cash: true }, refS: { type: 'pct', v: 5 }, refT: { type: 'fixed', v: 500 }, reminderDay: 'last' },
-    classTypes: [{ id: 'one', bn: '১-টু-১', seats: 1 }, { id: 'group', bn: '১-টু-৭ গ্রুপ', seats: 7 }],
+    classTypes: CTYPES,
     coupons: [
       { code: 'CHAATRO10', type: 'pct', v: 10, scope: '', by: 'admin', active: true, uses: 14, limit: 200, expiry: '2026-12-31' },
       { code: 'FIRST200', type: 'flat', v: 200, scope: '', by: 'admin', active: true, uses: 9, limit: 100, expiry: '2026-12-31' },

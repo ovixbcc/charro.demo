@@ -124,21 +124,21 @@
   PX.courseForm = (c, admin) => {
     c = c || { program: 'cadet', subject: 'math', kind: 'regular', weeks: 12, cpw: 2, days: [], time: '', formats: ['group'], plans: {}, tid: TID, title: '', desc: '', video: '' };
     const pl = (f, m) => (c.plans[f] || []).find(x => x.m === m) || null;
-    const fmt = f => `<div class="pf"><h4 class="sub">${f === 'one' ? T('১-টু-১ ক্লাসের মূল্য', '1-to-1 pricing') : T('১-টু-৭ গ্রুপের মূল্য', '1-to-7 group pricing')}</h4><p class="soft">${T('যে মেয়াদ চালু রাখতে চান তাতে টিক দিন। স্টুডেন্ট এনরোলের সময় এগুলো থেকে বেছে নেবে। “প্রথম পেমেন্ট” ঘরে প্রথম মাসের আলাদা দাম দিতে পারেন।', 'Tick the tenures to offer. Students choose at enrollment. Use “first payment” for a different first-period price.')}</p>${UI.tbl([T('চালু', 'On'), T('মেয়াদ', 'Tenure'), T('আসল দাম ৳', 'Actual ৳'), T('ছাড়ের দাম ৳', 'Discounted ৳'), T('প্রথম পেমেন্ট ৳ (ঐচ্ছিক)', 'First payment ৳ (optional)')], TEN.map(([m, lb]) => { const p = pl(f, m), k = `p_${f}_${m}`; return [`<input type="checkbox" name="${k}_on" ${p ? 'checked' : ''}>`, lb(), `<input type="number" min="0" name="${k}_a" value="${p ? p.actual : ''}">`, `<input type="number" min="0" name="${k}_d" value="${p ? p.disc : ''}">`, m ? `<input type="number" min="0" name="${k}_f" value="${p && p.first != null ? p.first : ''}">` : '—']; }))}</div>`;
+    const fmt = f => `<div class="pf"><h4 class="sub">${esc(L(ctype(f)))} — ${T('মূল্য', 'pricing')}</h4><p class="soft">${T('যে মেয়াদ চালু রাখতে চান তাতে টিক দিন। স্টুডেন্ট এনরোলের সময় এগুলো থেকে বেছে নেবে। “প্রথম পেমেন্ট” ঘরে প্রথম মাসের আলাদা দাম দিতে পারেন।', 'Tick the tenures to offer. Students choose at enrollment. Use “first payment” for a different first-period price.')}</p>${UI.tbl([T('চালু', 'On'), T('মেয়াদ', 'Tenure'), T('আসল দাম ৳', 'Actual ৳'), T('ছাড়ের দাম ৳', 'Discounted ৳'), T('প্রথম পেমেন্ট ৳ (ঐচ্ছিক)', 'First payment ৳ (optional)')], TEN.map(([m, lb]) => { const p = pl(f, m), k = `p_${f}_${m}`; return [`<input type="checkbox" name="${k}_on" ${p ? 'checked' : ''}>`, lb(), `<input type="number" min="0" name="${k}_a" value="${p ? p.actual : ''}">`, `<input type="number" min="0" name="${k}_d" value="${p ? p.disc : ''}">`, m ? `<input type="number" min="0" name="${k}_f" value="${p && p.first != null ? p.first : ''}">` : '—']; }))}</div>`;
     return `<form data-pf="newcourse" data-id="${c.id || ''}" data-admin="${admin ? 1 : ''}" class="fgrid">
       ${admin ? UI.fi({ name: 'tid', label: T('টিচার', 'Teacher'), half: 1, req: 1, opts: TEACHERS.map(t => [t.id, t.n.bn]), val: c.tid }) : ''}
       ${UI.fi({ name: 'title', label: T('কোর্সের নাম', 'Course title'), req: 1, val: c.title, half: !admin })}
-      ${UI.fi({ name: 'program', label: T('প্রোগ্রাম', 'Program'), half: 1, opts: PROGRAMS.map(p => [p.id, L(p)]), val: c.program })}
+      ${UI.fi({ name: 'program', label: T('প্রোগ্রাম', 'Program'), half: 1, opts: PROGRAMS.filter(p => !p.hidden || p.id === c.program).map(p => [p.id, L(p)]), val: c.program })}
       ${UI.fi({ name: 'subject', label: T('বিষয়', 'Subject'), half: 1, opts: SUBJECTS.map(s => [s.id, L(s)]), val: c.subject })}
       ${UI.fi({ name: 'kind', label: T('ধরন', 'Kind'), half: 1, opts: [['regular', T('রেগুলার', 'Regular')], ['crash', T('ক্র্যাশ কোর্স', 'Crash course')]], val: c.kind })}
       ${UI.fi({ name: 'weeks', label: T('মোট সপ্তাহ', 'Total weeks'), type: 'number', min: 1, half: 1, req: 1, val: c.weeks })}
       ${UI.fi({ name: 'cpw', label: T('সপ্তাহে ক্লাস', 'Classes / week'), type: 'number', min: 1, half: 1, req: 1, val: c.cpw })}
       ${UI.fi({ name: 'time', label: T('ক্লাসের সময়', 'Class time'), req: 1, half: 1, val: c.time, ph: 'রাত ৯:০০' })}
       ${UI.checks('days', Object.keys(DAYS).map(d => [d, L(DAYS[d])]), c.days, T('ক্লাসের দিন', 'Class days'))}
-      ${UI.checks('formats', [['group', T('১-টু-৭ গ্রুপ', '1-to-7 group')], ['one', T('১-টু-১', '1-to-1')]], c.formats, T('ক্লাসের ধরন', 'Class types'))}
+      ${UI.checks('formats', CTYPES.filter(x => x.on || c.formats.includes(x.id)).map(x => [x.id, L(x) + (x.seats > 1 ? ' (' + T('সর্বোচ্চ ', 'max ') + n(x.seats) + ')' : '')]), c.formats, T('ক্লাসের ধরন', 'Class types'))}
       ${UI.fi({ name: 'desc', label: T('কোর্সের বিবরণ', 'Description'), rows: 3, val: c.desc })}
       ${UI.fi({ name: 'video', label: T('পরিচিতি ভিডিও লিংক', 'Intro video link'), val: c.video, ph: 'https://' })}
-      <div class="fld full">${fmt('group')}${fmt('one')}</div>
+      <div class="fld full">${CTYPES.filter(x => x.on || c.formats.includes(x.id)).map(x => fmt(x.id)).join('')}</div>
       ${admin ? UI.fi({ name: 'status', label: T('অবস্থা', 'Status'), half: 1, opts: [['live', T('সরাসরি লাইভ', 'Go live')], ['draft', T('খসড়া', 'Draft')]] }) : UI.fi({ name: 'status', label: T('এখন কী করবেন?', 'Action'), half: 1, opts: [['review', T('অ্যাডমিন রিভিউয়ে জমা দিন', 'Submit for admin review')], ['draft', T('খসড়া হিসেবে রাখুন', 'Save as draft')]] })}
       <div class="fld"><button class="btn btn-p">${T('সংরক্ষণ', 'Save')}</button></div></form>`;
   };
@@ -147,7 +147,7 @@
 
   PX.buildPlans = d => {
     const out = {};
-    ['group', 'one'].forEach(f => {
+    CTYPES.map(x => x.id).forEach(f => {
       if (!(d.formats || []).includes(f)) return;
       const l = [];
       [0, 1, 3, 6, 12].forEach(m => { const k = `p_${f}_${m}`; if (d[k + '_on'] && +d[k + '_a'] > 0) { const disc = +d[k + '_d'] > 0 ? +d[k + '_d'] : +d[k + '_a']; const o = { key: m ? 'm' + m : 'full', m, actual: +d[k + '_a'], disc }; if (m && d[k + '_f'] !== '' && d[k + '_f'] != null && +d[k + '_f'] > 0) o.first = +d[k + '_f']; l.push(o); } });
@@ -158,9 +158,9 @@
   PX.publishCourse = nc => {
     const months = Math.max(1, Math.ceil(nc.weeks / 4)), made = [];
     nc.formats.forEach(f => {
-      const id = 'c' + String(COURSES.length + 1).padStart(2, '0') + (f === 'one' ? '-1on1' : ''), g = (nc.plans[f] || nc.plans.group || nc.plans.one)[0];
-      const sx = f === 'one' ? [' · ১-টু-১', ' · 1-to-1'] : [' · গ্রুপ (১-টু-৭)', ' · Group (1-to-7)'];
-      const live = { id, pid: nextCoursePid(), program: nc.program, subject: nc.subject, kind: nc.kind, teacher: nc.tid, base: g.actual, months, cpw: nc.cpw, weeks: nc.weeks, start: '2026-12-05', seats: f === 'one' ? 1 : 7, formats: [f], rating: 4.5, reviews: 0, enrolled: 0, featured: false, days: nc.days, time: { bn: nc.time, en: nc.time }, title: { bn: nc.title + sx[0], en: nc.title + sx[1] }, short: { bn: nc.desc || nc.title, en: nc.desc || nc.title }, plans: { [f]: nc.plans[f] } };
+      const id = 'c' + String(COURSES.length + 1).padStart(2, '0') + (f === 'group' ? '' : '-' + (f === 'one' ? '1on1' : f)), g = (nc.plans[f] || nc.plans.group || nc.plans.one || Object.values(nc.plans)[0])[0];
+      const ct = ctype(f), sx = [' · ' + ct.bn, ' · ' + ct.en];
+      const live = { id, pid: nextCoursePid(), program: nc.program, subject: nc.subject, kind: nc.kind, teacher: nc.tid, base: g.actual, months, cpw: nc.cpw, weeks: nc.weeks, start: '2026-12-05', seats: ctSeats(f), formats: [f], rating: 4.5, reviews: 0, enrolled: 0, featured: false, days: nc.days, time: { bn: nc.time, en: nc.time }, title: { bn: nc.title + sx[0], en: nc.title + sx[1] }, short: { bn: nc.desc || nc.title, en: nc.desc || nc.title }, plans: { [f]: nc.plans[f] } };
       COURSES.push(live); made.push(live);
     });
     nc.liveId = made[0].id; nc.status = 'live'; return made[0];

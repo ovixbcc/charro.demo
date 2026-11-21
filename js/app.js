@@ -21,6 +21,11 @@
   const fdate = iso => { const [y, m, d] = iso.split('-').map(Number); return num(d) + ' ' + MON[lang][m - 1] + (lang === 'bn' ? ' ' : ', ') + num(y); };
   const byId = (arr, id) => arr.find(x => x.id === id);
   const PCOLOR = { cadet: '#8C52FF', 'du-ka': '#0E0B16', 'du-kha': '#241545', 'du-ga': '#4A2BA8', 'du-gha': '#6B34E0', bup: '#7A3FF0', buet: '#17102B' };
+  const tx = (bn, en) => lang === 'bn' ? bn : en;
+  const ctName = f => L(ctype(f)), isOneF = f => f === 'one';
+  const fmtDesc = f => isOneF(f) ? t('one_fmt_d') : tx(`ব্যাচে সর্বোচ্চ ${num(ctSeats(f))} জন`, `Batch of up to ${ctSeats(f)}`);
+  const grpNote = f => tx(`ব্যাচে সর্বোচ্চ ${num(ctSeats(f))} জন। সিট ভরে গেলে ভর্তি বন্ধ হবে।`, `Max ${ctSeats(f)} per batch. Enrolment closes when seats are full.`);
+  const progColor = id => PCOLOR[id] || '#8C52FF';
 
   const IC = {
     search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
@@ -88,7 +93,7 @@
 
   /* ---------- filter state ---------- */
   const startPrice = (c, fmt) => {
-    const pr = pricingFor(c); const f = fmt && fmt !== 'all' ? fmt : (c.formats.includes('group') ? 'group' : 'one');
+    const pr = pricingFor(c); const f = fmt && fmt !== 'all' && c.formats.includes(fmt) ? fmt : c.formats[0];
     return pr[f] ? pr[f].fullD : pr[c.formats[0]].fullD;
   };
   const MAXP = Math.ceil(Math.max(...COURSES.flatMap(c => c.formats.map(f => pricingFor(c)[f].fullD))) / 500) * 500;
@@ -102,7 +107,7 @@
     return [c.title.bn, c.title.en, tc.n.bn, tc.n.en, p.bn, p.en, p.s.bn, p.s.en, s.bn, s.en].join(' ').toLowerCase().includes(q);
   }
   function filtered() {
-    let l = COURSES.filter(c =>
+    let l = liveCourses().filter(c =>
       matchesQ(c, F.q) &&
       (F.program === 'all' || c.program === F.program) &&
       (F.subject === 'all' || c.subject === F.subject) &&
@@ -126,12 +131,12 @@
   const kindTag = c => `<span class="tag ${c.kind === 'crash' ? 'tag-p' : ''}">${t(c.kind === 'crash' ? 'crash' : 'regular')}</span>`;
   const schedule = c => c.days.map(d => L(DAYS[d])).join(' · ') + ' · ' + L(c.time);
 
-  const fmtTag = c => c.formats[0] === 'one' ? `<span class="tag tag-one">${t('fmt_tag_one')}</span>` : `<span class="tag tag-grp">${t('fmt_tag_grp')}</span>`;
+  const fmtTag = c => c.formats[0] === 'one' ? `<span class="tag tag-one">${t('fmt_tag_one')}</span>` : `<span class="tag tag-grp">${esc(ctName(c.formats[0]))}</span>`;
   function courseCard(c) {
     const tc = byId(TEACHERS, c.teacher), pr = pricingFor(c), prog = byId(PROGRAMS, c.program), sub = byId(SUBJECTS, c.subject);
-    const g = c.formats.includes('group') ? pr.group : null, one = c.formats.includes('one') ? pr.one : null;
+    const gf = c.formats.find(f => f !== 'one'), g = gf ? pr[gf] : null, one = c.formats.includes('one') ? pr.one : null;
     const seats = g ? Math.max(0, c.seats) : null;
-    return `<article class="cc" style="--cc:${PCOLOR[c.program]}">
+    return `<article class="cc" style="--cc:${progColor(c.program)}">
       <a class="cc-top" href="#course-${c.id}" aria-label="${esc(L(c.title))}">
         ${courseArt(c.program)}<span class="cc-shade"></span>
         <span class="cc-code">${esc(prog.code)}</span>
@@ -148,10 +153,10 @@
           <li>${ic('clock')}${num(c.weeks)} ${t('weeks')}</li>
           <li>${rate(c.rating)}<span class="mute">(${num(c.reviews)})</span></li>
         </ul>
-        <p class="cc-start">${ic('play')}${t(g ? 'starts' : 'starts_one')} <b>${fdate(c.start)}</b>${seats != null ? ` · <span class="${seats <= 3 ? 'warn' : ''}">${t('seats_left')} ${num(seats)}/${num(7)}</span>` : ''}</p>
+        <p class="cc-start">${ic('play')}${t(g ? 'starts' : 'starts_one')} <b>${fdate(c.start)}</b>${seats != null ? ` · <span class="${seats <= 3 ? 'warn' : ''}">${t('seats_left')} ${num(seats)}/${num(ctSeats(gf))}</span>` : ''}</p>
         <div class="cc-price">
-          ${g ? `<div><small>${t('group_fmt')}</small><b>${money(g.fullD)}</b> <s>${money(g.fullA)}</s></div>` : ''}
-          ${one ? `<div><small>${t('one_fmt')}</small><b>${money(one.fullD)}</b> <s>${money(one.fullA)}</s></div>` : ''}
+          ${g ? `<div><small>${esc(ctName(gf))}</small><b>${money(g.fullD)}</b> <s>${money(g.fullA)}</s></div>` : ''}
+          ${one ? `<div><small>${esc(ctName('one'))}</small><b>${money(one.fullD)}</b> <s>${money(one.fullA)}</s></div>` : ''}
         </div>
         <a class="btn btn-p btn-block" href="#course-${c.id}">${t('details')}${ic('arrow')}</a>
       </div>
@@ -159,7 +164,7 @@
   }
 
   function teacherCard(tc) {
-    const cs = COURSES.filter(c => c.teacher === tc.id);
+    const cs = liveCourses().filter(c => c.teacher === tc.id);
     return `<article class="tcard">
       <a href="#teacher-${tc.id}" class="tc-head">${avatar(tc, 64)}
         <span><h3>${esc(L(tc.n))}</h3><small>${esc(L(tc.inst))}</small></span></a>
@@ -227,16 +232,16 @@
     return `<label class="sel" for="f-${name}"><span>${label}</span><select id="f-${name}" data-f="${name}">${opts.map(o => `<option value="${o[0]}"${String(o[0]) === String(val) ? ' selected' : ''}>${esc(o[1])}</option>`).join('')}</select></label>`;
   }
   function chips() {
-    const cnt = id => COURSES.filter(c => c.program === id).length;
-    return `<button class="chip" data-pick="program" data-val="all" aria-pressed="${F.program === 'all'}">${t('all')}<em>${num(COURSES.length)}</em></button>` +
-      PROGRAMS.map(p => `<button class="chip" data-pick="program" data-val="${p.id}" aria-pressed="${F.program === p.id}">${esc(L(p.s))}<em>${num(cnt(p.id))}</em></button>`).join('');
+    const cnt = id => liveCourses().filter(c => c.program === id).length;
+    return `<button class="chip" data-pick="program" data-val="all" aria-pressed="${F.program === 'all'}">${t('all')}<em>${num(liveCourses().length)}</em></button>` +
+      PROGRAMS.filter(p => !p.hidden).map(p => `<button class="chip" data-pick="program" data-val="${p.id}" aria-pressed="${F.program === p.id}">${esc(L(p.s))}<em>${num(cnt(p.id))}</em></button>`).join('');
   }
   function filterBar(simple) {
     if (simple) { Object.assign(F, { q: '', kind: 'all', teacher: 'all', sort: 'rec' }); return `<div class="fb fb-s" id="filter" role="search">
       <div class="chips" id="chips" role="group" aria-label="${t('f_program')}">${chips()}</div>
       <div class="fb-row">
         ${sel('subject', t('f_subject'), [['all', t('all')]].concat(SUBJECTS.map(s => [s.id, L(s)])), F.subject)}
-        ${sel('format', t('f_format'), [['all', t('all')], ['one', t('one_fmt')], ['group', t('group_fmt')]], F.format)}
+        ${sel('format', t('f_format'), [['all', t('all')]].concat(CTYPES.filter(x => x.on).map(x => [x.id, L(x)])), F.format)}
         <label class="rng" for="f-max"><span>${t('f_price')} <b id="maxv">${money(F.max)}</b></span><input id="f-max" data-f="max" type="range" min="1500" max="${MAXP}" step="50" value="${F.max}"></label>
       </div>
     </div>
@@ -250,7 +255,7 @@
       <div class="fb-row">
         ${sel('subject', t('f_subject'), [['all', t('all')]].concat(SUBJECTS.map(s => [s.id, L(s)])), F.subject)}
         ${sel('kind', t('f_kind'), [['all', t('all')], ['regular', t('regular')], ['crash', t('crash')]], F.kind)}
-        ${sel('format', t('f_format'), [['all', t('all')], ['one', t('one_fmt')], ['group', t('group_fmt')]], F.format)}
+        ${sel('format', t('f_format'), [['all', t('all')]].concat(CTYPES.filter(x => x.on).map(x => [x.id, L(x)])), F.format)}
         ${sel('teacher', t('f_teacher'), [['all', t('all')]].concat(TEACHERS.map(x => [x.id, L(x.n)])), F.teacher)}
         ${sel('sort', t('f_sort'), [['rec', t('s_rec')], ['pa', t('s_pa')], ['pd', t('s_pd')], ['rt', t('s_rt')], ['dt', t('s_dt')]], F.sort)}
         <label class="rng" for="f-max"><span>${t('f_price')} <b id="maxv">${money(F.max)}</b></span><input id="f-max" data-f="max" type="range" min="1500" max="${MAXP}" step="50" value="${F.max}"></label>
@@ -299,7 +304,7 @@
     bup: () => `<defs><linearGradient id="pg-bup" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B1B73"/><stop offset="1" stop-color="#7A3FF0"/></linearGradient></defs><rect width="320" height="260" fill="url(#pg-bup)"/><g fill="#fff" opacity=".8"><circle cx="50" cy="44" r="2"/><circle cx="120" cy="30" r="1.6"/><circle cx="270" cy="60" r="2"/><circle cx="220" cy="24" r="1.6"/></g><rect y="230" width="320" height="30" fill="#17102B"/><rect x="70" y="86" width="110" height="146" fill="#CFE0FF"/><rect x="180" y="126" width="80" height="106" fill="#A9C4F5"/><g stroke="#4A6FB5" stroke-width="2">${[0, 1, 2, 3, 4].map(i => `<path d="M70 ${112 + i * 24} H180"/>`).join('')}${[0, 1, 2].map(i => `<path d="M${97 + i * 27} 86 V232"/>`).join('')}${[0, 1, 2].map(i => `<path d="M180 ${150 + i * 26} H260"/>`).join('')}</g><path d="M125 86 L125 60" stroke="#fff" stroke-width="3"/><path d="M125 60 h28 l-6 8 l6 8 h-28z" fill="#FFC53D"/><circle cx="262" cy="70" r="26" fill="#FFC53D"/><path d="M262 54 l22 10 l-22 10 l-22 -10z" fill="#17102B"/><path d="M250 74 v10 q12 8 24 0 v-10" fill="none" stroke="#17102B" stroke-width="3"/>`,
     buet: () => `<defs><linearGradient id="pg-buet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0E2A6B"/><stop offset="1" stop-color="#2F5BE0"/></linearGradient></defs><rect width="320" height="260" fill="url(#pg-buet)"/><g stroke="#fff" opacity=".12">${Array.from({ length: 9 }, (_, i) => `<path d="M${i * 40} 0 V260"/>`).join('')}${Array.from({ length: 7 }, (_, i) => `<path d="M0 ${i * 40} H320"/>`).join('')}</g><g transform="translate(220 90)"><circle r="46" fill="none" stroke="#9CC0FF" stroke-width="16" stroke-dasharray="14 9.2"/><circle r="34" fill="#2F5BE0" stroke="#9CC0FF" stroke-width="5"/><circle r="12" fill="#9CC0FF"/></g><g transform="translate(120 160)"><circle r="30" fill="none" stroke="#FFC53D" stroke-width="12" stroke-dasharray="10 6.8"/><circle r="22" fill="#0E2A6B" stroke="#FFC53D" stroke-width="4"/><circle r="7" fill="#FFC53D"/></g><path d="M40 200 h50 l14 -24 l18 40 l16 -22 h60" fill="none" stroke="#7CFFB2" stroke-width="3"/><circle cx="40" cy="200" r="5" fill="#7CFFB2"/><path d="M60 40 L84 110" stroke="#fff" stroke-width="4"/><path d="M60 40 L36 110" stroke="#fff" stroke-width="4"/><circle cx="60" cy="38" r="7" fill="#fff"/><path d="M42 98 a26 26 0 0 0 36 0" fill="none" stroke="#FFC53D" stroke-width="3"/>`,
   };
-  const progArt = id => `<svg class="pc-art" viewBox="0 0 320 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${id === 'cadet' ? PSCENE.cadet() : id === 'bup' ? PSCENE.bup() : id === 'buet' ? PSCENE.buet() : PSCENE.du(...({ 'du-ka': ['#3B2A9C', '#9C7BFF', '#F2D9B8'], 'du-kha': ['#0F6B6B', '#7FE0CF', '#F4E3C3'], 'du-ga': ['#9C2F6B', '#FF9CC4', '#F6DDC8'], 'du-gha': ['#B26A00', '#FFD27A', '#F8E7C6'] }[id]))}</svg>`;
+  const progArt = id => `<svg class="pc-art" viewBox="0 0 320 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${id === 'cadet' ? PSCENE.cadet() : id === 'bup' ? PSCENE.bup() : id === 'buet' ? PSCENE.buet() : PSCENE.du(...(({ 'du-ka': ['#3B2A9C', '#9C7BFF', '#F2D9B8'], 'du-kha': ['#0F6B6B', '#7FE0CF', '#F4E3C3'], 'du-ga': ['#9C2F6B', '#FF9CC4', '#F6DDC8'], 'du-gha': ['#B26A00', '#FFD27A', '#F8E7C6'] })[id] || ['#5B3AC8', '#B794FF', '#F2E6D0']))}</svg>`;
 
   const courseArt = id => progArt(id).replace('viewBox="0 0 320 260"', 'viewBox="0 40 320 170"').replace('class="pc-art"', 'class="cc-art"');
 
@@ -337,7 +342,7 @@
   /* ---------- বান্ডেল কোর্স ---------- */
   function bundleCard(b) {
     const k = bundleCalc(b), c0 = k.cs[0];
-    return `<article class="cc cc-bd" style="--cc:${PCOLOR[c0.program]}">
+    return `<article class="cc cc-bd" style="--cc:${progColor(c0.program)}">
       <a class="cc-top" href="#bundle-${b.id}" aria-label="${esc(L(b.title))}">${courseArt(c0.program)}<span class="cc-shade"></span>
         <span class="cc-prog">${t('bd_tag')}</span><span class="cc-feat">${t('bd_save')} ${num(b.disc)}%</span><span class="cc-emb">${subjArt(c0.subject)}</span></a>
       <div class="cc-body"><div class="tags"><span class="tag tag-bd">${num(k.cs.length)} ${t('bd_n')}</span></div>
@@ -353,7 +358,7 @@
   function viewBundle(id) {
     const b = byId(BUNDLES, id); if (!b || !b.active) return view404();
     const k = bundleCalc(b); if (k.cs.length < 2) return view404();
-    return `<div class="phead phead-c" style="--cc:${PCOLOR[k.cs[0].program]}"><div class="wrap">
+    return `<div class="phead phead-c" style="--cc:${progColor(k.cs[0].program)}"><div class="wrap">
       <nav class="crumbs"><a href="#home">${t('nav_home')}</a><span>/</span><a href="#bundles">${t('bd_t')}</a></nav>
       <div class="tags tags-w"><span class="tag">${t('bd_tag')}</span><span class="tag">${num(k.cs.length)} ${t('bd_n')}</span><span class="tag">${t('bd_save')} ${num(b.disc)}%</span></div>
       <h1>${esc(L(b.title))}</h1><p>${esc(L(b.desc || b.title))}</p></div></div>
@@ -376,14 +381,14 @@
         <fieldset class="co-g pays"><label class="opt on"><input type="radio" name="bpay" value="cash" checked><span><b>${t('ck_cash')}</b><small>${t('ck_cash_d')}</small></span></label></fieldset>
         <p class="paynote ok">${ic('check')}${t('ck_cash_note')}</p>
         <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button><p class="mute sm center">${t('ck_demo')}</p></form>
-        <aside class="checkout"><h3>${t('ck_summary')}</h3><div class="ck-c" style="--cc:${PCOLOR[k.cs[0].program]}"><span class="ck-code">${t('bd_tag')}</span><span><b>${esc(L(b.title))}</b><small>${num(k.cs.length)} ${t('bd_n')}</small></span></div>
+        <aside class="checkout"><h3>${t('ck_summary')}</h3><div class="ck-c" style="--cc:${progColor(k.cs[0].program)}"><span class="ck-code">${t('bd_tag')}</span><span><b>${esc(L(b.title))}</b><small>${num(k.cs.length)} ${t('bd_n')}</small></span></div>
           <ul class="ck-l">${k.cs.map(c => `<li><span>${esc(L(c.title))}</span><b>${money(pricingFor(c)[c.formats[0]].fullD)}</b></li>`).join('')}</ul>
           <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s>${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')}</dt><dd>− ${money(k.save)}</dd></div><div class="tot"><dt>${t('sum_total')}</dt><dd>${money(k.price)}</dd></div></dl>
           <a class="btn btn-o btn-block" href="#bundle-${b.id}">${t('ck_change')}</a><p class="co-note">${ic('video')}${t('bd_coupon_note')}</p></aside></div>`);
   }
 
   function viewHome() {
-    const feat = COURSES.filter(c => c.featured);
+    const feat = liveCourses().filter(c => c.featured);
     const ftch = TEACHERS.filter(x => ['t01', 't02', 't08'].includes(x.id));
     const avg = (COURSES.reduce((s, c) => s + c.rating, 0) / COURSES.length).toFixed(1);
     const stu = COURSES.reduce((s, c) => s + c.enrolled, 0);
@@ -405,8 +410,8 @@
       </div>
     </div></section>
 
-    ${sec('sec-soft', sechead(t('prog_t'), t('prog_d')), scroller(PROGRAMS.map(p => {
-      const n = COURSES.filter(c => c.program === p.id).length;
+    ${sec('sec-soft', sechead(t('prog_t'), t('prog_d')), scroller(PROGRAMS.filter(p => !p.hidden).map(p => {
+      const n = liveCourses().filter(c => c.program === p.id).length;
       return `<button class="scr-i pcard" data-pick="program" data-val="${p.id}" data-go="1">${progArt(p.id)}<span class="pc-shade"></span><span class="pc-code">${esc(p.code)}</span><span class="pc-t">${esc(L(p))}</span><span class="pc-d">${esc(L(p.d))}</span><span class="pc-n">${num(n)} ${t('courses_n')}${ic('arrow')}</span></button>`;
     }).join(''), 'programs'))}
 
@@ -480,14 +485,14 @@
   function checkoutCard(c) {
     const st = CO, pr = pricingFor(c), k = calc(c, st);
     const fmtOpt = f => `<label class="opt ${st.fmt === f ? 'on' : ''}"><input type="radio" name="fmt" value="${f}" data-co="fmt" ${st.fmt === f ? 'checked' : ''}>
-      <span><b>${t(f === 'one' ? 'one_fmt' : 'group_fmt')}</b><small>${t(f === 'one' ? 'one_fmt_d' : 'group_fmt_d')}</small></span>
+      <span><b>${esc(ctName(f))}</b><small>${fmtDesc(f)}</small></span>
       <em>${money(pr[f].fullD)}</em></label>`;
     const planOpt = o => `<label class="opt ${k.opt.key === o.key ? 'on' : ''}"><input type="radio" name="plan" value="${o.key}" data-co="plan" ${k.opt.key === o.key ? 'checked' : ''}>
       <span><b>${planLabel(o)}</b><small>${planSub(c, o)}</small></span><em>${money(firstOf(o))}${o.m ? '<i> ' + t('sum_first') + '</i>' : ''}</em></label>`;
     const cp = couponFor(c, st.code);
     return `<div class="co-h"><h3>${t('co_title')}</h3></div>
-      <div class="co-fmt">${fmtTag(c)}<small>${t(st.fmt === 'one' ? 'one_fmt_d' : 'group_fmt_d')} · ${money(pr[st.fmt].fullD)}</small></div>
-      ${st.fmt === 'one' ? `<div class="coupon"><label for="pref">${t('pref_time')}</label><input id="pref" data-co="pref" type="text" value="${esc(st.pref || '')}" placeholder="${t('pref_ph')}" autocomplete="off"><small class="hint">${t('pref_hint')}</small></div>` : `<p class="co-note">${ic('users')}${t('grp_note')}</p>`}
+      <div class="co-fmt">${fmtTag(c)}<small>${fmtDesc(st.fmt)} · ${money(pr[st.fmt].fullD)}</small></div>
+      ${st.fmt === 'one' ? `<div class="coupon"><label for="pref">${t('pref_time')}</label><input id="pref" data-co="pref" type="text" value="${esc(st.pref || '')}" placeholder="${t('pref_ph')}" autocomplete="off"><small class="hint">${t('pref_hint')}</small></div>` : `<p class="co-note">${ic('users')}${grpNote(st.fmt)}</p>`}
       <fieldset class="co-g"><legend>${t('co_plan')}</legend>${planOptions(c, st.fmt).map(planOpt).join('')}</fieldset>
       <div class="coupon"><label for="cpn">${t('co_coupon')}</label>
         <div class="cp-row"><input id="cpn" type="text" value="${esc(st.input || '')}" placeholder="CHAATRO10" autocomplete="off" autocapitalize="characters"><button class="btn btn-o" data-act="apply">${t('apply')}</button></div>
@@ -503,16 +508,16 @@
   }
 
   function viewCourse(id) {
-    const c = byId(COURSES, id); if (!c) return view404();
+    const c = byId(COURSES, id); if (!c || !progOn(c.program)) return view404();
     const tc = byId(TEACHERS, c.teacher), prog = byId(PROGRAMS, c.program), sub = byId(SUBJECTS, c.subject);
-    if (!CO || CO.id !== c.id) CO = { id: c.id, fmt: c.formats.includes('group') ? 'group' : 'one', plan: 'x', code: '', input: '', err: false };
+    if (!CO || CO.id !== c.id) CO = { id: c.id, fmt: c.formats[0], plan: 'x', code: '', input: '', err: false };
     const topics = TOPICS[c.kind === 'crash' ? 'crash' : c.subject] || TOPICS.combined;
     const revs = REVIEWS.filter(r => r.course === c.id);
     const k = calc(c, CO);
-    const sameT = COURSES.filter(x => x.id !== c.id && (x.program === c.program || x.teacher === c.teacher)).slice(0, 3);
+    const sameT = liveCourses().filter(x => x.id !== c.id && (x.program === c.program || x.teacher === c.teacher)).slice(0, 3);
     const outcomes = c.kind === 'crash' ? ['out_c1', 'out_c2', 'out_c3', 'out_c4'] : ['out_r1', 'out_r2', 'out_r3', 'out_r4'];
     return `
-    <div class="phead phead-c" style="--cc:${PCOLOR[c.program]}"><div class="wrap">
+    <div class="phead phead-c" style="--cc:${progColor(c.program)}"><div class="wrap">
       <nav class="crumbs"><a href="#home">${t('nav_home')}</a><span>/</span><a href="#courses">${t('nav_courses')}</a><span>/</span><span>${esc(L(prog.s))}</span></nav>
       <div class="tags tags-w">${fmtTag(c)}${kindTag(c)}<span class="tag">${esc(L(prog))}</span><span class="tag">${esc(L(sub))}</span><span class="tag">ID ${c.pid}</span></div>
       <h1>${esc(L(c.title))}</h1><p>${esc(L(c.short))}</p>
@@ -535,7 +540,7 @@
             <div>${ic('calendar')}<span><small>${t('starts')}</small><b>${fdate(c.start)}</b></span></div>
             <div>${ic('clock')}<span><small>${t('class_days')}</small><b>${esc(schedule(c))}</b></span></div>
             ${c.kind === 'crash' ? `<div>${ic('award')}<span><small>${t('model_tests')}</small><b>${t('mt_val')}</b></span></div>` : `<div>${ic('book')}<span><small>${t('duration')}</small><b>${num(c.weeks)} ${t('weeks')}</b></span></div>`}
-            ${c.formats.includes('group') ? `<div>${ic('users')}<span><small>${t('seats_left')}</small><b>${num(c.seats)} / ${num(7)}</b></span></div>` : `<div>${ic('users')}<span><small>${t('co_fmt')}</small><b>${t('priv_val')}</b></span></div>`}
+            ${!c.formats.includes('one') ? `<div>${ic('users')}<span><small>${t('seats_left')}</small><b>${num(c.seats)} / ${num(ctSeats(c.formats[0]))}</b></span></div>` : `<div>${ic('users')}<span><small>${t('co_fmt')}</small><b>${t('priv_val')}</b></span></div>`}
           </div>
           <p class="mute sm">${t('sched_note')}</p></section>
 
@@ -578,7 +583,7 @@
     const chans = [['bkash', t('ch_bkash')], ['ssl', t('ch_ssl')], ['cash', t('ch_cash')]];
     openModal(`<button class="m-x" data-act="close" aria-label="${t('close')}">${ic('close')}</button>
       <h3>${t('enroll_t')}</h3>
-      <p class="mute sm">${esc(L(c.title))} · ${t(CO.fmt === 'one' ? 'one_fmt' : 'group_fmt')} · ${planLabel(k.opt)}</p>
+      <p class="mute sm">${esc(L(c.title))} · ${esc(ctName(CO.fmt))} · ${planLabel(k.opt)}</p>
       <form data-form="enroll" novalidate>
         ${fld({ name: 'en_name', label: t('f_name'), req: true, auto: 'name' })}
         ${fld({ name: 'en_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}
@@ -612,7 +617,7 @@
 
   function viewTeacher(id) {
     const tc = byId(TEACHERS, id); if (!tc) return view404();
-    const cs = COURSES.filter(c => c.teacher === tc.id);
+    const cs = liveCourses().filter(c => c.teacher === tc.id);
     const revs = REVIEWS.filter(r => cs.some(c => c.id === r.course));
     return `
     <div class="phead phead-t"><div class="wrap tp-h">
@@ -696,7 +701,7 @@
   }
 
   const SUBJ_OPTS = () => SUBJECTS.map(s => [s.id, L(s)]);
-  const PROG_OPTS = () => PROGRAMS.map(p => [p.id, L(p.s)]);
+  const PROG_OPTS = () => PROGRAMS.filter(p => !p.hidden).map(p => [p.id, L(p.s)]);
   const DIST = ['ঢাকা', 'চট্টগ্রাম', 'রাজশাহী', 'খুলনা', 'বরিশাল', 'সিলেট', 'রংপুর', 'ময়মনসিংহ', 'কুমিল্লা', 'অন্য জেলা'];
   const DIST_EN = ['Dhaka', 'Chattogram', 'Rajshahi', 'Khulna', 'Barishal', 'Sylhet', 'Rangpur', 'Mymensingh', 'Cumilla', 'Other district'];
 
@@ -727,7 +732,7 @@
         <h3 class="fs-t">${t('fs_teach')}</h3>
         ${checks('subjects', SUBJ_OPTS(), t('f_subjects'), true)}
         ${checks('programs', PROG_OPTS(), t('f_programs'), false)}
-        ${checks('formats', [['one', t('one_fmt')], ['group', t('group_fmt')]], t('f_formats'), false)}
+        ${checks('formats', CTYPES.filter(x => x.on).map(x => [x.id, L(x)]), t('f_formats'), false)}
         <div class="row">${selFld({ name: 'exp', label: t('f_exp'), half: true, opts: [['', t('choose')], ['0', t('exp0')], ['1', t('exp1')], ['3', t('exp3')]] })}${fld({ name: 'video', label: t('f_video'), half: true, type: 'url', ph: 'https://youtube.com/…', hint: t('f_video_h') })}</div>
         ${areaFld({ name: 'bio', label: t('f_bio'), req: true, ph: t('f_bio_ph'), rows: 4 })}
 
@@ -821,8 +826,8 @@
     return CO.pay === 'cash' ? `<p class="paynote ok">${ic('check')}${t('ck_cash_note')}</p>` : `<p class="paynote bad">${ic('close')}${t('ck_online_err')}</p>`;
   }
   function viewCheckout(id) {
-    const c = byId(COURSES, id); if (!c) return view404();
-    if (!CO || CO.id !== c.id) CO = { id: c.id, fmt: c.formats.includes('group') ? 'group' : 'one', plan: 'x', code: '', input: '', err: false };
+    const c = byId(COURSES, id); if (!c || !progOn(c.program)) return view404();
+    if (!CO || CO.id !== c.id) CO = { id: c.id, fmt: c.formats[0], plan: 'x', code: '', input: '', err: false };
     if (!CO.pay) CO.pay = 'cash';
     const k = calc(c, CO), tc = byId(TEACHERS, c.teacher);
     const pay = (v, ti, de, on, soon) => `<label class="opt ${CO.pay === v ? 'on' : ''}"><input type="radio" name="pay" value="${v}" ${CO.pay === v ? 'checked' : ''}><span><b>${ti}</b><small>${de}</small></span>${soon ? `<em class="soon">${t('ck_soon')}</em>` : ''}</label>`;
@@ -843,8 +848,8 @@
         <p class="mute sm center">${t('ck_demo')}</p>
       </form>
       <aside class="checkout"><h3>${t('ck_summary')}</h3>
-        <div class="ck-c" style="--cc:${PCOLOR[c.program]}"><span class="ck-code">${esc(byId(PROGRAMS, c.program).code)}</span><span><b>${esc(L(c.title))}</b><small>${avatar(tc, 20)} ${esc(L(tc.n))}</small></span></div>
-        <ul class="ck-l"><li><span>${t('co_fmt')}</span><b>${t(CO.fmt === 'one' ? 'one_fmt' : 'group_fmt')}</b></li><li><span>${t('co_plan')}</span><b>${planLabel(k.opt)}</b></li><li><span>${t('starts')}</span><b>${fdate(c.start)}</b></li>${CO.fmt === 'one' ? `<li><span>${t('pref_time')}</span><b>${esc(CO.pref || t('pref_none'))}</b></li>` : `<li><span>${t('batch_l')}</span><b>${t('batch_v')}</b></li>`}</ul>
+        <div class="ck-c" style="--cc:${progColor(c.program)}"><span class="ck-code">${esc(byId(PROGRAMS, c.program).code)}</span><span><b>${esc(L(c.title))}</b><small>${avatar(tc, 20)} ${esc(L(tc.n))}</small></span></div>
+        <ul class="ck-l"><li><span>${t('co_fmt')}</span><b>${esc(ctName(CO.fmt))}</b></li><li><span>${t('co_plan')}</span><b>${planLabel(k.opt)}</b></li><li><span>${t('starts')}</span><b>${fdate(c.start)}</b></li>${CO.fmt === 'one' ? `<li><span>${t('pref_time')}</span><b>${esc(CO.pref || t('pref_none'))}</b></li>` : `<li><span>${t('batch_l')}</span><b>${t('batch_v')}</b></li>`}</ul>
         <dl class="sum"><div><dt>${t('sum_price')}</dt><dd>${money(k.disc)}</dd></div>${k.cut ? `<div class="ok"><dt>${t('sum_cp')}</dt><dd>− ${money(k.cut)}</dd></div>` : ''}<div class="tot"><dt>${t('sum_total')}</dt><dd>${money(k.total)}</dd></div><div class="now"><dt>${k.one ? t('sum_now') : t('sum_first')}</dt><dd>${money(k.now)}</dd></div></dl>
         <a class="btn btn-o btn-block" href="#course-${c.id}">${t('ck_change')}</a>
         <p class="co-note">${ic('video')}${t('co_note')}</p></aside></div>`);
@@ -1097,6 +1102,12 @@
         <a class="btn btn-p" href="#home">${t('back_home')}</a></div></div>`;
       window.scrollTo(0, 0); return;
     }
+    if (kind === 'checkout' || kind === 'enroll') {
+      const c0 = byId(COURSES, CO.id);
+      if (c0 && !c0.formats.includes('one')) {
+        if (c0.seats <= 0) { const e = $('#e-pay') || $('.m-box .err'); if (e) e.textContent = t('seats_full'); else alert(t('seats_full')); return; }
+      }
+    }
     if (kind === 'checkout') {
       if (CO.pay !== 'cash') { $('#e-pay').textContent = t('ck_online_err'); $('#pay-note').scrollIntoView({ block: 'center' }); return; }
       const c = byId(COURSES, CO.id), k = calc(c, CO), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
@@ -1104,9 +1115,11 @@
         <dl class="sum"><div><dt>${t('order_id')}</dt><dd>${oid}</dd></div><div><dt>${t('nav_courses')}</dt><dd>${esc(L(c.title))}</dd></div><div><dt>${t('f_name')}</dt><dd>${esc(f.elements.en_name.value.trim())}</dd></div>${CO.fmt === 'one' ? `<div><dt>${t('pref_time')}</dt><dd>${esc(CO.pref || t('pref_none'))}</dd></div>` : ''}<div><dt>${t('status')}</dt><dd>${t('ck_status')}</dd></div><div class="now"><dt>${k.one ? t('sum_now') : t('sum_first')}</dt><dd>${money(k.now)}</dd></div></dl>
         <h4>${t('ck_next')}</h4><ol class="steps steps-s"><li><span class="sn">${num(1)}</span><b>${t('ck_n1')}</b></li><li><span class="sn">${num(2)}</span><b>${t('ck_n2')}</b></li><li><span class="sn">${num(3)}</span><b>${t('ck_n3')}</b></li></ol>
         <a class="btn btn-p" href="#home">${t('back_home')}</a></div></div>`;
+      { const c1 = byId(COURSES, CO.id); if (!c1.formats.includes('one')) c1.seats = Math.max(0, c1.seats - 1); }
       window.scrollTo(0, 0); return;
     }
     if (kind === 'enroll') {
+      { const c1 = byId(COURSES, CO.id); if (!c1.formats.includes('one')) c1.seats = Math.max(0, c1.seats - 1); }
       const c = byId(COURSES, CO.id), k = calc(c, CO), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
       $('.m-box').innerHTML = `<button class="m-x" data-act="close" aria-label="${t('close')}">${ic('close')}</button><div class="done"><span class="done-i">${ic('check')}</span><h3>${t('order_t')}</h3><p>${t('order_d')}</p>
         <dl class="sum"><div><dt>${t('order_id')}</dt><dd>${oid}</dd></div><div><dt>${t('nav_courses')}</dt><dd>${esc(L(c.title))}</dd></div><div class="now"><dt>${t('sum_now')}</dt><dd>${money(k.now)}</dd></div></dl>
