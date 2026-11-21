@@ -852,9 +852,14 @@
           <p class="mute sm center">${su ? `${t('have_acc')} <a href="#login">${t('login')}</a>` : `${t('no_acc')} <a href="#signup">${t('signup')}</a>`}</p>
           <p class="mute sm center">${t('teacher_q')} <a href="#become-teacher">${t('nav_become')}</a></p>
         </form>
-        <div class="demo-p"><b>${t('demo_portal')}</b><small>${t('dp_note')}</small><div><a class="btn btn-o btn-sm" href="#s-home">${t('dp_student')}</a><a class="btn btn-o btn-sm" href="#t-home">${t('dp_teacher')}</a><a class="btn btn-o btn-sm" href="#a-home">${t('dp_admin')}</a></div></div></div></div></section>`;
+        ${su ? '' : `<div class="demo-p demo-c"><b>${t('demo_cred')}</b><small>${t('demo_cred_d')}</small><ul>${DEMO_USERS.map(u => `<li><span>${t(u.role)}</span><code>${u.id}</code><code>${u.pass}</code></li>`).join('')}</ul></div>`}<div class="demo-p"><b>${t('demo_portal')}</b><small>${t('dp_note')}</small><div><a class="btn btn-o btn-sm" href="#s-home">${t('dp_student')}</a><a class="btn btn-o btn-sm" href="#t-home">${t('dp_teacher')}</a><a class="btn btn-o btn-sm" href="#a-home">${t('dp_admin')}</a></div></div></div></div></section>`;
   }
 
+  const DEMO_USERS = [
+    { role: 'dp_student', id: '01700000001', pass: 'student123', to: '#s-home' },
+    { role: 'dp_teacher', id: '01700000002', pass: 'teacher123', to: '#t-home' },
+    { role: 'dp_admin', id: 'admin@chaatro.com', pass: 'admin123', to: '#a-home' }
+  ];
   const POLS = { payment: ['p_payment', 3], refund: ['p_refund', 3], cookie: ['p_cookie', 3], terms: ['p_terms', 4], privacy: ['p_privacy', 3] };
   function viewPolicy(slug) {
     const p = POLS[slug]; if (!p) return view404();
@@ -1024,7 +1029,14 @@
     const errs = {};
     $$('[required]', f).forEach(el => { if (!el.value.trim()) errs[el.name] = t('e_req'); });
     const ph = f.elements.en_phone || f.elements.c_phone; if (ph && ph.value && !/^(?:\+?88)?01[3-9]\d{8}$/.test(ph.value.replace(/[\s-]/g, ''))) errs[ph.name] = t('e_phone');
+    let dest = null;
+    if (kind === 'login' && !Object.keys(errs).length) {
+      const u = f.elements.a_id.value.trim().toLowerCase(), p = f.elements.a_pass.value;
+      const hit = DEMO_USERS.find(x => x.id.toLowerCase() === u && x.pass === p);
+      if (hit) dest = hit.to; else errs.a_pass = t('e_login');
+    }
     showErrors(f, errs); if (Object.keys(errs).length) return;
+    if (dest) { location.hash = dest; return; }
     if (kind === 'checkout') {
       if (CO.pay !== 'cash') { $('#e-pay').textContent = t('ck_online_err'); $('#pay-note').scrollIntoView({ block: 'center' }); return; }
       const c = byId(COURSES, CO.id), k = calc(c, CO), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));

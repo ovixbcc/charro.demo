@@ -623,3 +623,5 @@ button { cursor: pointer; }
 .coupon input[type=text]{width:100%}
 #pref{padding:.8rem 1rem;border:1.5px solid #e3dcf5;border-radius:12px;font:inherit;background:#fff}#pref:focus{outline:2px solid #8C52FF;border-color:#8C52FF}
 .tag-one,.tag-grp{border-color:transparent}
+.demo-c ul{list-style:none;margin:.6rem 0 0;padding:0;display:grid;gap:.4rem}.demo-c li{display:grid;grid-template-columns:5.5rem 1fr 1fr;gap:.4rem;align-items:center;font-size:.85rem}.demo-c code{background:#f4efff;border-radius:6px;padding:.15rem .4rem;font-size:.8rem;word-break:break-all}
+@media(max-width:520px){.demo-c li{grid-template-columns:1fr}}
