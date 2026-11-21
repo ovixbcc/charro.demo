@@ -461,7 +461,7 @@
     const c = byId(COURSES, r.course);
     return `<figure class="rv"><div class="rv-s">${Array.from({ length: 5 }, (_, i) => `<span class="${i < r.rating ? 'on' : ''}">${star}</span>`).join('')}</div>
       <blockquote>${esc(L(r.text))}</blockquote>
-      <figcaption class="rv-by"><span class="av av-img" style="--s:46px" aria-hidden="true">${cartoon(RLOOK[Math.max(0, REVIEWS.indexOf(r)) % RLOOK.length])}</span><div><b>${esc(L(r.name))}</b><small>${esc(L(r.from))}</small>${c ? `<a href="#course-${c.id}">${esc(L(c.title))}</a>` : ''}</div></figcaption></figure>`;
+      <figcaption class="rv-by"><span class="av av-img" style="--s:46px" aria-hidden="true">${r.photo ? `<img src="${r.photo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : cartoon(RLOOK[Math.max(0, REVIEWS.indexOf(r)) % RLOOK.length])}</span><div><b>${esc(L(r.name))}</b><small>${esc(L(r.from))}</small>${c ? `<a href="#course-${c.id}">${esc(L(c.title))}</a>` : (r.teacher && byId(TEACHERS, r.teacher) ? `<a href="#teacher-${r.teacher}">${esc(L(byId(TEACHERS, r.teacher).n))}</a>` : '')}</div></figcaption></figure>`;
   }
 
   function viewCourses() {
@@ -629,7 +629,7 @@
   function viewTeacher(id) {
     const tc = byId(TEACHERS, id); if (!tc) return view404();
     const cs = liveCourses().filter(c => c.teacher === tc.id);
-    const revs = REVIEWS.filter(r => cs.some(c => c.id === r.course));
+    const revs = REVIEWS.filter(r => cs.some(c => c.id === r.course) || r.teacher === tc.id);
     return `
     <div class="phead phead-t"><div class="wrap tp-h">
       <div class="tp-av">${avatar(tc, 132)}</div>

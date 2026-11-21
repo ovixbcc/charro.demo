@@ -240,3 +240,4 @@ fieldset { min-width: 0; }
 @media (max-width: 560px) { .kv2 { grid-template-columns: minmax(0, 1fr); } }
 
 .seg { display: flex; gap: .6rem; flex-wrap: wrap; } .seg-i { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; padding: .55rem .8rem; border: 1px solid var(--line, #E5DEF5); border-radius: 12px; cursor: pointer; min-width: 0; } .seg-i small { color: var(--mute); overflow-wrap: anywhere; }
+.pc-tot { display: flex; justify-content: space-between; align-items: center; background: #F6F1FF; border-radius: 12px; padding: .7rem 1rem; } .pc-tot b { font-size: 1.3rem; color: var(--p); }
