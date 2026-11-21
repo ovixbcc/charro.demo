@@ -1,1 +1,1 @@
-if (window.PX && /^#[sta]-|^#portal/.test(location.hash)) CH.rerender();
+if (window.PX && /^#[stai]-|^#portal/.test(location.hash)) CH.rerender();
