@@ -1,9 +1,9 @@
-/* টিচারের পেআউট মেথড: ব্যাংক অ্যাকাউন্ট বা মোবাইল ওয়ালেট (বিকাশ / নগদ / Upay) */
+/* টিচারের পেআউট মেথড: ব্যাংক অ্যাকাউন্ট বা মোবাইল ওয়ালেট (বিকাশ / নগদ / জিপে (GPay)) */
 (function () {
   'use strict';
   const PX = window.PX, { T, n, mny, esc, fd, ic, TODAY } = PX, UI = PX.ui, DB = PX.DB;
   const TID = 't01';
-  const WAL = [['bkash', 'bKash', 'বিকাশ', 1.85], ['nagad', 'Nagad', 'নগদ', 1.99], ['upay', 'Upay', 'Upay', 1.85]];
+  const WAL = [['bkash', 'bKash', 'বিকাশ', 1.85], ['nagad', 'Nagad', 'নগদ', 1.99], ['gpay', 'GPay', 'জিপে', 1.85]];
   const wl = k => { const w = WAL.find(x => x[0] === k); return w ? T(w[2], w[1]) : '—'; };
   PX.cashRate = k => (WAL.find(x => x[0] === k) || [0, 0, 0, 0])[3];
   DB.payAcc = DB.payAcc || {};
