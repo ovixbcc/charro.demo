@@ -231,7 +231,7 @@
     const lk = (h, k) => `<a href="#${h}">${t(k)}</a>`;
     return `<div class="wrap">
       <div class="ft-top"><a class="logo" href="#home" aria-label="${esc(sname())}"><img src="${BR().logoFooter || BR().logo || 'img/logo-footer.png'}" alt="${esc(sname())}" width="800" height="240"></a><p>${t('ft_short')}</p></div>
-      <nav class="ft-links" aria-label="footer">${lk('about', 'nav_about')}${lk('how-it-works', 'nav_how')}${lk('blog', 'nav_blog')}${lk('faq', 'nav_faq')}${lk('become-teacher', 'nav_become')}${lk('contact', 'nav_contact')}</nav>
+      <nav class="ft-links" aria-label="footer">${lk('about', 'nav_about')}${lk('how-it-works', 'nav_how')}${lk('blog', 'nav_blog')}${lk('faq', 'nav_faq')}${lk('become-teacher', 'nav_become')}<a href="#institution-onboard">${lang === 'bn' ? 'ইনস্টিটিউশন হিসেবে অনবোর্ড হন' : 'Onboard as an institution'}</a>${lk('contact', 'nav_contact')}</nav>
       <nav class="ft-pol" aria-label="policies">${lk('policy-payment', 'p_payment')}${lk('policy-refund', 'p_refund')}${lk('policy-cookie', 'p_cookie')}${lk('policy-terms', 'p_terms')}${lk('policy-privacy', 'p_privacy')}</nav>
       <div class="ft-bot"><span>${BR().copyright ? esc(BR().copyright) : `© ${num(2026)} ${esc(sname())} · ${t('ft_rights')}`}</span><span>${t('ft_demo')}</span></div>
     </div>`;
@@ -994,7 +994,8 @@
   const DEMO_USERS = [
     { role: 'dp_student', id: '01700000001', pass: 'student123', to: '#s-home' },
     { role: 'dp_teacher', id: '01700000002', pass: 'teacher123', to: '#t-home' },
-    { role: 'dp_admin', id: 'admin@chaatro.com', pass: 'admin123', to: '#a-home' }
+    { role: 'dp_admin', id: 'admin@chaatro.com', pass: 'admin123', to: '#a-home' },
+    { role: 'dp_inst', id: 'INST-1001', pass: 'inst1001', to: '#i-home' }
   ];
   const POLS = { payment: ['p_payment', 3], refund: ['p_refund', 3], cookie: ['p_cookie', 3], terms: ['p_terms', 4], privacy: ['p_privacy', 3] };
   function viewPolicy(slug) {
@@ -1002,6 +1003,38 @@
     return pagehead(t(p[0]), t('pol_draft'), `<span>/</span><span>${t(p[0])}</span>`) +
       sec('', '', `<div class="prose narrow"><p class="notice">${t('pol_draft_d')}</p>${Array.from({ length: p[1] }, (_, i) => `<h2>${t('pol_' + slug + '_h' + (i + 1))}</h2><p>${t('pol_' + slug + '_p' + (i + 1))}</p>`).join('')}
       <div class="pol-g"><a href="#policy-payment">${t('p_payment')}</a><a href="#policy-refund">${t('p_refund')}</a><a href="#policy-cookie">${t('p_cookie')}</a><a href="#policy-terms">${t('p_terms')}</a><a href="#policy-privacy">${t('p_privacy')}</a></div></div>`);
+  }
+
+  /* ---------- ইনস্টিটিউশন অনবোর্ডিং (পাবলিক) ---------- */
+  function viewInstOnboard() {
+    const bn = lang === 'bn', x = (b, e) => bn ? b : e;
+    const types = [['school', x('স্কুল', 'School')], ['college', x('কলেজ', 'College')], ['university', x('বিশ্ববিদ্যালয়', 'University')], ['coaching', x('কোচিং সেন্টার', 'Coaching centre')], ['madrasa', x('মাদ্রাসা', 'Madrasa')], ['other', x('অন্যান্য', 'Other')]];
+    return pagehead(x('ইনস্টিটিউশন হিসেবে অনবোর্ড হন', 'Onboard as an institution'), x('আপনার স্কুল, কলেজ বা কোচিংয়ের স্টুডেন্টদের জন্য ছাত্র.com-এর কোর্স সাবস্ক্রিপশন নিন।', 'Give your students access to Chaatro.com courses through an institutional subscription.'), `<span>/</span><span>${x('ইনস্টিটিউশন', 'Institution')}</span>`) +
+      sec('', '', `<div class="two"><div class="bt-form" id="inst-wrap"><form data-form="institution" novalidate>
+        ${fld({ name: 'i_name', label: x('ইনস্টিটিউশনের নাম', 'Institution name'), req: true })}
+        ${selFld({ name: 'i_type', label: x('ধরন', 'Type'), opts: types, half: true })}${fld({ name: 'i_est', label: x('আনুমানিক স্টুডেন্ট সংখ্যা', 'Approx. number of students'), type: 'number', half: true })}
+        ${fld({ name: 'i_address', label: x('ঠিকানা', 'Address'), req: true })}
+        ${fld({ name: 'i_contact', label: x('যোগাযোগকারী ব্যক্তির নাম', 'Contact person'), req: true, half: true, auto: 'name' })}${fld({ name: 'i_desig', label: x('পদবি', 'Designation'), half: true })}
+        ${fld({ name: 'i_phone', label: x('ফোন', 'Phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', half: true, auto: 'tel' })}${fld({ name: 'i_email', label: x('ইমেইল', 'Email'), req: true, type: 'email', half: true, auto: 'email' })}
+        <div class="fld"><label for="i_logo">${x('ইনস্টিটিউশনের লোগো', 'Institution logo')}</label><input id="i_logo" name="i_logo" type="file" accept="image/*"><small class="hint">PNG / JPG</small></div>
+        ${areaFld({ name: 'i_msg', label: x('আপনাদের চাহিদা (ঐচ্ছিক)', 'Your requirements (optional)'), rows: 4 })}
+        <button class="btn btn-p btn-lg btn-block" type="submit">${x('আবেদন জমা দিন', 'Submit application')}</button></form></div>
+        <div class="info info-1"><div>${ic('check')}<span><b>${x('কীভাবে কাজ করে', 'How it works')}</b><em class="mute sm">${x('১) আবেদন করুন। ২) আমরা যাচাই করে অনুমোদন দিই। ৩) আপনাদের সিট সংখ্যা ও কোর্স ঠিক করা হয়। ৪) আইডি-পাসওয়ার্ডসহ PDF ও ইনস্টিটিউশন ড্যাশবোর্ড পান। ৫) স্টুডেন্টদের ইমেইল/ফোন দিয়ে কোর্সে এনরোল করান।', '1) Apply. 2) We review and approve. 3) We set your seats and courses. 4) You get a PDF with your ID/password and an institution dashboard. 5) Enrol students by email/phone.')}</em></span></div></div></div>`);
+  }
+  async function instSubmit(form) {
+    const bn = lang === 'bn', v = n => (form.elements[n] ? form.elements[n].value.trim() : ''), errs = {};
+    if (v('i_name').length < 3) errs.i_name = t('e_req');
+    if (!v('i_address')) errs.i_address = t('e_req');
+    if (!v('i_contact')) errs.i_contact = t('e_req');
+    if (!/^(?:\+?88)?01[3-9]\d{8}$/.test(v('i_phone').replace(/[\s-]/g, ''))) errs.i_phone = t('e_phone');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('i_email'))) errs.i_email = t('e_email');
+    showErrors(form, errs); if (Object.keys(errs).length) return;
+    const btn = form.querySelector('button[type=submit]'); btn.disabled = true;
+    const logo = window.PX && PX.imgData ? await PX.imgData(form.elements.i_logo.files[0]) : '';
+    const rec = PX.instApply({ name: v('i_name'), type: v('i_type'), est: v('i_est'), address: v('i_address'), contact: v('i_contact'), desig: v('i_desig'), phone: v('i_phone'), email: v('i_email'), msg: v('i_msg'), logo });
+    $('#inst-wrap').innerHTML = `<div class="done"><span class="done-i">${ic('check')}</span><h3>${bn ? 'আবেদন জমা হয়েছে' : 'Application submitted'}</h3><p>${bn ? 'আমাদের টিম যাচাই করে আপনাদের সঙ্গে যোগাযোগ করবে।' : 'Our team will review it and contact you.'}</p>
+      <dl class="sum"><div><dt>${bn ? 'আবেদন আইডি' : 'Application ID'}</dt><dd>${esc(rec.id)}</dd></div><div><dt>${bn ? 'ইনস্টিটিউশন' : 'Institution'}</dt><dd>${esc(rec.name)}</dd></div><div class="now"><dt>${t('status')}</dt><dd>${t('pending_v')}</dd></div></dl><a class="btn btn-o" href="#home">${t('back_home')}</a></div>`;
+    window.scrollTo(0, 0);
   }
 
   function view404() {
@@ -1012,7 +1045,7 @@
   function route() {
     const h = (location.hash || '#home').slice(1) || 'home';
     if (h === 'portal') return { name: 'portal', role: null };
-    const pm = h.match(/^([sta])-([a-z0-9]+)(?:-(.+))?$/);
+    const pm = h.match(/^([stai])-([a-z0-9]+)(?:-(.+))?$/);
     if (pm) return { name: 'portal', role: pm[1], sec: pm[2], arg: pm[3] };
     const em = h.match(/^eps-return(?:-(.+))?$/); if (em) return { name: 'epsres', id: em[1] || '' };
     const m = h.match(/^(course|teacher|policy|checkout|post|bundle|bpay)-(.+)$/);
@@ -1048,7 +1081,7 @@
     const snap = keep && r.name !== 'portal' ? snapshot() : null;
     const V = {
       home: viewHome, blog: viewBlog, post: () => viewPost(r.id), checkout: () => viewCheckout(r.id), epsres: () => viewEpsRes(r.id), bundles: viewBundles, bundle: () => viewBundle(r.id), bpay: () => viewBundlePay(r.id), courses: viewCourses, course: () => viewCourse(r.id), teachers: viewTeachers, teacher: () => viewTeacher(r.id),
-      'become-teacher': viewBecome, 'how-it-works': viewHow, about: viewAbout, faq: viewFaq, contact: viewContact,
+      'become-teacher': viewBecome, 'institution-onboard': viewInstOnboard, 'how-it-works': viewHow, about: viewAbout, faq: viewFaq, contact: viewContact,
       login: () => viewAuth('login'), signup: () => viewAuth('signup'), policy: () => viewPolicy(r.id),
     };
     const fn = V[r.name] || view404;
@@ -1173,14 +1206,15 @@
     const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault();
     const kind = f.dataset.form;
     if (kind === 'teacher') return teacherSubmit(f);
+    if (kind === 'institution') return instSubmit(f);
     const errs = {};
     $$('[required]', f).forEach(el => { if (!el.value.trim()) errs[el.name] = t('e_req'); });
     const ph = f.elements.en_phone || f.elements.c_phone; if (ph && ph.value && !/^(?:\+?88)?01[3-9]\d{8}$/.test(ph.value.replace(/[\s-]/g, ''))) errs[ph.name] = t('e_phone');
     let dest = null;
     if (kind === 'login' && !Object.keys(errs).length) {
       const u = f.elements.a_id.value.trim().toLowerCase(), p = f.elements.a_pass.value;
-      const hit = DEMO_USERS.find(x => x.id.toLowerCase() === u && x.pass === p);
-      if (hit) dest = hit.to; else errs.a_pass = t('e_login');
+      if (/^inst-/i.test(u)) { if (window.PX && PX.instLogin && PX.instLogin(u, p)) dest = '#i-home'; else errs.a_pass = t('e_login'); }
+      else { const hit = DEMO_USERS.find(x => x.id.toLowerCase() === u && x.pass === p); if (hit) dest = hit.to; else errs.a_pass = t('e_login'); }
     }
     showErrors(f, errs); if (Object.keys(errs).length) return;
     if (dest) { location.hash = dest; return; }

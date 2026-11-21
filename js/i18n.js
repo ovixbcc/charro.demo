@@ -521,3 +521,4 @@ add('dp_note', 'লগইন ছাড়াই তিনটি পোর্ট�
 add('dp_student', 'স্টুডেন্ট', 'Student');
 add('dp_teacher', 'টিচার', 'Teacher');
 add('dp_admin', 'অ্যাডমিন', 'Admin');
+add('dp_inst', 'ইনস্টিটিউশন', 'Institution');

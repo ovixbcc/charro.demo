@@ -2,7 +2,7 @@
    এটি ডেমো: সব তথ্য ব্রাউজারের মেমরিতে থাকে, রিফ্রেশ করলে প্রথম অবস্থায় ফিরে যায়। */
 (function () {
   'use strict';
-  const PX = window.PX = { ACT: {}, FORMS: {}, CHG: {}, sec: { s: {}, t: {}, a: {} }, nav: {}, S: { tab: {}, level: 'super', side: false, cal: { y: 2026, mo: 10 } } };
+  const PX = window.PX = { ACT: {}, FORMS: {}, CHG: {}, sec: { s: {}, t: {}, a: {}, i: {} }, nav: {}, S: { tab: {}, level: 'super', side: false, cal: { y: 2026, mo: 10 } } };
   const T = (bn, en) => (CH.lang() === 'bn' ? bn : en);
   const n = x => CH.num(x), mny = x => CH.money(x), esc = x => CH.esc(x), fd = d => CH.fdate(d), ic = (a, b) => CH.ic(a, b);
   const H = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
@@ -205,7 +205,7 @@
   PX.ACT.caln = () => { const c = PX.S.cal; c.mo++; if (c.mo > 11) { c.mo = 0; c.y++; } PX.refresh(); };
 
   /* ============ শেল ও রাউটার ============ */
-  const ROLE = { s: { bn: 'স্টুডেন্ট পোর্টাল', en: 'Student portal' }, t: { bn: 'টিচার পোর্টাল', en: 'Teacher portal' }, a: { bn: 'অ্যাডমিন প্যানেল', en: 'Admin panel' } };
+  const ROLE = { s: { bn: 'স্টুডেন্ট পোর্টাল', en: 'Student portal' }, t: { bn: 'টিচার পোর্টাল', en: 'Teacher portal' }, a: { bn: 'অ্যাডমিন প্যানেল', en: 'Admin panel' }, i: { bn: 'ইনস্টিটিউশন প্যানেল', en: 'Institution panel' } };
   function hub() {
     const c = (r, h, d, i) => `<a class="hub-c" href="${h}">${ic(i)}<b>${T(ROLE[r].bn, ROLE[r].en)}</b><span>${d}</span></a>`;
     return `<div class="hub"><div class="hub-in"><a class="logo" href="#home"><img src="img/logo.png" alt="Chaatro.com" width="400" height="120"></a><h1>${T('পোর্টাল বেছে নিন', 'Choose a portal')}</h1><p>${T('ডেমো: লগইন ছাড়াই তিনটি পোর্টাল ঘুরে দেখুন।', 'Demo: explore the three portals without logging in.')}</p>
@@ -228,7 +228,7 @@
     const body = fn ? fn(arg) : UI.card('', UI.empty(T('পেজটি পাওয়া যায়নি', 'Page not found')));
     const cur = nav.find(x => x.k === sec || (x.also || []).includes(sec));
     PX.S.title = cur ? cur.l : '';
-    const user = role === 's' ? { n: DB.me.name, av: '' } : role === 't' ? { n: TEACH('t01').n.bn, av: CH.avatar(TEACH('t01'), 32) } : { n: T('অ্যাডমিন', 'Admin'), av: '' };
+    const user = role === 's' ? { n: DB.me.name, av: '' } : role === 't' ? { n: TEACH('t01').n.bn, av: CH.avatar(TEACH('t01'), 32) } : role === 'i' ? { n: PX.instName ? PX.instName() : '', av: '' } : { n: T('অ্যাডমিন', 'Admin'), av: '' };
     const lvSel = role === 'a' ? `<label class="lvsel"><span>${T('অ্যাক্সেস লেভেল (ডেমো)', 'Access level (demo)')}</span><select data-pc="level">${Object.keys(DB.levels).map(k => `<option value="${k}" ${PX.S.level === k ? 'selected' : ''}>${DB.levels[k].label}</option>`).join('')}</select></label>` : '';
     return `<div class="pt pt-${role} ${PX.S.collapsed ? 'pt-collapsed' : ''}"><aside class="pt-side ${PX.S.side ? 'open' : ''}" id="pt-side">
       <a class="pt-logo" href="#home"><img src="img/logo.png" alt="Chaatro.com" width="400" height="120"></a>
