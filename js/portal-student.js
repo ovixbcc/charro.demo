@@ -124,7 +124,7 @@
 
   /* ---------- মেসেজ (টিচার + অভিভাবক) ---------- */
   DB.dm = DB.dm || {};
-  PX.dm = tid => DB.dm[tid] || (DB.dm[tid] = [{ from: 't', text: 'কোনো প্রশ্ন থাকলে এখানে জানাতে পারো। প্রয়োজনে অভিভাবককেও অবহিত রাখা হবে।', at: '১৮ নভেম্বর', cc: false }]);
+  PX.dm = tid => DB.dm[tid] || (DB.dm[tid] = [{ from: 't', text: 'If you have any questions, ask here. Your guardian will be kept informed if needed.', at: '18 Nov', cc: false }]);
   S.messages = () => {
     const tids = [...new Set(DB.enr.map(e => COURSE(e.cid).teacher))], cur = PX.S.tab.dm || tids[0];
     const l = PX.dm(cur);
@@ -166,7 +166,7 @@
   PX.attList = a => a && a.length ? `<div class="atts">${a.map(x => `<a class="att" href="${x.url}" target="_blank" rel="noopener" download="${esc(x.name)}">${x.img ? `<img src="${x.url}" alt="">` : ic('file')}<span><b>${esc(x.name)}</b><small>${n(x.size)} KB</small></span></a>`).join('')}</div>` : '';
   PX.ticketUI = (uid, role) => {
     const my = DB.tickets.filter(t => t.uid === uid);
-    return UI.card(T('নতুন টিকিট', 'New ticket'), `<form data-pf="ticket" data-uid="${uid}" data-role="${role}" class="fgrid">${UI.fi({ name: 'cat', label: T('বিভাগ', 'Category'), half: 1, opts: ['পেমেন্ট', 'ক্লাস', 'টেকনিক্যাল', 'অন্যান্য'].map(x => [x, x]) })}${UI.fi({ name: 'subject', label: T('বিষয়', 'Subject'), req: 1, half: 1 })}${UI.fi({ name: 'msg', label: T('বিস্তারিত', 'Details'), rows: 3, req: 1 })}<div class="fld"><label>${T('ফাইল যুক্ত করুন (স্ক্রিনশট, রসিদ, PDF)', 'Attach files (screenshot, receipt, PDF)')}</label>${PX.attPick(T('ফাইল বেছে নিন', 'Choose files'))}<small class="hint" data-pick-out></small><small class="hint">${T(`সর্বোচ্চ ${n(ATT_MAX)}টি, প্রতিটি ${n(ATT_MB)} এমবি পর্যন্ত`, `Up to ${ATT_MAX} files, ${ATT_MB} MB each`)}</small></div><div class="fld"><button class="btn btn-p">${T('টিকিট খুলুন', 'Open ticket')}</button></div></form>`) +
+    return UI.card(T('নতুন টিকিট', 'New ticket'), `<form data-pf="ticket" data-uid="${uid}" data-role="${role}" class="fgrid">${UI.fi({ name: 'cat', label: T('বিভাগ', 'Category'), half: 1, opts: ['Payment', 'Class', 'Technical', 'Other'].map(x => [x, x]) })}${UI.fi({ name: 'subject', label: T('বিষয়', 'Subject'), req: 1, half: 1 })}${UI.fi({ name: 'msg', label: T('বিস্তারিত', 'Details'), rows: 3, req: 1 })}<div class="fld"><label>${T('ফাইল যুক্ত করুন (স্ক্রিনশট, রসিদ, PDF)', 'Attach files (screenshot, receipt, PDF)')}</label>${PX.attPick(T('ফাইল বেছে নিন', 'Choose files'))}<small class="hint" data-pick-out></small><small class="hint">${T(`সর্বোচ্চ ${n(ATT_MAX)}টি, প্রতিটি ${n(ATT_MB)} এমবি পর্যন্ত`, `Up to ${ATT_MAX} files, ${ATT_MB} MB each`)}</small></div><div class="fld"><button class="btn btn-p">${T('টিকিট খুলুন', 'Open ticket')}</button></div></form>`) +
       UI.card(T('আমার টিকিট', 'My tickets'), my.map(t => `<div class="tk"><header><b>#${PX.tno(t)} · ${esc(t.subject)}</b>${UI.stChip(t.status)}<small>${esc(t.cat)} · ${fd(t.date)}</small></header>${t.msgs.map(m => `<div class="msg ${m.from === 'u' ? 'me' : ''}"><small>${m.from === 'u' ? T('আপনি', 'You') : T('সাপোর্ট', 'Support')} · ${fd(m.at)}</small>${m.text ? `<p>${esc(m.text)}</p>` : ''}${PX.attList(m.files)}</div>`).join('')}${t.status === 'closed' ? '' : `<form class="chat-f" data-pf="tkreply" data-id="${t.id}" data-from="u"><input name="text" placeholder="${T('উত্তর লিখুন…', 'Reply…')}">${PX.attPick()}<button class="btn btn-o btn-sm">${T('পাঠান', 'Send')}</button></form>`}</div>`).join('') || UI.empty(T('কোনো টিকিট নেই', 'No tickets')));
   };
   S.support = () => PX.ticketUI('u1', 's');

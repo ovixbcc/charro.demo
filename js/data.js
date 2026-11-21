@@ -5,16 +5,16 @@ const PROGRAMS = [
   { id: 'cadet', code: 'CC', bn: 'ক্যাডেট কলেজ ভর্তি', en: 'Cadet College Admission',
     s: { bn: 'ক্যাডেট', en: 'Cadet' },
     d: { bn: 'সপ্তম শ্রেণিতে ভর্তির প্রস্তুতি: বাংলা, ইংরেজি, গণিত ও সাধারণ জ্ঞান।', en: 'Prepare for Class 7 entry: Bangla, English, Math and General Knowledge.' } },
-  { id: 'du-ka', code: 'ক', bn: 'ঢাকা বিশ্ববিদ্যালয় — ক ইউনিট', en: 'Dhaka University — Unit Ka',
+  { id: 'du-ka', code: 'KA', bn: 'ঢাকা বিশ্ববিদ্যালয় — ক ইউনিট', en: 'Dhaka University — Unit Ka',
     s: { bn: 'ঢাবি ক', en: 'DU Ka' },
     d: { bn: 'ক ইউনিটের জন্য আলাদা ক্র্যাশ কোর্স, সপ্তাহে ১–২ দিন মডেল টেস্ট।', en: 'A separate crash course for Unit Ka with 1–2 model tests a week.' } },
-  { id: 'du-kha', code: 'খ', bn: 'ঢাকা বিশ্ববিদ্যালয় — খ ইউনিট', en: 'Dhaka University — Unit Kha',
+  { id: 'du-kha', code: 'KHA', bn: 'ঢাকা বিশ্ববিদ্যালয় — খ ইউনিট', en: 'Dhaka University — Unit Kha',
     s: { bn: 'ঢাবি খ', en: 'DU Kha' },
     d: { bn: 'খ ইউনিটের জন্য আলাদা ক্র্যাশ কোর্স, সপ্তাহে ১–২ দিন মডেল টেস্ট।', en: 'A separate crash course for Unit Kha with 1–2 model tests a week.' } },
-  { id: 'du-ga', code: 'গ', bn: 'ঢাকা বিশ্ববিদ্যালয় — গ ইউনিট', en: 'Dhaka University — Unit Ga',
+  { id: 'du-ga', code: 'GA', bn: 'ঢাকা বিশ্ববিদ্যালয় — গ ইউনিট', en: 'Dhaka University — Unit Ga',
     s: { bn: 'ঢাবি গ', en: 'DU Ga' },
     d: { bn: 'গ ইউনিটের জন্য আলাদা ক্র্যাশ কোর্স, সপ্তাহে ১–২ দিন মডেল টেস্ট।', en: 'A separate crash course for Unit Ga with 1–2 model tests a week.' } },
-  { id: 'du-gha', code: 'ঘ', bn: 'ঢাকা বিশ্ববিদ্যালয় — ঘ ইউনিট', en: 'Dhaka University — Unit Gha',
+  { id: 'du-gha', code: 'GHA', bn: 'ঢাকা বিশ্ববিদ্যালয় — ঘ ইউনিট', en: 'Dhaka University — Unit Gha',
     s: { bn: 'ঢাবি ঘ', en: 'DU Gha' },
     d: { bn: 'ঘ ইউনিটের জন্য আলাদা ক্র্যাশ কোর্স, সপ্তাহে ১–২ দিন মডেল টেস্ট।', en: 'A separate crash course for Unit Gha with 1–2 model tests a week.' } },
   { id: 'bup', code: 'BUP', bn: 'বাংলাদেশ ইউনিভার্সিটি অফ প্রফেশনালস (BUP)', en: 'Bangladesh University of Professionals (BUP)',
@@ -26,10 +26,10 @@ const PROGRAMS = [
 ];
 
 const SUBJECTS = [
-  { id: 'bangla', code: 'বা', bn: 'বাংলা', en: 'Bangla' },
+  { id: 'bangla', code: 'Bn', bn: 'বাংলা', en: 'Bangla' },
   { id: 'english', code: 'En', bn: 'ইংরেজি', en: 'English' },
   { id: 'gk', code: 'GK', bn: 'সাধারণ জ্ঞান', en: 'General Knowledge' },
-  { id: 'math', code: 'গ', bn: 'গণিত', en: 'Mathematics' },
+  { id: 'math', code: 'Mt', bn: 'গণিত', en: 'Mathematics' },
   { id: 'combined', code: '∑', bn: 'কম্বাইন্ড (সব বিষয়)', en: 'Combined (all subjects)' },
 ];
 
@@ -398,3 +398,14 @@ function bundleCalc(b) {
 TEACHERS.forEach((t, i) => { t.pid = 1001 + i; t.phone = '0171100' + t.pid; });
 COURSES.forEach((c, i) => { c.pid = 3001 + i; });
 const nextCoursePid = () => Math.max(3000, ...COURSES.map(c => c.pid || 0)) + 1;
+
+/* ডামি ডেটা সবসময় ইংরেজিতে: নমুনা টিচার, কোর্স, রিভিউ, ব্লগ ও বান্ডেলের বাংলা ভাগ ইংরেজি দিয়ে বদলানো হয়।
+   (প্রোগ্রাম, বিষয় ও দিনের নামের মতো ক্যাটালগ বাংলা/ইংরেজি দুটোই থাকে।) */
+(function enDummy(roots) {
+  const walk = o => {
+    if (!o || typeof o !== 'object') return;
+    if (typeof o.bn === 'string' && typeof o.en === 'string') o.bn = o.en;
+    Object.keys(o).forEach(k => walk(o[k]));
+  };
+  roots.forEach(walk);
+})([TEACHERS, COURSES, TOPICS, REVIEWS, BLOG, BUNDLES]);

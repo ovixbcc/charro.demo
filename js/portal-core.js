@@ -12,13 +12,13 @@
   Object.assign(PX, { T, n, mny, esc, fd, ic, H, COURSE, TEACH, TODAY });
 
   /* ============ মক ডেটাবেজ ============ */
-  const NAMES = ['তাসনিম জাহান', 'আরিফ হোসেন', 'সুমাইয়া রহমান', 'নাঈম ইসলাম', 'ফাতিমা আক্তার', 'রাফি আহমেদ', 'মিম সুলতানা', 'ইমরান খান', 'জান্নাত ফেরদৌস', 'তানভীর রহমান', 'লামিয়া হক', 'সাকিব হাসান'];
-  const DISTR = ['নেত্রকোণা', 'কুড়িগ্রাম', 'বরিশাল', 'রংপুর', 'সিলেট', 'কক্সবাজার', 'রাজশাহী', 'ময়মনসিংহ', 'খুলনা', 'ঢাকা', 'কুমিল্লা', 'যশোর'];
-  const LEVELS = ['ভর্তি পরীক্ষার্থী', 'ষষ্ঠ শ্রেণি', 'সপ্তম শ্রেণি', 'এইচএসসি'];
+  const NAMES = ['Tasnim Jahan', 'Arif Hossain', 'Sumaiya Rahman', 'Naim Islam', 'Fatima Akter', 'Rafi Ahmed', 'Mim Sultana', 'Imran Khan', 'Jannat Ferdous', 'Tanvir Rahman', 'Lamia Haque', 'Sakib Hasan'];
+  const DISTR = ['Netrokona', 'Kurigram', 'Barishal', 'Rangpur', 'Sylhet', 'Cox\'s Bazar', 'Rajshahi', 'Mymensingh', 'Khulna', 'Dhaka', 'Cumilla', 'Jashore'];
+  const LEVELS = ['Admission candidate', 'Class 6', 'Class 7', 'HSC'];
   const crm = NAMES.map((nm, i) => ({
     id: 'u' + (i + 1), sid: 20001 + i, name: nm, phone: '017' + String(10000000 + H(nm) % 89999999), email: 'student' + (i + 1) + '@example.com', district: DISTR[i], level: LEVELS[i % 4],
     joined: '2026-10-' + String(3 + i * 2).padStart(2, '0'), courses: [], notes: [], blocked: false, ref: i % 3 === 0 ? 'TASNIM-7A2K' : '',
-    guardian: { name: 'অভিভাবক ' + nm.split(' ')[1], phone: '018' + String(10000000 + H(nm + 'g') % 89999999) },
+    guardian: { name: 'Guardian ' + nm.split(' ')[1], phone: '018' + String(10000000 + H(nm + 'g') % 89999999) },
   }));
   crm[0].courses = ['c06', 'c04', 'c10'];
   crm.slice(1).forEach((u, i) => { [COURSES[(i * 3 + 1) % COURSES.length].id, COURSES[(i * 5 + 3) % COURSES.length].id].forEach(c => { if (!u.courses.includes(c)) u.courses.push(c); }); });
@@ -39,40 +39,40 @@
       { id: 'e3', cid: 'c10', fmt: 'group', plan: 'full', m: 0, per: pg('c10').fullD, cycles: 1, paid: 1, nextDue: null, state: 'active' },
     ],
     free: [
-      { id: 'f1', title: 'ক্যাডেট ভর্তি পরিচিতি', by: 't07', lessons: 6, hrs: 3, d: 'ভর্তি পরীক্ষার ধরন, সিলেবাস ও প্রস্তুতির রুটিন বোঝার প্রাথমিক কোর্স।' },
-      { id: 'f2', title: 'ইংরেজি গ্রামার বেসিক', by: 't06', lessons: 8, hrs: 4, d: 'Tense, voice ও narration সহজ উদাহরণে।' },
-      { id: 'f3', title: 'মানসাংক ও ট্রিকস (প্রাথমিক)', by: 't01', lessons: 5, hrs: 2, d: 'দ্রুত হিসাবের কিছু কৌশল।' },
-      { id: 'f4', title: 'বাংলা বানান: সহজ নিয়ম', by: 't02', lessons: 6, hrs: 3, d: 'প্রমিত বানানের গুরুত্বপূর্ণ নিয়মগুলো।' },
+      { id: 'f1', title: 'Cadet Admission Orientation', by: 't07', lessons: 6, hrs: 3, d: 'A starter course on the exam format, syllabus and a preparation routine.' },
+      { id: 'f2', title: 'English Grammar Basics', by: 't06', lessons: 8, hrs: 4, d: 'Tense, voice and narration with simple examples.' },
+      { id: 'f3', title: 'Mental Math & Tricks (Basic)', by: 't01', lessons: 5, hrs: 2, d: 'A few techniques for quick calculation.' },
+      { id: 'f4', title: 'Bangla Spelling: Easy Rules', by: 't02', lessons: 6, hrs: 3, d: 'The key rules of standard spelling.' },
     ],
     freeIn: [],
     sess: {}, blocked: [], att: {}, reviews: [], quizzes: [], scores: {}, extra: {}, recs: {}, files: {}, chats: {}, posts: [],
-    resched: [{ id: 'rq1', sid: 'c04-20261123', cid: 'c04', tid: 't01', newDate: '2026-11-25', newTime: 'রাত ৯:০০', reason: 'টিচারের একাডেমিক পরীক্ষা', status: 'pending', date: '2026-11-20' }],
+    resched: [{ id: 'rq1', sid: 'c04-20261123', cid: 'c04', tid: 't01', curDate: '2026-11-23', curTime: '8:00 PM', newDate: '2026-11-25', newTime: '9:00 PM', alt2Date: '2026-11-26', alt2Time: '8:30 PM', reason: 'Teacher has an academic exam', status: 'pending', date: '2026-11-20' }],
     announcements: [
-      { id: 'an1', title: 'ডিসেম্বরে নতুন ক্র্যাশ কোর্স ব্যাচ শুরু', body: 'ঢাবি ক, খ, গ, ঘ ইউনিট, BUP ও বুয়েটের নতুন ব্যাচ ডিসেম্বরের প্রথম দুই সপ্তাহে শুরু হচ্ছে।', aud: 'all', active: true, date: '2026-11-19' },
-      { id: 'an2', title: 'মাসিক সাবস্ক্রিপশনের রিমাইন্ডার', body: 'মাসিক প্ল্যানের শিক্ষার্থীরা প্রতি মাসের শেষ দিনে সাবস্ক্রিপশনের রিমাইন্ডার পাবেন। বকেয়া থাকলে পরের ক্লাসে যোগ দেওয়া যাবে না।', aud: 'student', active: true, date: '2026-11-18' },
-      { id: 'an3', title: 'ক্লাসের সময়সূচি বদলাতে অ্যাডমিনের অনুমোদন লাগবে', body: 'টিচাররা শিডিউল পরিবর্তনের অনুরোধ পাঠালে অ্যাডমিন অনুমোদন দেওয়ার পর তা কার্যকর হবে। ক্লাস বন্ধ থাকলে আগেই ব্লক করে দিন।', aud: 'teacher', active: true, date: '2026-11-17' },
+      { id: 'an1', title: 'New crash course batches start in December', body: 'New batches for DU Ka, Kha, Ga, Gha units, BUP and BUET start in the first two weeks of December.', aud: 'all', active: true, date: '2026-11-19' },
+      { id: 'an2', title: 'Monthly subscription reminder', body: 'Students on a monthly plan get a subscription reminder on the last day of each month. With dues pending, you cannot join the next class.', aud: 'student', active: true, date: '2026-11-18' },
+      { id: 'an3', title: 'Class schedule changes need admin approval', body: 'When a teacher sends a schedule change request it takes effect only after admin approval. If a class will not run, block it in advance.', aud: 'teacher', active: true, date: '2026-11-17' },
     ],
     policies: [
-      { id: 'pl1', title: 'পেমেন্ট পলিসি', aud: ['student'], body: 'পুরো কোর্সের টাকা একবারে অথবা টিচারের নির্ধারিত মেয়াদে (১, ৩, ৬ বা ১২ মাস পর পর) দেওয়া যাবে। মাসিক প্ল্যানে বকেয়া থাকলে পরের ক্লাসে প্রবেশ বন্ধ থাকবে। (খসড়া)', date: '2026-11-14' },
-      { id: 'pl2', title: 'রিফান্ড ও রিটার্ন পলিসি', aud: ['student'], body: 'রিফান্ডের শর্ত ও সময়সীমা চূড়ান্ত হলে এখানে প্রকাশ করা হবে। (খসড়া)', date: '2026-11-14' },
-      { id: 'pl3', title: 'ব্যবহারের শর্তাবলি', aud: ['student', 'teacher'], body: 'ক্লাস লাইভ ও অনলাইনে হয়। গুরুত্বপূর্ণ রেকর্ডিং টিচার আলাদা করে আপলোড করলে শিক্ষার্থীরা দেখতে পারবে। (খসড়া)', date: '2026-11-14' },
-      { id: 'pl4', title: 'আচরণবিধি', aud: ['student', 'teacher'], body: 'ক্লাসে সবার সঙ্গে সম্মানজনক আচরণ করতে হবে। আচরণবিধির কঠোর অংশ চূড়ান্ত হলে এখানে যুক্ত হবে। (খসড়া)', date: '2026-11-14' },
-      { id: 'pl5', title: 'টিচার রিক্রুটমেন্ট পলিসি', aud: ['teacher'], body: 'আবেদন, ডকুমেন্ট যাচাই, অ্যাডমিন অনুমোদন, প্রোফাইল প্রকাশ ও কোর্স অনুমোদনের ধাপগুলো এখানে থাকবে। কঠোর শর্তগুলো চূড়ান্ত হলে হালনাগাদ হবে। (খসড়া)', date: '2026-11-14' },
-      { id: 'pl6', title: 'পেআউট ও আয় বণ্টন পলিসি', aud: ['teacher'], body: 'টিচার ও কোম্পানির শেয়ারের হার এবং পেআউটের সময়সূচি চূড়ান্ত হলে এখানে প্রকাশ হবে। (খসড়া)', date: '2026-11-14' },
-      { id: 'pl7', title: 'গোপনীয়তা নীতি', aud: ['student', 'teacher'], body: 'আপনার তথ্য শুধু অ্যাকাউন্ট পরিচালনা, ক্লাস ও পেমেন্টের কাজে ব্যবহৃত হয়। (খসড়া)', date: '2026-11-14' },
+      { id: 'pl1', title: 'Payment Policy', aud: ['student'], body: 'The full course fee can be paid at once or on the teacher\'s plan (every 1, 3, 6 or 12 months). With dues on a monthly plan, access to the next class is blocked. (Draft)', date: '2026-11-14' },
+      { id: 'pl2', title: 'Refund & Return Policy', aud: ['student'], body: 'Refund conditions and timelines will be published here once finalised. (Draft)', date: '2026-11-14' },
+      { id: 'pl3', title: 'Terms of Use', aud: ['student', 'teacher'], body: 'Classes are live and online. Students can watch important recordings when the teacher uploads them separately. (Draft)', date: '2026-11-14' },
+      { id: 'pl4', title: 'Code of Conduct', aud: ['student', 'teacher'], body: 'Everyone must behave respectfully in class. Stricter conduct rules will be added here once finalised. (Draft)', date: '2026-11-14' },
+      { id: 'pl5', title: 'Teacher Recruitment Policy', aud: ['teacher'], body: 'The steps for application, document verification, admin approval, profile publishing and course approval will be listed here. Updated once strict terms are finalised. (Draft)', date: '2026-11-14' },
+      { id: 'pl6', title: 'Payout & Earnings Policy', aud: ['teacher'], body: 'Teacher and company share rates and the payout schedule will be published here once finalised. (Draft)', date: '2026-11-14' },
+      { id: 'pl7', title: 'Privacy Policy', aud: ['student', 'teacher'], body: 'Your information is used only to run your account, classes and payments. (Draft)', date: '2026-11-14' },
     ],
     newCourses: [
-      { id: 'n1', tid: 't01', title: 'ক্যাডেট ভর্তি — গণিত অ্যাডভান্সড', program: 'cadet', subject: 'math', kind: 'regular', weeks: 12, cpw: 3, days: ['sun', 'tue', 'thu'], time: 'রাত ৯:০০', formats: ['group', 'one'], status: 'review', date: '2026-11-19', video: 'https://youtube.com/', desc: 'কঠিন গণিতের জন্য আলাদা অ্যাডভান্সড ব্যাচ।', plans: { group: [{ key: 'full', m: 0, actual: 3200, disc: 2800 }, { key: 'm1', m: 1, actual: 1200, disc: 1050, first: 800 }], one: [{ key: 'full', m: 0, actual: 8600, disc: 7800 }] } },
-      { id: 'n2', tid: 't06', title: 'ঢাবি ক ইউনিট — ইংরেজি ফোকাস', program: 'du-ka', subject: 'english', kind: 'regular', weeks: 8, cpw: 2, days: ['mon', 'thu'], time: 'রাত ৮:০০', formats: ['group'], status: 'review', date: '2026-11-20', video: 'https://youtube.com/', desc: 'ইংরেজি অংশের জন্য আলাদা প্রস্তুতি ব্যাচ।', plans: { group: [{ key: 'full', m: 0, actual: 3000, disc: 2600 }] } },
-      { id: 'n3', tid: 't01', title: 'বুয়েট ভর্তি — পদার্থ ও গণিত মিক্স', program: 'buet', subject: 'math', kind: 'crash', weeks: 8, cpw: 2, days: ['fri', 'sun'], time: 'সকাল ১০:০০', formats: ['group'], status: 'draft', date: '2026-11-21', video: '', desc: '', plans: { group: [{ key: 'full', m: 0, actual: 4800, disc: 4200 }] } },
+      { id: 'n1', tid: 't01', title: 'Cadet Admission — Advanced Mathematics', program: 'cadet', subject: 'math', kind: 'regular', weeks: 12, cpw: 3, days: ['sun', 'tue', 'thu'], time: '9:00 PM', formats: ['group', 'one'], status: 'review', date: '2026-11-19', video: 'https://youtube.com/', desc: 'A separate advanced batch for harder maths.', plans: { group: [{ key: 'full', m: 0, actual: 3200, disc: 2800 }, { key: 'm1', m: 1, actual: 1200, disc: 1050, first: 800 }], one: [{ key: 'full', m: 0, actual: 8600, disc: 7800 }] } },
+      { id: 'n2', tid: 't06', title: 'DU Ka Unit — English Focus', program: 'du-ka', subject: 'english', kind: 'regular', weeks: 8, cpw: 2, days: ['mon', 'thu'], time: '8:00 PM', formats: ['group'], status: 'review', date: '2026-11-20', video: 'https://youtube.com/', desc: 'A separate preparation batch for the English section.', plans: { group: [{ key: 'full', m: 0, actual: 3000, disc: 2600 }] } },
+      { id: 'n3', tid: 't01', title: 'BUET Admission — Physics & Maths Mix', program: 'buet', subject: 'math', kind: 'crash', weeks: 8, cpw: 2, days: ['fri', 'sun'], time: '10:00 AM', formats: ['group'], status: 'draft', date: '2026-11-21', video: '', desc: '', plans: { group: [{ key: 'full', m: 0, actual: 4800, disc: 4200 }] } },
     ],
     apps: [
-      { id: 'ap1', name: 'রিয়াদ হাসান', inst: 'বুয়েট', dept: 'মেকানিক্যাল ইঞ্জিনিয়ারিং', year: '৩য় বর্ষ', subjects: ['math'], phone: '01711000111', email: 'riyad@example.com', district: 'ঢাকা', date: '2026-11-18', status: 'pending', badges: { id: false, pay: false, doc: false }, docs: [['CV', 'riyad-cv.pdf', '210 KB'], ['আইডি', 'buet-id.jpg', '480 KB'], ['সনদ', 'hsc-cert.pdf', '320 KB']], note: '' },
-      { id: 'ap2', name: 'মাহমুদা খাতুন', inst: 'ঢাকা বিশ্ববিদ্যালয়', dept: 'ইংরেজি বিভাগ', year: '৪র্থ বর্ষ', subjects: ['english'], phone: '01722000222', email: 'mahmuda@example.com', district: 'রাজশাহী', date: '2026-11-19', status: 'pending', badges: { id: false, pay: false, doc: false }, docs: [['CV', 'mahmuda-cv.pdf', '190 KB'], ['আইডি', 'du-id.png', '510 KB']], note: '' },
-      { id: 'ap3', name: 'আসিফ ইকবাল', inst: 'জাহাঙ্গীরনগর বিশ্ববিদ্যালয়', dept: 'গণিত বিভাগ', year: '৩য় বর্ষ', subjects: ['math'], phone: '01733000333', email: 'asif@example.com', district: 'সাভার', date: '2026-11-08', status: 'approved', badges: { id: true, pay: true, doc: true }, docs: [['CV', 'asif-cv.pdf', '200 KB'], ['আইডি', 'ju-id.jpg', '450 KB'], ['সনদ', 'ssc-cert.pdf', '280 KB']], note: 'ডকুমেন্ট ঠিক আছে।' },
-      { id: 'ap4', name: 'শাহরিয়ার নাফিজ', inst: 'অন্যান্য', dept: 'বাণিজ্য', year: 'গ্র্যাজুয়েট', subjects: ['gk'], phone: '01744000444', email: 'shahriar@example.com', district: 'চট্টগ্রাম', date: '2026-11-05', status: 'rejected', badges: { id: false, pay: false, doc: false }, docs: [['CV', 'cv.pdf', '150 KB']], note: 'আইডি ডকুমেন্ট জমা হয়নি।' },
+      { id: 'ap1', name: 'Riyad Hasan', inst: 'BUET', dept: 'Mechanical Engineering', year: '3rd year', subjects: ['math'], phone: '01711000111', email: 'riyad@example.com', district: 'Dhaka', date: '2026-11-18', status: 'pending', badges: { id: false, pay: false, doc: false }, docs: [['CV', 'riyad-cv.pdf', '210 KB'], ['ID', 'buet-id.jpg', '480 KB'], ['Certificate', 'hsc-cert.pdf', '320 KB']], note: '' },
+      { id: 'ap2', name: 'Mahmuda Khatun', inst: 'University of Dhaka', dept: 'Department of English', year: '4th year', subjects: ['english'], phone: '01722000222', email: 'mahmuda@example.com', district: 'Rajshahi', date: '2026-11-19', status: 'pending', badges: { id: false, pay: false, doc: false }, docs: [['CV', 'mahmuda-cv.pdf', '190 KB'], ['ID', 'du-id.png', '510 KB']], note: '' },
+      { id: 'ap3', name: 'Asif Iqbal', inst: 'Jahangirnagar University', dept: 'Department of Mathematics', year: '3rd year', subjects: ['math'], phone: '01733000333', email: 'asif@example.com', district: 'Savar', date: '2026-11-08', status: 'approved', badges: { id: true, pay: true, doc: true }, docs: [['CV', 'asif-cv.pdf', '200 KB'], ['ID', 'ju-id.jpg', '450 KB'], ['Certificate', 'ssc-cert.pdf', '280 KB']], note: 'Documents are in order.' },
+      { id: 'ap4', name: 'Shahriar Nafiz', inst: 'Other', dept: 'Commerce', year: 'Graduate', subjects: ['gk'], phone: '01744000444', email: 'shahriar@example.com', district: 'Chattogram', date: '2026-11-05', status: 'rejected', badges: { id: false, pay: false, doc: false }, docs: [['CV', 'cv.pdf', '150 KB']], note: 'ID document not submitted.' },
     ],
-    banned: {}, payouts: [{ id: 'po1', tid: 't01', amount: 6000, date: '2026-11-10', note: 'অক্টোবরের পেআউট' }, { id: 'po2', tid: 't05', amount: 5000, date: '2026-11-10', note: 'অক্টোবরের পেআউট' }],
+    banned: {}, payouts: [{ id: 'po1', tid: 't01', amount: 6000, date: '2026-11-10', note: 'October payout' }, { id: 'po2', tid: 't05', amount: 5000, date: '2026-11-10', note: 'October payout' }],
     settings: { share: 30, shareTid: {}, channels: { ssl: false, bkash: false, cash: true }, refS: { type: 'pct', v: 5 }, refT: { type: 'fixed', v: 500 }, reminderDay: 'last' },
     classTypes: CTYPES,
     coupons: [
@@ -80,24 +80,24 @@
       { code: 'FIRST200', type: 'flat', v: 200, scope: '', by: 'admin', active: true, uses: 9, limit: 100, expiry: '2026-12-31' },
       { code: 'TANVIR15', type: 'pct', v: 15, scope: 'c04', by: 't01', active: true, uses: 3, limit: 30, expiry: '2026-12-15' },
     ],
-    refS: [{ name: 'ইমরান খান', date: '2026-11-05', status: 'enrolled', bonus: 200 }, { name: 'লামিয়া হক', date: '2026-11-11', status: 'enrolled', bonus: 200 }, { name: 'সাকিব হাসান', date: '2026-11-16', status: 'joined', bonus: 0 }],
-    refT: [{ name: 'রিয়াদ হাসান', date: '2026-11-18', status: 'applied', bonus: 0 }, { name: 'আসিফ ইকবাল', date: '2026-11-08', status: 'approved', bonus: 500 }],
+    refS: [{ name: 'Imran Khan', date: '2026-11-05', status: 'enrolled', bonus: 200 }, { name: 'Lamia Haque', date: '2026-11-11', status: 'enrolled', bonus: 200 }, { name: 'Sakib Hasan', date: '2026-11-16', status: 'joined', bonus: 0 }],
+    refT: [{ name: 'Riyad Hasan', date: '2026-11-18', status: 'applied', bonus: 0 }, { name: 'Asif Iqbal', date: '2026-11-08', status: 'approved', bonus: 500 }],
     tickets: [
-      { id: 'tk1', by: 's', uid: 'u1', name: 'তাসনিম জাহান', cat: 'পেমেন্ট', subject: 'ক্যাশ পেমেন্টের রসিদ চাই', status: 'progress', date: '2026-11-19', msgs: [{ from: 'u', text: 'আমি ২৫ অক্টোবর ক্যাশ পেমেন্ট করেছি, রসিদ পাইনি।', at: '2026-11-19' }, { from: 's', text: 'আমরা অ্যাকাউন্টস টিমকে জানিয়েছি, শিগগির রসিদ পাঠানো হবে।', at: '2026-11-20' }] },
-      { id: 'tk2', by: 't', uid: 't01', name: 'তানভীর আহমেদ', cat: 'পেআউট', subject: 'নভেম্বরের পেআউটের তারিখ জানতে চাই', status: 'open', date: '2026-11-20', msgs: [{ from: 'u', text: 'নভেম্বরের পেআউট কবে হবে?', at: '2026-11-20' }] },
-      { id: 'tk3', by: 's', uid: 'u4', name: 'নাঈম ইসলাম', cat: 'ক্লাস', subject: 'জয়েন লিংক কাজ করছে না', status: 'closed', date: '2026-11-12', msgs: [{ from: 'u', text: 'জয়েন লিংকে ঢুকতে পারছি না।', at: '2026-11-12' }, { from: 's', text: 'লিংক ঠিক করা হয়েছে।', at: '2026-11-12' }] },
+      { id: 'tk1', by: 's', uid: 'u1', name: 'Tasnim Jahan', cat: 'Payment', subject: 'Need a receipt for my cash payment', status: 'progress', date: '2026-11-19', msgs: [{ from: 'u', text: 'I paid cash on 25 October but did not receive a receipt.', at: '2026-11-19' }, { from: 's', text: 'We have informed the accounts team; the receipt will be sent shortly.', at: '2026-11-20' }] },
+      { id: 'tk2', by: 't', uid: 't01', name: 'Tanvir Ahmed', cat: 'Payout', subject: 'Want to know the November payout date', status: 'open', date: '2026-11-20', msgs: [{ from: 'u', text: 'When will the November payout be made?', at: '2026-11-20' }] },
+      { id: 'tk3', by: 's', uid: 'u4', name: 'Naim Islam', cat: 'Class', subject: 'Join link is not working', status: 'closed', date: '2026-11-12', msgs: [{ from: 'u', text: 'I cannot enter through the join link.', at: '2026-11-12' }, { from: 's', text: 'The link has been fixed.', at: '2026-11-12' }] },
     ],
     employees: [
-      { id: 'em1', name: 'সবুজ কুমার মণ্ডল', role: 'CEO', level: 'super', email: 'ceo@example.com', active: true },
-      { id: 'em2', name: 'রাজিব ইসলাম', role: 'অ্যাকাউন্টস', level: 'accounts', email: 'accounts@example.com', active: true },
-      { id: 'em3', name: 'মিতা দাস', role: 'একাডেমিক কোঅর্ডিনেটর', level: 'academic', email: 'academic@example.com', active: true },
-      { id: 'em4', name: 'সাদিল আহমেদ', role: 'ডেভেলপার', level: 'dev', email: 'dev@example.com', active: true },
+      { id: 'em1', name: 'Sobuj K Mandal', role: 'CEO', level: 'super', email: 'ceo@example.com', active: true },
+      { id: 'em2', name: 'Rajib Islam', role: 'Accounts', level: 'accounts', email: 'accounts@example.com', active: true },
+      { id: 'em3', name: 'Mita Das', role: 'Academic Coordinator', level: 'academic', email: 'academic@example.com', active: true },
+      { id: 'em4', name: 'Sadil Ahmed', role: 'Developer', level: 'dev', email: 'dev@example.com', active: true },
     ],
     levels: {
-      super: { label: 'সুপার অ্যাডমিন', perms: { applications: 1, teachers: 1, courses: 1, students: 1, payments: 1, payouts: 1, subs: 1, schedule: 1, content: 1, pricing: 1, support: 1, policies: 1, staff: 1, reviews: 1, settings: 1 } },
-      accounts: { label: 'অ্যাকাউন্টস', perms: { applications: 0, teachers: 0, courses: 0, students: 1, payments: 1, payouts: 1, subs: 1, schedule: 0, content: 0, pricing: 0, support: 1, policies: 0, staff: 0, reviews: 0, settings: 0 } },
-      academic: { label: 'একাডেমিক', perms: { applications: 1, teachers: 1, courses: 1, students: 1, payments: 0, payouts: 0, subs: 0, schedule: 1, content: 0, pricing: 0, support: 1, policies: 0, staff: 0, reviews: 1, settings: 0 } },
-      dev: { label: 'ডেভেলপমেন্ট', perms: { applications: 0, teachers: 0, courses: 0, students: 0, payments: 0, payouts: 0, subs: 0, schedule: 0, content: 1, pricing: 1, support: 0, policies: 1, staff: 0, reviews: 0, settings: 1 } },
+      super: { label: 'Super Admin', perms: { applications: 1, teachers: 1, courses: 1, students: 1, payments: 1, payouts: 1, subs: 1, schedule: 1, content: 1, pricing: 1, support: 1, policies: 1, staff: 1, reviews: 1, settings: 1 } },
+      accounts: { label: 'Accounts', perms: { applications: 0, teachers: 0, courses: 0, students: 1, payments: 1, payouts: 1, subs: 1, schedule: 0, content: 0, pricing: 0, support: 1, policies: 0, staff: 0, reviews: 0, settings: 0 } },
+      academic: { label: 'Academic', perms: { applications: 1, teachers: 1, courses: 1, students: 1, payments: 0, payouts: 0, subs: 0, schedule: 1, content: 0, pricing: 0, support: 1, policies: 0, staff: 0, reviews: 1, settings: 0 } },
+      dev: { label: 'Development', perms: { applications: 0, teachers: 0, courses: 0, students: 0, payments: 0, payouts: 0, subs: 0, schedule: 0, content: 1, pricing: 1, support: 0, policies: 1, staff: 0, reviews: 0, settings: 1 } },
     },
     featured: { courses: COURSES.filter(c => c.featured).map(c => c.id), teachers: ['t01', 't02', 't08'] },
     off: {}, notes: {},
@@ -108,7 +108,7 @@
     math: [['১২ এর ২৫% কত?', ['২', '৩', '৪', '৬'], 1], ['আয়তের দৈর্ঘ্য ৮ ও প্রস্থ ৫ হলে ক্ষেত্রফল কত?', ['১৩', '২৬', '৪০', '৪৫'], 2], ['x + 7 = 15 হলে x = ?', ['৬', '৭', '৮', '৯'], 2], ['৫০ এর ৪০% কত?', ['১০', '২০', '২৫', '৩০'], 1]],
     bangla: [['‘বিদ্যালয়’ শব্দের সন্ধি বিচ্ছেদ কোনটি?', ['বিদ্যা + আলয়', 'বিদ্য + আলয়', 'বিদ + আলয়', 'বিদ্যা + লয়'], 0], ['‘অগ্নিবীণা’ কাব্যের রচয়িতা কে?', ['রবীন্দ্রনাথ ঠাকুর', 'কাজী নজরুল ইসলাম', 'জীবনানন্দ দাশ', 'সুকান্ত ভট্টাচার্য'], 1], ['‘ঊষা’ শব্দের বিপরীত শব্দ কোনটি?', ['সন্ধ্যা', 'প্রভাত', 'রাত', 'দুপুর'], 0], ['বাংলা বর্ণমালায় স্বরবর্ণ কয়টি?', ['৯', '১০', '১১', '১২'], 2]],
     english: [['She ___ to school every day.', ['go', 'goes', 'going', 'gone'], 1], ['Synonym of "rapid":', ['slow', 'quick', 'weak', 'late'], 1], ['Antonym of "ancient":', ['old', 'modern', 'huge', 'tiny'], 1], ['He has lived here ___ 2020.', ['for', 'since', 'from', 'by'], 1]],
-    gk: [['বাংলাদেশের রাজধানী কোনটি?', ['চট্টগ্রাম', 'ঢাকা', 'সিলেট', 'রাজশাহী'], 1], ['বাংলাদেশের জাতীয় ফুল কোনটি?', ['গোলাপ', 'শাপলা', 'জবা', 'বেলি'], 1], ['বাংলাদেশ স্বাধীন হয় কত সালে?', ['১৯৭০', '১৯৭১', '১৯৭২', '১৯৭৩'], 1], ['পানির রাসায়নিক সংকেত কী?', ['CO₂', 'H₂O', 'O₂', 'NaCl'], 1]],
+    gk: [['বাংলাদেশের রাজধানী কোনটি?', ['Chattogram', 'Dhaka', 'Sylhet', 'Rajshahi'], 1], ['বাংলাদেশের জাতীয় ফুল কোনটি?', ['গোলাপ', 'শাপলা', 'জবা', 'বেলি'], 1], ['বাংলাদেশ স্বাধীন হয় কত সালে?', ['১৯৭০', '১৯৭১', '১৯৭২', '১৯৭৩'], 1], ['পানির রাসায়নিক সংকেত কী?', ['CO₂', 'H₂O', 'O₂', 'NaCl'], 1]],
   };
   PX.QB.combined = [PX.QB.math[0], PX.QB.bangla[1], PX.QB.english[1], PX.QB.gk[1]];
 
@@ -135,7 +135,7 @@
   PX.myEnr = cid => DB.enr.find(e => e.cid === cid);
   PX.files = cid => DB.files[cid] || (DB.files[cid] = [{ id: 'f' + cid + '1', name: 'কোর্স সিলেবাস.pdf', size: 320, by: COURSE(cid) ? TEACH(COURSE(cid).teacher).n.bn : '', role: 't', date: '2026-10-28' }, { id: 'f' + cid + '2', name: 'সূত্র ও টিপস.pdf', size: 210, by: TEACH(COURSE(cid).teacher).n.bn, role: 't', date: '2026-11-04' }]);
   PX.chat = cid => DB.chats[cid] || (DB.chats[cid] = (() => { const tc = TEACH(COURSE(cid).teacher), r = PX.roster(cid); return [{ from: tc.n.bn, role: 't', text: 'সবাইকে স্বাগতম! এই গ্রুপে প্রশ্ন ও ফাইল শেয়ার করতে পারবে।', at: '২৮ অক্টোবর' }, { from: (r[1] || r[0]).name, role: 's', text: 'ধন্যবাদ স্যার/ম্যাম, আজকের ক্লাসের নোট কি পাওয়া যাবে?', at: '৪ নভেম্বর' }, { from: tc.n.bn, role: 't', text: 'হ্যাঁ, ক্লাস নোট ফাইল সেকশনে দিয়ে দিয়েছি।', at: '৪ নভেম্বর' }]; })());
-  PX.posts = cid => { if (!DB.posts.some(p => p.cid === cid)) { const tc = TEACH(COURSE(cid).teacher); DB.posts.push({ id: 'po' + cid + 1, cid, type: 'announcement', title: 'সাপ্তাহিক পরীক্ষার সময়সূচি', body: 'এই সপ্তাহে একটি সংক্ষিপ্ত পরীক্ষা হবে। আগের ক্লাসের টপিকগুলো একবার দেখে নিও।', files: ['সময়সূচি.pdf'], date: '2026-11-15', by: tc.n.bn }, { id: 'po' + cid + 2, cid, type: 'result', title: 'মডেল টেস্টের ফলাফল', body: 'গত মডেল টেস্টের ফলাফল সংযুক্ত। ভুল হওয়া প্রশ্নগুলো ক্লাসে আলোচনা হবে।', files: ['ফলাফল.pdf'], date: '2026-11-18', by: tc.n.bn }); } return DB.posts.filter(p => p.cid === cid).sort((a, b) => b.date.localeCompare(a.date)); };
+  PX.posts = cid => { if (!DB.posts.some(p => p.cid === cid)) { const tc = TEACH(COURSE(cid).teacher); DB.posts.push({ id: 'po' + cid + 1, cid, type: 'announcement', title: 'Weekly test schedule', body: 'A short test will be held this week. Please revise the topics from earlier classes.', files: ['schedule.pdf'], date: '2026-11-15', by: tc.n.bn }, { id: 'po' + cid + 2, cid, type: 'result', title: 'Model test results', body: 'Results of the last model test are attached. Questions answered wrongly will be discussed in class.', files: ['results.pdf'], date: '2026-11-18', by: tc.n.bn }); } return DB.posts.filter(p => p.cid === cid).sort((a, b) => b.date.localeCompare(a.date)); };
   PX.quizzesOf = cid => { if (!DB.quizzes.some(q => q.cid === cid)) { const c = COURSE(cid), nx = PX.sessions(cid).find(s => s.date > TODAY); DB.quizzes.push({ id: 'q' + cid + 1, cid, title: 'সাপ্তাহিক কুইজ ১', date: nx ? nx.date : '2026-11-27', dur: 15, type: c.subject, done: false }, { id: 'q' + cid + 0, cid, title: 'পূর্ববর্তী কুইজ', date: '2026-11-14', dur: 15, type: c.subject, done: true }); } return DB.quizzes.filter(q => q.cid === cid).sort((a, b) => a.date.localeCompare(b.date)); };
   PX.recs = cid => DB.recs[cid] || (DB.recs[cid] = [{ id: 'r' + cid + 1, title: 'গুরুত্বপূর্ণ রিভিশন: ' + (TOPICS[COURSE(cid).kind === 'crash' ? 'crash' : COURSE(cid).subject] || TOPICS.combined)[0].t.bn, dur: '৪২ মিনিট', date: '2026-11-10' }, { id: 'r' + cid + 2, title: 'মডেল টেস্ট ব্যাখ্যা (বাছাই করা অংশ)', dur: '৫৫ মিনিট', date: '2026-11-16' }]);
   PX.teacherEarn = tid => {

@@ -14,8 +14,8 @@
     'ময়মনসিংহ': [['জামালপুর', 'Jamalpur'], ['ময়মনসিংহ', 'Mymensingh'], ['নেত্রকোণা', 'Netrokona'], ['শেরপুর', 'Sherpur']]
   };
   const lb = p => T(p[0], p[1]);
-  const divOf = d => (DIV.find(v => DIS[v[0]].some(x => x[0] === d)) || [''])[0];
-  const disOpts = (div, cur) => [['', T('জেলা বেছে নিন', 'Select district')]].concat((DIS[div] || []).map(x => [x[0], lb(x)]));
+  const divOf = d => (DIV.find(v => DIS[v[0]].some(x => x[0] === d || x[1] === d)) || [''])[0];
+  const disOpts = (div, cur) => [['', T('জেলা বেছে নিন', 'Select district')]].concat((DIS[div] || []).map(x => [x[1], lb(x)]));
   PX.DISTRICTS = DIS;
 
   DB.prof = DB.prof || {};
@@ -57,7 +57,7 @@
     if (!ph(d.emPhone)) return bad(T('জরুরি নম্বর ঠিক নয়', 'Invalid emergency number'));
     if (f.dataset.role !== 't' && (!nid(d.fnid) || !nid(d.mnid))) return bad(T('এনআইডি ১০, ১৩ বা ১৭ অঙ্কের হতে হবে', 'NID must be 10, 13 or 17 digits'));
     if (d.dob && d.dob > PX.TODAY) return bad(T('জন্ম তারিখ ভবিষ্যতের হতে পারে না', 'Date of birth cannot be in the future'));
-    if (d.district && d.division && !(DIS[d.division] || []).some(x => x[0] === d.district)) return bad(T('জেলাটি এই বিভাগের নয়', 'District does not belong to this division'));
+    if (d.district && d.division && !(DIS[d.division] || []).some(x => x[1] === d.district || x[0] === d.district)) return bad(T('জেলাটি এই বিভাগের নয়', 'District does not belong to this division'));
     if (f.dataset.role === 't') {
       if (!(d.phone || '').trim() || !(d.email || '').trim() || !(d.nid || '').trim()) return bad(T('মোবাইল নম্বর, ইমেইল ও নিজের এনআইডি আবশ্যক', 'Mobile number, email and your NID are required'));
       if (!/^\S+@\S+\.\S+$/.test(d.email.trim())) return bad(T('ইমেইল ঠিক নয়', 'Invalid email'));

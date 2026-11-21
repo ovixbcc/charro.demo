@@ -6,12 +6,12 @@
   const crm = i => (DB.crm[i] || {});
   const tp = (id, k) => { const x = (TOPICS[id] || TOPICS.combined || [])[k]; return x ? x.t : { bn: '', en: '' }; };
   DB.p2p = DB.p2p || [
-    { id: 'pp1', no: 8001, sid: 'u1', subject: 'math', program: 'buet', cid: '', topics: ['Algebra', 'Trigonometry'], problem: 'সূচক ও লগারিদমের সমস্যাগুলো বারবার ভুল হচ্ছে, বুয়েটের আগের বছরের প্রশ্নে। ধাপে ধাপে বুঝতে চাই।', classes: 3, budget: 1500, pref: 'শনি/মঙ্গল রাত ৯টা', date: '2026-11-17', status: 'open', tid: '', price: 0,
-      bids: [{ tid: 't01', price: 1400, msg: 'আমি বুয়েটের গণিত প্রশ্ন নিয়ে নিয়মিত কাজ করি। তিন ক্লাসে লগ ও সূচক গুছিয়ে দিতে পারব।', at: '2026-11-18', st: 'pending' }, { tid: 't05', price: 1500, msg: 'বুয়েটের আগের ১০ বছরের প্রশ্ন ধরে করাব।', at: '2026-11-19', st: 'pending' }] },
-    { id: 'pp2', no: 8002, sid: 'u1', subject: 'english', program: 'cadet', cid: '', topics: ['Grammar'], problem: 'ট্রান্সফর্মেশন অব সেনটেন্স ও ট্যাগ কোয়েশ্চেন নিয়ে ভয় কাটাতে চাই।', classes: 2, budget: 800, pref: '', date: '2026-11-10', status: 'paid', tid: 't06', price: 900, paidAt: '2026-11-12', ch: 'bkash',
-      bids: [{ tid: 't06', price: 900, msg: 'দুই ক্লাসে প্র্যাকটিস সহ করিয়ে দেব।', at: '2026-11-11', st: 'accepted' }] },
-    { id: 'pp3', no: 8003, sid: crm(4).id || 'u5', subject: 'math', program: 'cadet', cid: '', topics: ['Geometry'], problem: 'জ্যামিতির প্রমাণগুলো মনে থাকে না। কীভাবে ভাবতে হয় শেখাতে চাই।', classes: 4, budget: 2000, pref: 'যেকোনো দিন বিকেল', date: '2026-11-20', status: 'open', tid: '', price: 0, bids: [] },
-    { id: 'pp4', no: 8004, sid: crm(5).id || 'u6', subject: 'math', program: '', cid: '', topics: ['Arithmetic'], problem: 'শতকরা ও অনুপাতের অঙ্কে গতি বাড়াতে চাই।', classes: 1, budget: 500, pref: '', date: '2026-11-21', status: 'open', tid: '', price: 0, bids: [] },
+    { id: 'pp1', no: 8001, sid: 'u1', subject: 'math', program: 'buet', cid: '', topics: ['Algebra', 'Trigonometry'], problem: 'I keep getting exponent and logarithm problems wrong in past BUET papers. I want to understand step by step.', classes: 3, budget: 1500, pref: 'Sat/Tue 9 PM', date: '2026-11-17', status: 'open', tid: '', price: 0,
+      bids: [{ tid: 't01', price: 1400, msg: 'I work on BUET maths questions regularly. I can sort out logs and exponents in three classes.', at: '2026-11-18', st: 'pending' }, { tid: 't05', price: 1500, msg: 'We will go through the last 10 years of BUET questions.', at: '2026-11-19', st: 'pending' }] },
+    { id: 'pp2', no: 8002, sid: 'u1', subject: 'english', program: 'cadet', cid: '', topics: ['Grammar'], problem: 'I want to overcome my fear of transformation of sentences and tag questions.', classes: 2, budget: 800, pref: '', date: '2026-11-10', status: 'paid', tid: 't06', price: 900, paidAt: '2026-11-12', ch: 'bkash',
+      bids: [{ tid: 't06', price: 900, msg: 'I will cover it with practice in two classes.', at: '2026-11-11', st: 'accepted' }] },
+    { id: 'pp3', no: 8003, sid: crm(4).id || 'u5', subject: 'math', program: 'cadet', cid: '', topics: ['Geometry'], problem: 'I cannot remember geometry proofs. I want to learn how to think about them.', classes: 4, budget: 2000, pref: 'Any afternoon', date: '2026-11-20', status: 'open', tid: '', price: 0, bids: [] },
+    { id: 'pp4', no: 8004, sid: crm(5).id || 'u6', subject: 'math', program: '', cid: '', topics: ['Arithmetic'], problem: 'I want to get faster at percentage and ratio problems.', classes: 1, budget: 500, pref: '', date: '2026-11-21', status: 'open', tid: '', price: 0, bids: [] },
   ];
   const stuOf = sid => DB.crm.find(u => u.id === sid) || (sid === 'u1' ? ME() : { name: '—', sid: '', phone: '' });
   const SUBS = () => SUBJECTS.map(s => [s.id, L(s)]);
