@@ -39,6 +39,7 @@
     upload: '<path d="M12 16V4M6.5 9.5L12 4l5.5 5.5M4 20h16"/>',
     file: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
     shield: '<path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5L16 9.5"/>',
+    download: '<path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/>',
     video: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5l5-3v9l-5-3"/>',
     calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
     book: '<path d="M5 4h9a4 4 0 014 4v12H9a4 4 0 01-4-4z"/><path d="M5 16a4 4 0 014-4h9"/>',
@@ -92,6 +93,10 @@
     if (!id) return thumb ? `<div class="vp vp-img"><img src="${thumb}" alt="${esc(title || '')}"></div>` : '';
     return `<div class="vp" data-act="ytplay" data-yt="${id}" role="button" tabindex="0" aria-label="${esc(title || 'Play video')}"><img src="${thumb || 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg'}" alt="" loading="lazy" onerror="this.style.display='none'"><span class="vp-b">${ic('play')}</span>${title ? `<span class="vp-t">${esc(title)}</span>` : ''}</div>`;
   };
+  /* পেমেন্ট রিসিট: চেকআউটের পরে ডাউনলোড (প্রিন্ট → Save as PDF) */
+  let LASTRC = null;
+  const fv = (f, n) => (f && f.elements && f.elements[n] ? f.elements[n].value.trim() : '');
+  const mkRc = (f, oid, lines, amount) => { LASTRC = { heading: t('rc_title'), no: oid, date: new Date().toISOString().slice(0, 10), lines: [[t('f_name'), fv(f, 'en_name')], [t('f_phone'), fv(f, 'en_phone')], [t('f_email'), fv(f, 'en_email')]].filter(x => x[1]).concat(lines, [[t('rc_method'), t('rc_cash')]]), amount, status: t('ck_status'), note: t('rc_note') }; };
   const avatar = (tc, size = 44) => tc.photo
     ? `<span class="av av-img av-photo" style="--s:${size}px" aria-hidden="true"><img src="${tc.photo}" alt=""></span>`
     : LOOK[tc.id]
@@ -1060,6 +1065,7 @@
       refreshCheckout();
     }
     else if (act === 'ytplay') { const id = a.dataset.yt; if (id) { a.outerHTML = `<div class="vp vp-on"><iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0" title="Video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`; } }
+    else if (act === 'receipt') { if (LASTRC && window.XL) XL.receipt(LASTRC); }
     else if (act === 'enroll') { location.hash = '#checkout-' + CO.id; }
     else if (act === 'scroll-co') { const c = $('#checkout'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     else if (act === 'scroll-form') { const c = $('#apply'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
@@ -1103,9 +1109,10 @@
     if (dest) { location.hash = dest; return; }
     if (kind === 'bcheckout') {
       const b = byId(BUNDLES, f.dataset.id), k = bundleCalc(b), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
+      mkRc(f, oid, [[t('bd_tag'), L(b.title)]].concat(k.cs.map(x => [t('nav_courses'), L(x.title)])), money(k.price));
       $('#ck-wrap').innerHTML = `<div class="bt-form done-w"><div class="done"><span class="done-i">${ic('check')}</span><h3>${t('ck_done_t')}</h3><p>${t('ck_done_d')}</p>
         <dl class="sum"><div><dt>${t('order_id')}</dt><dd>${oid}</dd></div><div><dt>${t('bd_tag')}</dt><dd>${esc(L(b.title))}</dd></div><div><dt>${t('bd_n')}</dt><dd>${num(k.cs.length)}</dd></div><div><dt>${t('sum_total')}</dt><dd>${money(k.price)}</dd></div><div><dt>${t('f_name')}</dt><dd>${esc(f.elements.en_name.value.trim())}</dd></div><div><dt>${t('status')}</dt><dd>${t('ck_status')}</dd></div></dl>
-        <a class="btn btn-p" href="#home">${t('back_home')}</a></div></div>`;
+        <div class="btns"><button type="button" class="btn btn-p" data-act="receipt">${ic('download')} ${t('rc_btn')}</button> <a class="btn btn-o" href="#home">${t('back_home')}</a></div></div></div>`;
       window.scrollTo(0, 0); return;
     }
     if (kind === 'checkout' || kind === 'enroll') {
@@ -1117,19 +1124,21 @@
     if (kind === 'checkout') {
       if (CO.pay !== 'cash') { $('#e-pay').textContent = t('ck_online_err'); $('#pay-note').scrollIntoView({ block: 'center' }); return; }
       const c = byId(COURSES, CO.id), k = calc(c, CO), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
+      mkRc(f, oid, [[t('nav_courses'), L(c.title)], [t('rc_teacher'), L(byId(TEACHERS, c.teacher).n)]], money(k.now));
       $('#ck-wrap').innerHTML = `<div class="bt-form done-w"><div class="done"><span class="done-i">${ic('check')}</span><h3>${t('ck_done_t')}</h3><p>${t('ck_done_d')}</p>
         <dl class="sum"><div><dt>${t('order_id')}</dt><dd>${oid}</dd></div><div><dt>${t('nav_courses')}</dt><dd>${esc(L(c.title))}</dd></div><div><dt>${t('f_name')}</dt><dd>${esc(f.elements.en_name.value.trim())}</dd></div>${CO.fmt === 'one' ? `<div><dt>${t('pref_time')}</dt><dd>${esc(CO.pref || t('pref_none'))}</dd></div>` : ''}<div><dt>${t('status')}</dt><dd>${t('ck_status')}</dd></div><div class="now"><dt>${k.one ? t('sum_now') : t('sum_first')}</dt><dd>${money(k.now)}</dd></div></dl>
         <h4>${t('ck_next')}</h4><ol class="steps steps-s"><li><span class="sn">${num(1)}</span><b>${t('ck_n1')}</b></li><li><span class="sn">${num(2)}</span><b>${t('ck_n2')}</b></li><li><span class="sn">${num(3)}</span><b>${t('ck_n3')}</b></li></ol>
-        <a class="btn btn-p" href="#home">${t('back_home')}</a></div></div>`;
+        <div class="btns"><button type="button" class="btn btn-p" data-act="receipt">${ic('download')} ${t('rc_btn')}</button> <a class="btn btn-o" href="#home">${t('back_home')}</a></div></div></div>`;
       { const c1 = byId(COURSES, CO.id); if (!c1.formats.includes('one')) c1.seats = Math.max(0, c1.seats - 1); }
       window.scrollTo(0, 0); return;
     }
     if (kind === 'enroll') {
       { const c1 = byId(COURSES, CO.id); if (!c1.formats.includes('one')) c1.seats = Math.max(0, c1.seats - 1); }
       const c = byId(COURSES, CO.id), k = calc(c, CO), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
+      mkRc(f, oid, [[t('nav_courses'), L(c.title)], [t('rc_teacher'), L(byId(TEACHERS, c.teacher).n)]], money(k.now));
       $('.m-box').innerHTML = `<button class="m-x" data-act="close" aria-label="${t('close')}">${ic('close')}</button><div class="done"><span class="done-i">${ic('check')}</span><h3>${t('order_t')}</h3><p>${t('order_d')}</p>
         <dl class="sum"><div><dt>${t('order_id')}</dt><dd>${oid}</dd></div><div><dt>${t('nav_courses')}</dt><dd>${esc(L(c.title))}</dd></div><div class="now"><dt>${t('sum_now')}</dt><dd>${money(k.now)}</dd></div></dl>
-        <button class="btn btn-p" data-act="close">${t('close')}</button></div>`;
+        <div class="btns"><button type="button" class="btn btn-p" data-act="receipt">${ic('download')} ${t('rc_btn')}</button> <button class="btn btn-o" data-act="close">${t('close')}</button></div></div>`;
     } else if (kind === 'contact') {
       $('#ct-wrap').innerHTML = `<div class="done"><span class="done-i">${ic('check')}</span><h3>${t('ct_done')}</h3><p>${t('ct_done_d')}</p></div>`;
     } else {

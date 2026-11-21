@@ -17,6 +17,7 @@
   const divOf = d => (DIV.find(v => DIS[v[0]].some(x => x[0] === d || x[1] === d)) || [''])[0];
   const disOpts = (div, cur) => [['', T('জেলা বেছে নিন', 'Select district')]].concat((DIS[div] || []).map(x => [x[1], lb(x)]));
   PX.DISTRICTS = DIS;
+  PX.profRec = (key, base) => rec(key, base);
 
   DB.prof = DB.prof || {};
   const rec = (key, base) => DB.prof[key] || (DB.prof[key] = Object.assign({ photo: '', dob: '', father: '', mother: '', fnid: '', mnid: '', nid: '', emName: '', emPhone: '', addr: '', division: divOf(base.district), district: base.district || '', inst: base.inst || '', name: base.name || '', phone: base.phone || '', email: base.email || '' }, {}));

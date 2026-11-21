@@ -500,6 +500,12 @@ add('ck_change', 'কোর্স বা প্ল্যান বদলান',
 add('ck_place', 'অর্ডার নিশ্চিত করুন', 'Place order');
 add('ck_done_t', 'অর্ডার জমা হয়েছে', 'Order placed');
 add('ck_done_d', 'আপনার ক্যাশ পেমেন্টের অনুরোধ আমরা পেয়েছি। আমাদের টিম শিগগির আপনার সঙ্গে যোগাযোগ করবে।', 'We have your cash payment request. Our team will contact you shortly.');
+add('rc_btn', 'রিসিট ডাউনলোড (PDF)', 'Download receipt (PDF)');
+add('rc_title', 'পেমেন্ট রিসিট', 'Payment receipt');
+add('rc_method', 'পেমেন্ট মাধ্যম', 'Payment method');
+add('rc_cash', 'ক্যাশ', 'Cash');
+add('rc_teacher', 'টিচার', 'Teacher');
+add('rc_note', 'এটি কম্পিউটার-জেনারেটেড রিসিট; স্বাক্ষর লাগবে না। ক্যাশ পেমেন্ট পাওয়ার পর অ্যাডমিন নিশ্চিত করবেন।', 'This is a computer-generated receipt and needs no signature. Admin confirms it once the cash payment is received.');
 add('ck_status', 'পেমেন্ট অপেক্ষমাণ (ক্যাশ)', 'Payment pending (cash)');
 add('ck_next', 'এরপর কী হবে', 'What happens next');
 add('ck_n1', 'টিম ফোন করে টাকা জমার নির্দেশনা দেবে', 'The team calls you with payment instructions');

@@ -140,7 +140,7 @@
   S.pay = () => {
     const my = DB.pays.filter(p => p.sid === 'u1').sort((a, b) => b.date.localeCompare(a.date));
     const subs = UI.card(T('আমার সাবস্ক্রিপশন', 'My subscriptions'), UI.tbl([T('কোর্স', 'Course'), T('প্ল্যান', 'Plan'), T('পরবর্তী ডিউ', 'Next due'), T('অবস্থা', 'Status'), ''], DB.enr.map(e => [ctitle(e.cid), e.m ? T(`প্রতি ${n(e.m)} মাসে ${mny(e.per)}`, `${mny(e.per)} / ${e.m} mo`) : T('একবারে', 'One-time'), e.nextDue ? fd(e.nextDue) : '—', UI.stChip(e.state), e.m ? `<button class="btn ${e.state === 'overdue' ? 'btn-p' : 'btn-o'} btn-sm" data-pa="paynow" data-cid="${e.cid}">${e.state === 'overdue' ? T('এখনই সাবস্ক্রিপশন দিন', 'Pay subscription now') : T('আগাম পরিশোধ', 'Pay early')}</button>` : '']))) + `<p class="soft">${T('মাসিক সাবস্ক্রিপশনের রিমাইন্ডার প্রতি মাসের শেষ দিনে আসে। বকেয়া থাকলে পরের ক্লাসে প্রবেশ বন্ধ থাকে।', 'Reminders arrive on the last day of each month. Overdue plans block the next class.')}</p>`;
-    return subs + UI.card(T('পেমেন্ট ইতিহাস', 'Payment history'), UI.tbl([T('তারিখ', 'Date'), T('কোর্স', 'Course'), T('মাধ্যম', 'Method'), T('পরিমাণ', 'Amount'), T('অবস্থা', 'Status')], my.map(p => [fd(p.date), ctitle(p.cid), p.ch === 'cash' ? T('ক্যাশ', 'Cash') : esc(p.ch), mny(p.amount), UI.stChip(p.status)])));
+    return subs + UI.card(T('পেমেন্ট ইতিহাস', 'Payment history'), UI.tbl([T('তারিখ', 'Date'), T('কোর্স', 'Course'), T('মাধ্যম', 'Method'), T('পরিমাণ', 'Amount'), T('অবস্থা', 'Status'), T('রিসিট', 'Receipt')], my.map(p => [fd(p.date), ctitle(p.cid), p.ch === 'cash' ? T('ক্যাশ', 'Cash') : esc(p.ch), mny(p.amount), UI.stChip(p.status), `<button class="btn btn-o btn-sm" data-pa="rcpt" data-id="${p.id}">${ic('download')} PDF</button>`])));
   };
 
   /* ---------- রেফারেল ও কুপন ---------- */

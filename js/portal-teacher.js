@@ -27,6 +27,7 @@
 
   const altTxt = (r, s0) => { const s = s0 || PX.session(r.sid) || {}, cd = r.curDate || s.date, ct = r.curTime || s.time; return `${T('বর্তমান', 'Current')}: ${fd(cd)} · ${esc(ct || '')} ➜ ${T('বিকল্প ১', 'Alt 1')}: <b>${fd(r.newDate)} · ${esc(r.newTime)}</b>${r.alt2Date ? ` · ${T('বিকল্প ২', 'Alt 2')}: <b>${fd(r.alt2Date)} · ${esc(r.alt2Time || r.newTime)}</b>` : ''}`; };
   PX.altTxt = altTxt;
+  S.export = () => PX.exportUI('t');
   S.home = () => {
     const e = PX.teacherEarn(TID), pend = DB.resched.filter(r => r.tid === TID && r.status === 'pending').length, rv = DB.newCourses.filter(c => c.tid === TID && c.status === 'review').length;
     const nx = nextAll().slice(0, 5), tk = DB.tickets.filter(t => t.uid === TID && t.status !== 'closed').length;
@@ -48,7 +49,7 @@
     let b = '';
     const ss = PX.sessions(cid);
     if (tab === 'classes') b = UI.card(T('ক্লাস তালিকা', 'Classes'), UI.tbl(['#', T('বিষয়', 'Topic'), T('তারিখ', 'Date'), T('অবস্থা', 'Status'), ''], ss.slice(0, 40).map(s => [n(s.n), esc(L(s.topic)), fd(s.date), UI.stChip(PX.sstate(s)), `<a class="btn btn-o btn-sm" href="#t-class-${s.id}">${T('ম্যানেজ', 'Manage')}</a>`])));
-    if (tab === 'students') b = UI.card(T('স্টুডেন্ট তালিকা', 'Students'), UI.tbl([T('নাম', 'Name'), T('উপস্থিতি', 'Attendance'), T('পয়েন্ট', 'Points'), T('অভিভাবক', 'Guardian'), ''], PX.roster(cid).map(u => [esc(u.name), n(PX.attPct(cid, u.id)) + '%', n(PX.points(cid, u.id)), `${esc(u.guardian.name)} · ${esc(u.guardian.phone)}`, `<button class="btn btn-o btn-sm" data-pa="msgstu" data-uid="${u.id}">${T('মেসেজ', 'Message')}</button>`])));
+    if (tab === 'students') b = UI.card(T('স্টুডেন্ট তালিকা', 'Students'), UI.tbl([T('নাম', 'Name'), T('উপস্থিতি', 'Attendance'), T('পয়েন্ট', 'Points'), T('অভিভাবক', 'Guardian'), ''], PX.roster(cid).map(u => [esc(u.name), n(PX.attPct(cid, u.id)) + '%', n(PX.points(cid, u.id)), `${esc(u.guardian.name)} · ${esc(u.guardian.phone)}`, `<button class="btn btn-o btn-sm" data-pa="msgstu" data-uid="${u.id}">${T('মেসেজ', 'Message')}</button> <button class="btn btn-o btn-sm" data-pa="msgto" data-kind="s" data-id="${u.id}" data-from="t">${ic('mail')} ${T('মেইল / ফাইল', 'Mail / file')}</button>`])));
     if (tab === 'files') b = UI.card(T('ফাইল শেয়ারিং', 'Files'), `<label class="btn btn-o btn-sm upl">${ic('upload')} ${T('ফাইল আপলোড', 'Upload')}<input type="file" data-pc="upfile" data-cid="${cid}" data-role="t" multiple hidden></label>` + UI.tbl([T('ফাইল', 'File'), T('কে', 'By'), T('সাইজ', 'Size'), T('তারিখ', 'Date')], PX.files(cid).map(f => [`${ic('file')} ${esc(f.name)}`, esc(f.by), UI.sizeTxt(f.size), fd(f.date)])));
     if (tab === 'chat') b = UI.card(T('ব্যাচ চ্যাট', 'Batch chat'), PX.chatBox(cid, 't'));
     if (tab === 'posts') b = postForm(cid) + UI.card(T('প্রকাশিত', 'Published'), PX.posts(cid).map(PX.postHtml).join(''));
@@ -88,7 +89,7 @@
 
   S.schedule = () => UI.card(T('ক্লাস ক্যালেন্ডার', 'Class calendar'), PX.calendar(mineLive().map(c => c.id), 't')) + UI.card(T('শিডিউল পরিবর্তনের অনুরোধ', 'Change requests'), UI.tbl([T('ক্লাস', 'Class'), T('বর্তমান ➜ অল্টারনেটিভ শিডিউল', 'Current ➜ Alternative schedule'), T('কারণ', 'Reason'), T('অবস্থা', 'Status')], DB.resched.filter(r => r.tid === TID).map(r => [bn(COURSE(r.cid).title), altTxt(r), esc(r.reason), UI.stChip(r.status)]))) + UI.card(T('বন্ধ করা ক্লাস', 'Blocked classes'), UI.tbl([T('ক্লাস', 'Class'), T('তারিখ', 'Date')], DB.blocked.filter(b => COURSE(b.cid).teacher === TID).map(b => [bn(COURSE(b.cid).title), fd(PX.session(b.sid).date)])));
 
-  S.students = () => UI.card(T('আমার সব স্টুডেন্ট', 'All my students'), UI.tbl([T('নাম', 'Name'), T('জেলা', 'District'), T('কোর্স', 'Courses'), T('অভিভাবক', 'Guardian'), ''], rosterOf().map(u => [esc(u.name), esc(u.district), mineLive().filter(c => u.courses.includes(c.id)).map(c => esc(c.program.toUpperCase())).join(', '), esc(u.guardian.phone), `<button class="btn btn-o btn-sm" data-pa="msgstu" data-uid="${u.id}">${T('মেসেজ', 'Message')}</button>`])));
+  S.students = () => UI.card(T('আমার সব স্টুডেন্ট', 'All my students'), UI.tbl([T('নাম', 'Name'), T('জেলা', 'District'), T('কোর্স', 'Courses'), T('অভিভাবক', 'Guardian'), ''], rosterOf().map(u => [esc(u.name), esc(u.district), mineLive().filter(c => u.courses.includes(c.id)).map(c => esc(c.program.toUpperCase())).join(', '), esc(u.guardian.phone), `<button class="btn btn-o btn-sm" data-pa="msgstu" data-uid="${u.id}">${T('মেসেজ', 'Message')}</button> <button class="btn btn-o btn-sm" data-pa="msgto" data-kind="s" data-id="${u.id}" data-from="t">${ic('mail')} ${T('মেইল / ফাইল', 'Mail / file')}</button>`])));
 
   /* ---------- আয় ---------- */
   S.earnings = () => {

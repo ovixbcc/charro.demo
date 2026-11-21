@@ -233,3 +233,10 @@ fieldset { min-width: 0; }
 .bid-h { display: flex; align-items: center; gap: .6rem; } .bid-h span { display: grid; flex: 1; min-width: 0; } .bid-h em { font: 700 1.05rem var(--f-d); font-style: normal; }
 .bud-q { display: flex; gap: .5rem; flex-wrap: wrap; }
 .p2pc > .btn, .p2pc > .alert + .btn { justify-self: start; width: auto; } .p2pc > button { justify-self: start; }
+
+/* প্রোফাইল ভিউ */
+.kv2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem 1.2rem; margin: 1rem 0; }
+.kv2 > div { min-width: 0; } .kv2 small { display: block; color: var(--mute); font-size: .75rem; } .kv2 b { font-weight: 600; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .kv2 { grid-template-columns: minmax(0, 1fr); } }
+
+.seg { display: flex; gap: .6rem; flex-wrap: wrap; } .seg-i { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; padding: .55rem .8rem; border: 1px solid var(--line, #E5DEF5); border-radius: 12px; cursor: pointer; min-width: 0; } .seg-i small { color: var(--mute); overflow-wrap: anywhere; }

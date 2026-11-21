@@ -68,6 +68,6 @@
   A.paypref = a => { acc(TID).pref = a.dataset.k; PX.toast(T('প্রধান মেথড বদলানো হয়েছে', 'Preferred method updated')); PX.refresh(); };
   A.paydel = a => { const x = acc(TID); x[a.dataset.k] = null; if (x.pref === a.dataset.k) x.pref = ''; PX.toast(T('মুছে ফেলা হয়েছে', 'Removed')); PX.refresh(); };
 
-  const navT = PX.nav.t; PX.nav.t = () => { const l = navT(), i = l.findIndex(x => x.k === 'earnings'); l.splice(i + 1, 0, { k: 'payout', l: T('পেআউট মেথড', 'Payout method'), i: 'award' }); return l; };
+  const navT = PX.nav.t; PX.nav.t = () => { const l = navT(), i = l.findIndex(x => x.k === 'earnings'); l.splice(i + 1, 0, { k: 'export', l: T('ডাটা ডাউনলোড', 'Data export'), i: 'download' }, { k: 'payout', l: T('পেআউট মেথড', 'Payout method'), i: 'award' }); return l; };
 
 })();
