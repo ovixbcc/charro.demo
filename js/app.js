@@ -514,7 +514,7 @@
     return `
     <div class="phead phead-c" style="--cc:${PCOLOR[c.program]}"><div class="wrap">
       <nav class="crumbs"><a href="#home">${t('nav_home')}</a><span>/</span><a href="#courses">${t('nav_courses')}</a><span>/</span><span>${esc(L(prog.s))}</span></nav>
-      <div class="tags tags-w">${fmtTag(c)}${kindTag(c)}<span class="tag">${esc(L(prog))}</span><span class="tag">${esc(L(sub))}</span></div>
+      <div class="tags tags-w">${fmtTag(c)}${kindTag(c)}<span class="tag">${esc(L(prog))}</span><span class="tag">${esc(L(sub))}</span><span class="tag">ID ${c.pid}</span></div>
       <h1>${esc(L(c.title))}</h1><p>${esc(L(c.short))}</p>
       <ul class="meta meta-w"><li>${rate(c.rating)}<span>(${num(c.reviews)} ${t('reviews')})</span></li><li>${ic('users')}${num(c.enrolled)} ${t('enrolled')}</li><li>${ic('calendar')}${num(c.cpw)} ${t('cls_week')}</li><li>${ic('clock')}${num(c.weeks)} ${t('weeks')}</li></ul>
     </div></div>

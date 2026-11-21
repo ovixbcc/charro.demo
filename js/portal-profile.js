@@ -117,10 +117,10 @@
   };
 
   /* স্টুডেন্ট */
-  PX.sec.s.profile = () => { const u = DB.me, r = rec('u1', { name: u.name, phone: u.phone, email: u.email, district: u.district, inst: '' }); return head(r, 's', r.inst || T('প্রতিষ্ঠান যোগ করুন', 'Add your institution')) + form('u1', 's', u, T('বর্তমান শিক্ষাপ্রতিষ্ঠান', 'Current institution')); };
+  PX.sec.s.profile = () => { const u = DB.me, r = rec('u1', { name: u.name, phone: u.phone, email: u.email, district: u.district, inst: '' }); return head(r, 's', (r.inst || T('প্রতিষ্ঠান যোগ করুন', 'Add your institution')) + ' · ID ' + u.sid) + form('u1', 's', u, T('বর্তমান শিক্ষাপ্রতিষ্ঠান', 'Current institution')); };
   /* টিচার */
   const oldT = PX.sec.t.profile;
-  PX.sec.t.profile = () => { const t = TEACH('t01'), r = rec('t01', { name: t.n.bn, phone: '01711000002', email: 'teacher@chaatro.com', district: '', inst: L(t.inst) }); return head(r, 't', r.inst) + pubForm(t) + form('t01', 't', {}, T('বর্তমান প্রতিষ্ঠান / বিশ্ববিদ্যালয়', 'Current institution / university')) + oldT().replace(/^<section[^>]*>.*?<\/section>/s, ''); };
+  PX.sec.t.profile = () => { const t = TEACH('t01'), r = rec('t01', { name: t.n.bn, phone: t.phone, email: 'teacher@chaatro.com', district: '', inst: L(t.inst) }); return head(r, 't', r.inst + ' · ID ' + t.pid) + pubForm(t) + form('t01', 't', {}, T('বর্তমান প্রতিষ্ঠান / বিশ্ববিদ্যালয়', 'Current institution / university')) + oldT().replace(/^<section[^>]*>.*?<\/section>/s, ''); };
   /* অ্যাডমিন */
   PX.sec.a.profile = () => { const r = rec('admin', { name: 'Sobuj K Mandal', phone: '', email: 'admin@chaatro.com', district: '', inst: 'Chaatro.com' }); return head(r, 'a', T('অ্যাডমিন', 'Administrator')) + form('admin', 'a', {}, T('বর্তমান প্রতিষ্ঠান', 'Current institution')); };
   const navA = PX.nav.a; PX.nav.a = () => navA().concat([{ k: 'profile', l: T('আমার প্রোফাইল', 'My profile'), i: 'user', also: [], badge: '' }]);

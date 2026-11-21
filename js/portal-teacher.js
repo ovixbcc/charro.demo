@@ -160,7 +160,7 @@
     nc.formats.forEach(f => {
       const id = 'c' + String(COURSES.length + 1).padStart(2, '0') + (f === 'one' ? '-1on1' : ''), g = (nc.plans[f] || nc.plans.group || nc.plans.one)[0];
       const sx = f === 'one' ? [' · ১-টু-১', ' · 1-to-1'] : [' · গ্রুপ (১-টু-৭)', ' · Group (1-to-7)'];
-      const live = { id, program: nc.program, subject: nc.subject, kind: nc.kind, teacher: nc.tid, base: g.actual, months, cpw: nc.cpw, weeks: nc.weeks, start: '2026-12-05', seats: f === 'one' ? 1 : 7, formats: [f], rating: 4.5, reviews: 0, enrolled: 0, featured: false, days: nc.days, time: { bn: nc.time, en: nc.time }, title: { bn: nc.title + sx[0], en: nc.title + sx[1] }, short: { bn: nc.desc || nc.title, en: nc.desc || nc.title }, plans: { [f]: nc.plans[f] } };
+      const live = { id, pid: nextCoursePid(), program: nc.program, subject: nc.subject, kind: nc.kind, teacher: nc.tid, base: g.actual, months, cpw: nc.cpw, weeks: nc.weeks, start: '2026-12-05', seats: f === 'one' ? 1 : 7, formats: [f], rating: 4.5, reviews: 0, enrolled: 0, featured: false, days: nc.days, time: { bn: nc.time, en: nc.time }, title: { bn: nc.title + sx[0], en: nc.title + sx[1] }, short: { bn: nc.desc || nc.title, en: nc.desc || nc.title }, plans: { [f]: nc.plans[f] } };
       COURSES.push(live); made.push(live);
     });
     nc.liveId = made[0].id; nc.status = 'live'; return made[0];

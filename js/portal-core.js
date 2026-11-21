@@ -16,7 +16,7 @@
   const DISTR = ['নেত্রকোণা', 'কুড়িগ্রাম', 'বরিশাল', 'রংপুর', 'সিলেট', 'কক্সবাজার', 'রাজশাহী', 'ময়মনসিংহ', 'খুলনা', 'ঢাকা', 'কুমিল্লা', 'যশোর'];
   const LEVELS = ['ভর্তি পরীক্ষার্থী', 'ষষ্ঠ শ্রেণি', 'সপ্তম শ্রেণি', 'এইচএসসি'];
   const crm = NAMES.map((nm, i) => ({
-    id: 'u' + (i + 1), name: nm, phone: '017' + String(10000000 + H(nm) % 89999999), email: 'student' + (i + 1) + '@example.com', district: DISTR[i], level: LEVELS[i % 4],
+    id: 'u' + (i + 1), sid: 20001 + i, name: nm, phone: '017' + String(10000000 + H(nm) % 89999999), email: 'student' + (i + 1) + '@example.com', district: DISTR[i], level: LEVELS[i % 4],
     joined: '2026-10-' + String(3 + i * 2).padStart(2, '0'), courses: [], notes: [], blocked: false, ref: i % 3 === 0 ? 'TASNIM-7A2K' : '',
     guardian: { name: 'অভিভাবক ' + nm.split(' ')[1], phone: '018' + String(10000000 + H(nm + 'g') % 89999999) },
   }));

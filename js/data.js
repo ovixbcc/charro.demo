@@ -382,3 +382,8 @@ function bundleCalc(b) {
   const cs = bundleCourses(b), total = cs.reduce((s, c) => s + pricingFor(c)[c.formats[0]].fullD, 0), price = round50(total * (100 - b.disc) / 100);
   return { cs, total, price, save: total - price };
 }
+
+/* ইউনিক আইডি: টিচার ৪ অঙ্ক (1001–), কোর্স ৪ অঙ্ক (3001–), স্টুডেন্ট ৫ অঙ্ক (20001–); ফোন নম্বরও সাজানো */
+TEACHERS.forEach((t, i) => { t.pid = 1001 + i; t.phone = '0171100' + t.pid; });
+COURSES.forEach((c, i) => { c.pid = 3001 + i; });
+const nextCoursePid = () => Math.max(3000, ...COURSES.map(c => c.pid || 0)) + 1;
