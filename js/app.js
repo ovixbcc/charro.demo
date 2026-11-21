@@ -810,7 +810,7 @@
   const blogArt = (id, cls = 'bc-art') => { const f = BART[id]; if (!f) return ''; const a = f(); return `<svg class="${cls}" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="bg-${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a[0]}"/><stop offset="1" stop-color="${a[1]}"/></linearGradient></defs><rect width="400" height="200" fill="url(#bg-${id})"/><circle cx="360" cy="20" r="70" fill="#fff" opacity=".16"/><circle cx="30" cy="190" r="60" fill="#fff" opacity=".12"/>${a[2]}</svg>`; };
 
   function blogCard(b) {
-    return `<article class="bc"><a class="bc-top" href="#post-${b.id}" style="--cc:${b.color}">${blogArt(b.id)}<span>${esc(L(b.tag))}</span></a>
+    return `<article class="bc"><a class="bc-top" href="#post-${b.id}" style="--cc:${b.color}">${b.cover ? `<img class="bc-art" src="${esc(b.cover)}" alt="" loading="lazy" style="object-fit:cover">` : blogArt(b.id)}<span>${esc(L(b.tag))}</span></a>
       <div class="bc-body"><div class="tags"><span class="tag">${esc(L(b.tag))}</span></div><small class="mute">${fdate(b.date)} · ${num(b.min)} ${t('min_read')}</small>
       <h3><a href="#post-${b.id}">${esc(L(b.title))}</a></h3><p>${esc(L(b.ex))}</p>
       <a class="more-l" href="#post-${b.id}">${t('read_more')}${ic('arrow')}</a></div></article>`;
@@ -821,11 +821,11 @@
   }
   function viewPost(id) {
     const b = byId(BLOG, id); if (!b) return view404();
-    return `<div class="phead phead-c" style="--cc:${b.color}">${blogArt(b.id, 'ph-art')}<div class="wrap">
+    return `<div class="phead phead-c" style="--cc:${b.color}">${b.cover ? '' : blogArt(b.id, 'ph-art')}<div class="wrap">
       <nav class="crumbs"><a href="#home">${t('nav_home')}</a><span>/</span><a href="#blog">${t('nav_blog')}</a></nav>
       <div class="tags tags-w"><span class="tag">${esc(L(b.tag))}</span></div>
-      <h1>${esc(L(b.title))}</h1><p>${t('by_team')} · ${fdate(b.date)} · ${num(b.min)} ${t('min_read')}</p></div></div>` +
-      sec('', '', `<article class="prose narrow post">${b.body.map(x => `<p>${esc(L(x))}</p>`).join('')}
+      <h1>${esc(L(b.title))}</h1><p>${b.author ? esc(b.author) : t('by_team')} · ${fdate(b.date)} · ${num(b.min)} ${t('min_read')}</p></div></div>` +
+      sec('', '', `<article class="prose narrow post">${b.cover ? `<img class="bl-cover" src="${esc(b.cover)}" alt="">` : ''}${b.blocks ? b.blocks.map(k => `${k.h ? `<h2>${esc(k.h)}</h2>` : ''}${k.sub ? `<h3>${esc(k.sub)}</h3>` : ''}${k.img ? `<img class="bl-pi" src="${esc(k.img)}" alt="">` : ''}${(k.p || '').split(/\n+/).filter(Boolean).map(p => `<p>${esc(p)}</p>`).join('')}`).join('') : b.body.map(x => `<p>${esc(L(x))}</p>`).join('')}
         <div class="cta cta-s"><div><h2>${t('post_cta')}</h2></div><div class="cta-b"><a class="btn btn-w" href="#courses">${t('nav_courses')}</a></div></div></article>`) +
       sec('sec-soft', sechead(t('more_posts')), `<div class="grid grid-b">${BLOG.filter(x => x.id !== b.id).slice(0, 3).map(blogCard).join('')}</div>`);
   }

@@ -648,3 +648,4 @@ button { cursor: pointer; }
 /* সাইট সেটিংস: টপ ব্যানার ও স্লাইড ছবি */
 .site-bar { text-align: center; padding: .5rem 1rem; font-size: .9rem; font-weight: 600; color: #fff; } .site-bar a, .site-bar span { color: #fff; text-decoration: none; display: block; } .site-bar a:hover { text-decoration: underline; }
 .sl-img { width: 100%; height: 100%; max-height: 320px; object-fit: cover; border-radius: 20px; display: block; }
+.bl-cover,.bl-pi{max-width:100%;border-radius:14px;display:block;margin:1rem 0}.post h2{margin-top:1.4rem}.bc-top img.bc-art{width:100%;height:100%;position:absolute;inset:0}

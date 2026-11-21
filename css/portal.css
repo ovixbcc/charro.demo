@@ -254,3 +254,6 @@ fieldset { min-width: 0; }
 .tsrch svg{width:15px;height:15px;flex:none}.tsrch input{border:0;outline:0;background:transparent;width:110px;font:inherit;font-size:.85rem;min-width:0}
 .tsrch:focus-within{border-color:var(--p)}.tsrch input:focus{width:170px}
 @media(max-width:640px){.tsrch input{width:70px}.tsrch input:focus{width:100px}}
+.bl-sec{border:1.5px solid var(--line);border-radius:12px;padding:.8rem;margin-bottom:.8rem;background:#faf8ff}.bl-sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.bl-h{margin:.2rem 0 .6rem}.bl-btns{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5rem}.bl-img{align-items:center}.bl-tabs{margin:.6rem 0;flex-wrap:wrap}
+.bl-cover,.bl-pi{max-width:100%;border-radius:12px;display:block;margin:.6rem 0}.bl-prev img{max-height:340px;object-fit:cover}
