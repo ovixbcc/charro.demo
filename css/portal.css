@@ -172,3 +172,6 @@ hr { border: 0; border-top: 1.5px solid var(--line); margin: .3rem 0; }
 .pm-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
 .pm{border:1.5px solid var(--line);border-radius:14px;padding:1rem;display:grid;gap:.25rem}.pm.on{border-color:#8C52FF;background:#faf6ff}.pm p{margin:0}.pm-a{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem;align-items:center}
 .featsel{border:1.5px solid var(--line);border-radius:14px;padding:.8rem 1rem;grid-column:1/-1;display:grid;gap:.5rem}.featsel legend{font-weight:700;padding:0 .4rem}
+.ptbl.acc{width:100%;border-collapse:collapse}.ptbl.acc th{font-size:.85rem;font-weight:700;color:#2a1f4d;text-align:left;padding:.6rem .5rem;white-space:nowrap}.ptbl.acc td{padding:.45rem .5rem;vertical-align:middle}
+.ptbl.acc select{width:100%;min-width:118px;padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:.85rem}
+.ptbl.acc tr.seg-all td{background:#faf6ff}.acc-key{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}.ro-b{margin-bottom:1rem}
