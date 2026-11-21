@@ -160,3 +160,9 @@ hr { border: 0; border-top: 1.5px solid var(--line); margin: .3rem 0; }
   .cal-c { min-height: 56px; } .cal-e { font-size: .6rem; }
   .msg { max-width: 94%; }
 }
+.att-pick{white-space:nowrap}
+.atts{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.4rem}
+.att{display:flex;align-items:center;gap:.5rem;padding:.4rem .7rem;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:inherit;text-decoration:none;max-width:100%}
+.att img{width:36px;height:36px;object-fit:cover;border-radius:8px}
+.att svg{width:20px;height:20px;color:#8C52FF;flex:none}
+.att span{display:flex;flex-direction:column;min-width:0}.att b{font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}.att small{color:#777;font-size:.72rem}
