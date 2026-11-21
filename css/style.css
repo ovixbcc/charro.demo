@@ -625,3 +625,4 @@ button { cursor: pointer; }
 .tag-one,.tag-grp{border-color:transparent}
 .demo-c ul{list-style:none;margin:.6rem 0 0;padding:0;display:grid;gap:.4rem}.demo-c li{display:grid;grid-template-columns:5.5rem 1fr 1fr;gap:.4rem;align-items:center;font-size:.85rem}.demo-c code{background:#f4efff;border-radius:6px;padding:.15rem .4rem;font-size:.8rem;word-break:break-all}
 @media(max-width:520px){.demo-c li{grid-template-columns:1fr}}
+.av-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}

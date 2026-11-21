@@ -66,11 +66,61 @@
 
   const head = (r, role, sub) => UI.card(T('আমার প্রোফাইল', 'My profile'), `<div class="prof"><div class="ph-prev ph-lg">${r.photo ? `<img src="${r.photo}" alt="">` : `<span>${esc((r.name || '?').trim().charAt(0))}</span>`}</div><div><h3>${esc(r.name)}</h3><p>${esc(sub)}</p></div></div>`);
 
+
+  /* টিচারের পাবলিক প্রোফাইল: টিচার নিজে সম্পাদনা করে, সাইটের টিচার পেজে সঙ্গে সঙ্গে দেখায় */
+  const SUBJ = () => SUBJECTS.map(s => [s.id, L(s)]);
+  const lines = arr => (arr || []).map(x => L(x)).join('\n');
+  const setL = (o, k, v) => { v = (v || '').trim(); if (v !== L(o[k] || {})) o[k] = { bn: v, en: v }; };
+  const toL = (txt, old) => (txt || '').split(/\n/).map(s => s.trim()).filter(Boolean).map(s => (old || []).find(x => L(x) === s) || { bn: s, en: s });
+  const part = x => L(x).split(',')[0].trim();
+  const featOpts = tc => { const o = []; if (L(tc.inst)) o.push(['u', T('বিশ্ববিদ্যালয়', 'University'), L(tc.inst)]); if (L(tc.hsc)) o.push(['h', T('এইচএসসি কলেজ', 'HSC college'), part(tc.hsc)]); (tc.more || []).forEach((m, i) => o.push(['m' + i, T('অন্যান্য', 'Other'), L(m)])); return o; };
+  const featCur = tc => { const o = featOpts(tc), f = L(tc.feat || {}); if (tc.featKey && o.some(x => x[0] === tc.featKey)) return tc.featKey; return (o.find(x => x[2] === f || (x[0] === 'u' && f === L(tc.inst))) || [''])[0]; };
+  const pubForm = tc => {
+    const fk = featCur(tc);
+    return UI.card(T('পাবলিক প্রোফাইল (সাইটে যা দেখায়)', 'Public profile (shown on the website)'), `<form data-pf="tpub" class="fgrid prof-f">
+      <div class="fld ph-wrap"><div class="ph-prev" id="pub-prev">${tc.photo ? `<img src="${tc.photo}" alt="">` : CH.avatar(tc, 84)}</div>
+        <div><label class="btn btn-o btn-sm upl">${ic('upload')} ${T('পাবলিক ছবি', 'Public photo')}<input type="file" name="pubphoto" data-pc="pubpick" accept="image/png,image/jpeg,image/webp" hidden></label><small class="hint">${T('টিচার পেজ ও কোর্স কার্ডে দেখাবে। সর্বোচ্চ ২ এমবি।', 'Shown on your teacher page and course cards. Up to 2 MB.')}</small></div></div>
+      ${UI.fi({ name: 'n', label: T('নাম', 'Name'), val: L(tc.n), half: 1, req: 1 })}
+      ${UI.fi({ name: 'exp', label: T('শেখানোর অভিজ্ঞতা (বছর)', 'Teaching experience (years)'), type: 'number', val: tc.exp, half: 1, min: 0 })}
+      ${UI.fi({ name: 'inst', label: T('বিশ্ববিদ্যালয় / প্রতিষ্ঠান', 'University / institution'), val: L(tc.inst), req: 1 })}
+      ${UI.fi({ name: 'dept', label: T('বিভাগ', 'Department'), val: L(tc.dept), half: 1 })}
+      ${UI.fi({ name: 'yr', label: T('বর্ষ', 'Year'), val: L(tc.yr), half: 1 })}
+      ${UI.fi({ name: 'hsc', label: T('এইচএসসি (কলেজ, জিপিএ)', 'HSC (college, GPA)'), val: L(tc.hsc), half: 1 })}
+      ${UI.fi({ name: 'ssc', label: T('এসএসসি (বোর্ড/স্কুল, জিপিএ)', 'SSC (board/school, GPA)'), val: L(tc.ssc), half: 1 })}
+      ${UI.fi({ name: 'ik', label: T('টিচার তালিকার ফিল্টারে কোন গ্রুপে থাকবেন', 'Group in the teachers filter'), val: tc.ik, opts: INSTITUTIONS.map(i => [i.id, L(i)]).concat([['other', T('অন্যান্য', 'Other')]]) })}
+      ${UI.fi({ name: 'more', label: T('অন্যান্য প্রতিষ্ঠান (প্রতি লাইনে একটি)', 'Other institutions (one per line)'), rows: 2, val: lines(tc.more), hint: T('যেমন: পূর্বের বা বর্তমান কোনো প্রতিষ্ঠান', 'e.g. a previous or current institution') })}
+      <fieldset class="fld featsel"><legend>${T('ফিচার্ড প্রতিষ্ঠান', 'Featured institution')}</legend><p class="soft">${T('যে প্রতিষ্ঠানটি হাইলাইট করতে চান সেটি বেছে নিন। টিচারের নামের পাশে টিক চিহ্নসহ দেখাবে।', 'Pick the institution to highlight. It appears next to your name with a tick.')}</p>
+        ${featOpts(tc).map(o => `<label class="opt ${fk === o[0] ? 'on' : ''}"><input type="radio" name="featsel" value="${o[0]}" ${fk === o[0] ? 'checked' : ''}><span><b>${esc(o[2])}</b><small>${o[1]}</small></span></label>`).join('')}</fieldset>
+      ${UI.fi({ name: 'bio', label: T('পরিচিতি', 'About you'), rows: 3, val: L(tc.bio) })}
+      ${UI.checks('subs', SUBJ(), tc.subs, T('পড়ানোর বিষয়', 'Subjects you teach'))}
+      ${UI.fi({ name: 'certs', label: T('অর্জন ও সার্টিফিকেট (প্রতি লাইনে একটি)', 'Achievements & certificates (one per line)'), rows: 3, val: lines(tc.certs) })}
+      ${UI.fi({ name: 'co', label: T('সহ-শিক্ষা কার্যক্রম (প্রতি লাইনে একটি)', 'Co-curricular activities (one per line)'), rows: 3, val: lines(tc.co) })}
+      <div class="fld"><small class="err" id="tp-err" role="alert"></small><button class="btn btn-p">${T('পাবলিক প্রোফাইল সংরক্ষণ', 'Save public profile')}</button> <a class="btn btn-o" href="#teacher-${tc.id}">${T('সাইটে দেখুন', 'View on site')}</a></div></form>`);
+  };
+  PX.CHG.pubpick = el => {
+    const f = el.files[0], er = el.form.querySelector('#tp-err'); if (!f) return;
+    if (!/^image\//.test(f.type) || f.size > 2 * 1048576) { el.value = ''; er.textContent = T('২ এমবির মধ্যে একটি ছবি দিন', 'Choose an image under 2 MB'); return; }
+    er.textContent = ''; document.getElementById('pub-prev').innerHTML = `<img src="${URL.createObjectURL(f)}" alt="">`;
+  };
+  PX.FORMS.tpub = (f, d) => {
+    const tc = TEACH('t01'), er = f.querySelector('#tp-err'), bad = m => { er.textContent = m; };
+    if (!(d.n || '').trim() || !(d.inst || '').trim()) return bad(T('নাম ও প্রতিষ্ঠান দিতে হবে', 'Name and institution are required'));
+    if (!(d.subs || []).length) return bad(T('অন্তত একটি বিষয় বেছে নিন', 'Pick at least one subject'));
+    const ex = +d.exp; if (d.exp !== '' && (!(ex >= 0) || ex > 60)) return bad(T('অভিজ্ঞতার বছর ঠিক নয়', 'Invalid years of experience'));
+    setL(tc, 'n', d.n); setL(tc, 'inst', d.inst); setL(tc, 'dept', d.dept); setL(tc, 'yr', d.yr); setL(tc, 'hsc', d.hsc); setL(tc, 'ssc', d.ssc); setL(tc, 'bio', d.bio);
+    tc.exp = d.exp === '' ? tc.exp : ex; tc.ik = d.ik; tc.subs = d.subs.slice();
+    tc.more = toL(d.more, tc.more); tc.certs = toL(d.certs, tc.certs); tc.co = toL(d.co, tc.co);
+    const opts = featOpts(tc), pick = opts.find(x => x[0] === d.featsel) || opts[0];
+    if (pick) { tc.featKey = pick[0]; tc.feat = pick[0] === 'u' ? tc.inst : pick[0] === 'h' ? { bn: part(tc.hsc), en: part(tc.hsc) } : tc.more[+pick[0].slice(1)]; }
+    const file = f.elements.pubphoto.files[0]; if (file) tc.photo = URL.createObjectURL(file);
+    PX.toast(T('পাবলিক প্রোফাইল হালনাগাদ হয়েছে', 'Public profile updated')); PX.refresh();
+  };
+
   /* স্টুডেন্ট */
   PX.sec.s.profile = () => { const u = DB.me, r = rec('u1', { name: u.name, phone: u.phone, email: u.email, district: u.district, inst: '' }); return head(r, 's', r.inst || T('প্রতিষ্ঠান যোগ করুন', 'Add your institution')) + form('u1', 's', u, T('বর্তমান শিক্ষাপ্রতিষ্ঠান', 'Current institution')); };
   /* টিচার */
   const oldT = PX.sec.t.profile;
-  PX.sec.t.profile = () => { const t = TEACH('t01'), r = rec('t01', { name: t.n.bn, phone: '01711000002', email: 'teacher@chaatro.com', district: '', inst: L(t.inst) }); return head(r, 't', r.inst) + form('t01', 't', {}, T('বর্তমান প্রতিষ্ঠান / বিশ্ববিদ্যালয়', 'Current institution / university')) + oldT().replace(/^<section[^>]*>.*?<\/section>/s, ''); };
+  PX.sec.t.profile = () => { const t = TEACH('t01'), r = rec('t01', { name: t.n.bn, phone: '01711000002', email: 'teacher@chaatro.com', district: '', inst: L(t.inst) }); return head(r, 't', r.inst) + pubForm(t) + form('t01', 't', {}, T('বর্তমান প্রতিষ্ঠান / বিশ্ববিদ্যালয়', 'Current institution / university')) + oldT().replace(/^<section[^>]*>.*?<\/section>/s, ''); };
   /* অ্যাডমিন */
   PX.sec.a.profile = () => { const r = rec('admin', { name: 'Sobuj K Mandal', phone: '', email: 'admin@chaatro.com', district: '', inst: 'Chaatro.com' }); return head(r, 'a', T('অ্যাডমিন', 'Administrator')) + form('admin', 'a', {}, T('বর্তমান প্রতিষ্ঠান', 'Current institution')); };
   const navA = PX.nav.a; PX.nav.a = () => navA().concat([{ k: 'profile', l: T('আমার প্রোফাইল', 'My profile'), i: 'user', also: [], badge: '' }]);

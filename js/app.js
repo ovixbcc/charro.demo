@@ -80,7 +80,9 @@
     const face = l.g === 'h' ? `<ellipse cx="50" cy="48" rx="15.5" ry="19" fill="${l.skin}"/>` : `<ellipse cx="50" cy="47" rx="19" ry="22" fill="${l.skin}"/>`;
     return `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" fill="#EFE7FF"/><path d="M14 100Q14 73 50 73Q86 73 86 100Z" fill="${l.shirt}"/><rect x="44" y="62" width="12" height="15" rx="4" fill="${l.skin}" opacity=".9"/>${back}${face}${l.g === 'h' ? '' : `<circle cx="31" cy="48" r="3.4" fill="${l.skin}"/><circle cx="69" cy="48" r="3.4" fill="${l.skin}"/>`}${front}<circle cx="43" cy="49" r="2.1" fill="#0E0B16"/><circle cx="57" cy="49" r="2.1" fill="#0E0B16"/>${gl}<path d="M44.5 58 Q50 63 55.5 58" fill="none" stroke="#7A3B2E" stroke-width="2" stroke-linecap="round"/><circle cx="38" cy="56" r="3" fill="#FF8FA3" opacity=".35"/><circle cx="62" cy="56" r="3" fill="#FF8FA3" opacity=".35"/></svg>`;
   }
-  const avatar = (tc, size = 44) => LOOK[tc.id]
+  const avatar = (tc, size = 44) => tc.photo
+    ? `<span class="av av-img av-photo" style="--s:${size}px" aria-hidden="true"><img src="${tc.photo}" alt=""></span>`
+    : LOOK[tc.id]
     ? `<span class="av av-img" style="--s:${size}px" aria-hidden="true">${cartoon(LOOK[tc.id])}</span>`
     : `<span class="av" style="--s:${size}px;--c:${tc.color}" aria-hidden="true">${esc(initials(tc.n))}</span>`;
 
@@ -569,7 +571,7 @@
       <div><nav class="crumbs"><a href="#home">${t('nav_home')}</a><span>/</span><a href="#teachers">${t('nav_teachers')}</a></nav>
         <h1>${esc(L(tc.n))}</h1>
         <p class="tp-inst">${esc(L(tc.inst))} · ${esc(L(tc.dept))} · ${esc(L(tc.yr))}</p>
-        ${tc.feat ? `<span class="featinst">${ic('award')}${t('featured_inst')}: <b>${esc(L(tc.feat))}</b></span>` : ''}
+        ${tc.feat ? `<span class="featinst">${ic('check')}${t('featured_inst')}: <b>${esc(L(tc.feat))}</b></span>` : ''}
         <ul class="meta meta-w"><li>${rate(tc.rating)}</li><li>${ic('users')}${num(tc.stu)} ${t('students')}</li><li>${ic('clock')}${num(tc.exp)} ${t('yrs_exp')}</li><li>${ic('book')}${num(cs.length)} ${t('courses_n')}</li></ul>
         <div class="vbadges vb-w">${verBadges(tc)}</div></div>
     </div></div>
