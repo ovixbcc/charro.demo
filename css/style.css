@@ -626,3 +626,5 @@ button { cursor: pointer; }
 .demo-c ul{list-style:none;margin:.6rem 0 0;padding:0;display:grid;gap:.4rem}.demo-c li{display:grid;grid-template-columns:5.5rem 1fr 1fr;gap:.4rem;align-items:center;font-size:.85rem}.demo-c code{background:#f4efff;border-radius:6px;padding:.15rem .4rem;font-size:.8rem;word-break:break-all}
 @media(max-width:520px){.demo-c li{grid-template-columns:1fr}}
 .av-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.tag-bd{background:#FFC53D;color:#111}.bd-l{list-style:none;margin:.2rem 0 .6rem;padding:0;display:grid;gap:.3rem;font-size:.88rem}.bd-l li{display:flex;gap:.4rem;align-items:flex-start}.bd-l svg{width:16px;height:16px;color:#8C52FF;flex:none;margin-top:2px}
+.cc-bd .cc-price{display:flex;gap:1.2rem;align-items:flex-end}

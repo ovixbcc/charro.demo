@@ -367,3 +367,18 @@ const BLOG = [
   });
   COURSES.length = 0; out.forEach(c => COURSES.push(c));
 })();
+
+/* বান্ডেল কোর্স: অ্যাডমিন একাধিক কোর্স বেছে ছাড়ে একসাথে বিক্রি করে */
+const BUNDLES = [
+  { id: 'b01', courses: ['c02', 'c03', 'c04', 'c05'], disc: 12, active: true, by: 'admin',
+    title: { bn: 'ক্যাডেট কলেজ কমপ্লিট প্যাক (৪ বিষয়)', en: 'Cadet College Complete Pack (4 subjects)' },
+    desc: { bn: 'বাংলা, ইংরেজি, গণিত ও সাধারণ জ্ঞান, চারটি কোর্স একসাথে নিলে বিশেষ ছাড়।', en: 'Bangla, English, Math and GK together at a special bundle price.' } },
+  { id: 'b02', courses: ['c11', 'c12'], disc: 10, active: true, by: 'admin',
+    title: { bn: 'বুয়েট প্রস্তুতি ডাবল প্যাক', en: 'BUET Preparation Double Pack' },
+    desc: { bn: 'বুয়েট ক্র্যাশ কোর্স ও গণিত কোর্স একসাথে।', en: 'The BUET crash course and the maths course together.' } },
+];
+const bundleCourses = b => b.courses.map(id => COURSES.find(c => c.id === id)).filter(Boolean);
+function bundleCalc(b) {
+  const cs = bundleCourses(b), total = cs.reduce((s, c) => s + pricingFor(c)[c.formats[0]].fullD, 0), price = round50(total * (100 - b.disc) / 100);
+  return { cs, total, price, save: total - price };
+}

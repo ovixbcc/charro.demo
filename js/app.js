@@ -333,6 +333,55 @@
       <g transform="translate(190 292) rotate(-8)"><rect width="110" height="14" rx="3" fill="#FFC53D"/><path d="M110 0 l16 7 l-16 7z" fill="#F2D9B8"/><rect x="-10" width="10" height="14" rx="3" fill="#E03131"/></g></svg>`;
   };
 
+
+  /* ---------- বান্ডেল কোর্স ---------- */
+  function bundleCard(b) {
+    const k = bundleCalc(b), c0 = k.cs[0];
+    return `<article class="cc cc-bd" style="--cc:${PCOLOR[c0.program]}">
+      <a class="cc-top" href="#bundle-${b.id}" aria-label="${esc(L(b.title))}">${courseArt(c0.program)}<span class="cc-shade"></span>
+        <span class="cc-prog">${t('bd_tag')}</span><span class="cc-feat">${t('bd_save')} ${num(b.disc)}%</span><span class="cc-emb">${subjArt(c0.subject)}</span></a>
+      <div class="cc-body"><div class="tags"><span class="tag tag-bd">${num(k.cs.length)} ${t('bd_n')}</span></div>
+        <h3 class="cc-title"><a href="#bundle-${b.id}">${esc(L(b.title))}</a></h3>
+        <ul class="bd-l">${k.cs.slice(0, 4).map(c => `<li>${ic('check')}${esc(L(c.title))}</li>`).join('')}${k.cs.length > 4 ? `<li class="mute">+ ${num(k.cs.length - 4)} ${t('bd_more')}</li>` : ''}</ul>
+        <div class="cc-price"><div><small>${t('bd_price')}</small><b>${money(k.price)}</b> <s>${money(k.total)}</s></div><div><small>${t('bd_you_save')}</small><b class="okm">${money(k.save)}</b></div></div>
+        <a class="btn btn-p btn-block" href="#bundle-${b.id}">${t('details')}${ic('arrow')}</a></div></article>`;
+  }
+  function viewBundles() {
+    const l = BUNDLES.filter(b => b.active && bundleCourses(b).length > 1);
+    return pagehead(t('bd_t'), t('bd_d'), `<span>/</span><span>${t('bd_t')}</span>`) + sec('', '', l.length ? `<div class="grid grid-c">${l.map(bundleCard).join('')}</div>` : `<p class="mute">${t('bd_none')}</p>`);
+  }
+  function viewBundle(id) {
+    const b = byId(BUNDLES, id); if (!b || !b.active) return view404();
+    const k = bundleCalc(b); if (k.cs.length < 2) return view404();
+    return `<div class="phead phead-c" style="--cc:${PCOLOR[k.cs[0].program]}"><div class="wrap">
+      <nav class="crumbs"><a href="#home">${t('nav_home')}</a><span>/</span><a href="#bundles">${t('bd_t')}</a></nav>
+      <div class="tags tags-w"><span class="tag">${t('bd_tag')}</span><span class="tag">${num(k.cs.length)} ${t('bd_n')}</span><span class="tag">${t('bd_save')} ${num(b.disc)}%</span></div>
+      <h1>${esc(L(b.title))}</h1><p>${esc(L(b.desc || b.title))}</p></div></div>
+    <div class="wrap cd"><div class="cd-main">
+      <section class="blk"><h2>${t('bd_incl')}</h2><div class="grid grid-c2">${k.cs.map(courseCard).join('')}</div></section></div>
+      <aside class="cd-side"><div class="checkout"><h3>${t('bd_summary')}</h3>
+        <ul class="ck-l">${k.cs.map(c => `<li><span>${esc(L(c.title))}</span><b>${money(pricingFor(c)[c.formats[0]].fullD)}</b></li>`).join('')}</ul>
+        <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s>${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')} (${num(b.disc)}%)</dt><dd>− ${money(k.save)}</dd></div><div class="tot"><dt>${t('bd_price')}</dt><dd>${money(k.price)}</dd></div></dl>
+        <a class="btn btn-p btn-block btn-lg" href="#bpay-${b.id}">${t('bd_enrol')}${ic('arrow')}</a><p class="co-note">${ic('video')}${t('bd_note')}</p></div></aside></div>`;
+  }
+  function viewBundlePay(id) {
+    const b = byId(BUNDLES, id); if (!b || !b.active) return view404();
+    const k = bundleCalc(b); if (k.cs.length < 2) return view404();
+    return pagehead(t('ck_t'), t('ck_d'), `<span>/</span><a href="#bundle-${b.id}">${esc(L(b.title))}</a><span>/</span><span>${t('ck_t')}</span>`) +
+      sec('', '', `<div class="ck-wrap" id="ck-wrap"><form class="bt-form" data-form="bcheckout" data-id="${b.id}" novalidate>
+        <h3 class="fs-t">${t('ck_details')}</h3>
+        <div class="row">${fld({ name: 'en_name', label: t('f_name'), req: true, auto: 'name' })}${fld({ name: 'en_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}</div>
+        <div class="row">${fld({ name: 'en_email', label: t('f_email'), type: 'email', auto: 'email' })}${fld({ name: 'en_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' })}</div>
+        <h3 class="fs-t">${t('ck_pay')}</h3>
+        <fieldset class="co-g pays"><label class="opt on"><input type="radio" name="bpay" value="cash" checked><span><b>${t('ck_cash')}</b><small>${t('ck_cash_d')}</small></span></label></fieldset>
+        <p class="paynote ok">${ic('check')}${t('ck_cash_note')}</p>
+        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button><p class="mute sm center">${t('ck_demo')}</p></form>
+        <aside class="checkout"><h3>${t('ck_summary')}</h3><div class="ck-c" style="--cc:${PCOLOR[k.cs[0].program]}"><span class="ck-code">${t('bd_tag')}</span><span><b>${esc(L(b.title))}</b><small>${num(k.cs.length)} ${t('bd_n')}</small></span></div>
+          <ul class="ck-l">${k.cs.map(c => `<li><span>${esc(L(c.title))}</span><b>${money(pricingFor(c)[c.formats[0]].fullD)}</b></li>`).join('')}</ul>
+          <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s>${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')}</dt><dd>− ${money(k.save)}</dd></div><div class="tot"><dt>${t('sum_total')}</dt><dd>${money(k.price)}</dd></div></dl>
+          <a class="btn btn-o btn-block" href="#bundle-${b.id}">${t('ck_change')}</a><p class="co-note">${ic('video')}${t('bd_coupon_note')}</p></aside></div>`);
+  }
+
   function viewHome() {
     const feat = COURSES.filter(c => c.featured);
     const ftch = TEACHERS.filter(x => ['t01', 't02', 't08'].includes(x.id));
@@ -371,7 +420,7 @@
       return `<button class="scr-i scard sc-img" data-pick="subject" data-val="${s.id}" data-go="1">${subjArt(s.id)}<span class="sc-body"><b>${esc(L(s))}</b><small>${num(n)} ${t('courses_n')}</small></span></button>`;
     }).join(''), 'subjects'))}
 
-    ${sec('sec-soft', sechead(t('feat_t'), t('feat_d')), `<div class="grid grid-c">${feat.map(courseCard).join('')}</div>`)}
+    ${BUNDLES.some(b => b.active && bundleCourses(b).length > 1) ? sec('sec-soft', sechead(t('bd_t'), t('bd_d'), `<a class="btn btn-o" href="#bundles">${t('bd_all')}${ic('arrow')}</a>`), `<div class="grid grid-c">${BUNDLES.filter(b => b.active && bundleCourses(b).length > 1).map(bundleCard).join('')}</div>`) : ''}
 
     ${sec('sec-dark', sechead(t('fmt_t'), t('fmt_d')), `<div class="fmt">
       <div class="fmt-c"><span class="fmt-n">${num('1 : 1')}</span><h3>${t('one_fmt')}</h3><p>${t('fmt_one_d')}</p><ul><li>${ic('check')}${t('fmt_one_1')}</li><li>${ic('check')}${t('fmt_one_2')}</li><li>${ic('check')}${t('fmt_one_3')}</li></ul></div>
@@ -880,7 +929,7 @@
     if (h === 'portal') return { name: 'portal', role: null };
     const pm = h.match(/^([sta])-([a-z0-9]+)(?:-(.+))?$/);
     if (pm) return { name: 'portal', role: pm[1], sec: pm[2], arg: pm[3] };
-    const m = h.match(/^(course|teacher|policy|checkout|post)-(.+)$/);
+    const m = h.match(/^(course|teacher|policy|checkout|post|bundle|bpay)-(.+)$/);
     if (m) return { name: m[1], id: m[2] };
     return { name: h };
   }
@@ -912,7 +961,7 @@
     const r = route();
     const snap = keep && r.name !== 'portal' ? snapshot() : null;
     const V = {
-      home: viewHome, blog: viewBlog, post: () => viewPost(r.id), checkout: () => viewCheckout(r.id), courses: viewCourses, course: () => viewCourse(r.id), teachers: viewTeachers, teacher: () => viewTeacher(r.id),
+      home: viewHome, blog: viewBlog, post: () => viewPost(r.id), checkout: () => viewCheckout(r.id), bundles: viewBundles, bundle: () => viewBundle(r.id), bpay: () => viewBundlePay(r.id), courses: viewCourses, course: () => viewCourse(r.id), teachers: viewTeachers, teacher: () => viewTeacher(r.id),
       'become-teacher': viewBecome, 'how-it-works': viewHow, about: viewAbout, faq: viewFaq, contact: viewContact,
       login: () => viewAuth('login'), signup: () => viewAuth('signup'), policy: () => viewPolicy(r.id),
     };
@@ -937,7 +986,9 @@
     if (r.name === 'teacher') { const x = byId(TEACHERS, r.id); if (x) ttl = L(x.n); }
     if (r.name === 'policy' && POLS[r.id]) ttl = t(POLS[r.id][0]);
     if (r.name === 'post') { const x = byId(BLOG, r.id); if (x) ttl = L(x.title); }
-    if (r.name === 'checkout') ttl = t('ck_t');
+    if (r.name === 'checkout' || r.name === 'bpay') ttl = t('ck_t');
+    if (r.name === 'bundles') ttl = t('bd_t');
+    if (r.name === 'bundle') { const x = byId(BUNDLES, r.id); if (x) ttl = L(x.title); }
     document.title = (ttl ? ttl + ' | ' : '') + 'ছাত্র.com';
     if (r.name === 'home' || r.name === 'courses') results();
     if (r.name === 'teachers') teachersGrid();
@@ -1039,6 +1090,13 @@
     }
     showErrors(f, errs); if (Object.keys(errs).length) return;
     if (dest) { location.hash = dest; return; }
+    if (kind === 'bcheckout') {
+      const b = byId(BUNDLES, f.dataset.id), k = bundleCalc(b), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
+      $('#ck-wrap').innerHTML = `<div class="bt-form done-w"><div class="done"><span class="done-i">${ic('check')}</span><h3>${t('ck_done_t')}</h3><p>${t('ck_done_d')}</p>
+        <dl class="sum"><div><dt>${t('order_id')}</dt><dd>${oid}</dd></div><div><dt>${t('bd_tag')}</dt><dd>${esc(L(b.title))}</dd></div><div><dt>${t('bd_n')}</dt><dd>${num(k.cs.length)}</dd></div><div><dt>${t('sum_total')}</dt><dd>${money(k.price)}</dd></div><div><dt>${t('f_name')}</dt><dd>${esc(f.elements.en_name.value.trim())}</dd></div><div><dt>${t('status')}</dt><dd>${t('ck_status')}</dd></div></dl>
+        <a class="btn btn-p" href="#home">${t('back_home')}</a></div></div>`;
+      window.scrollTo(0, 0); return;
+    }
     if (kind === 'checkout') {
       if (CO.pay !== 'cash') { $('#e-pay').textContent = t('ck_online_err'); $('#pay-note').scrollIntoView({ block: 'center' }); return; }
       const c = byId(COURSES, CO.id), k = calc(c, CO), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
