@@ -79,7 +79,7 @@
   const bar = () => `<div class="idsearch"><label class="srch">${ic('search')}<input type="search" data-rs placeholder="${T('আইডি / নাম / ফোন দিয়ে খুঁজুন (স্টুডেন্ট, টিচার, কোর্স, টিকিট)', 'Search by ID / name / phone (student, teacher, course, ticket)')}" autocomplete="off" aria-label="${T('খুঁজুন', 'Search')}"></label><small class="idsearch-n" aria-live="polite"></small></div>`;
   const wrapSearch = (role, skip) => Object.keys(PX.sec[role]).forEach(sec => {
     if (skip.includes(sec)) return; const fn = PX.sec[role][sec];
-    PX.sec[role][sec] = (...a) => { const h = fn(...a); return /<table|class="tk"|class="row-i"/.test(h) ? bar() + h : h; };
+    PX.sec[role][sec] = (...a) => { const h = fn(...a); return h; };
   });
   wrapSearch('a', ['profile', 'settings', 'students', 'bundles']);
   wrapSearch('t', ['profile', 'payout', 'policies', 'support', 'home', 'new', 'edit', 'courses', 'schedule']);

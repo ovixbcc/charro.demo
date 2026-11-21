@@ -250,3 +250,7 @@ fieldset { min-width: 0; }
 /* সেটিংসের সাব-মেনু */
 .snav { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; padding: .35rem; background: #fff; border: 1px solid var(--line); border-radius: 14px; } .snav a { padding: .5rem .85rem; border-radius: 10px; font-weight: 600; font-size: .9rem; color: var(--ink2); text-decoration: none; white-space: nowrap; } .snav a:hover { background: var(--pxl); } .snav a[aria-current=page] { background: var(--p); color: #fff; }
 @media (max-width: 640px) { .snav { flex-wrap: nowrap; overflow-x: auto; } }
+.tsrch{display:flex;align-items:center;gap:.3rem;border:1.5px solid var(--line);border-radius:99px;padding:.25rem .6rem;background:#fff;color:#6b7280}
+.tsrch svg{width:15px;height:15px;flex:none}.tsrch input{border:0;outline:0;background:transparent;width:110px;font:inherit;font-size:.85rem;min-width:0}
+.tsrch:focus-within{border-color:var(--p)}.tsrch input:focus{width:170px}
+@media(max-width:640px){.tsrch input{width:70px}.tsrch input:focus{width:100px}}

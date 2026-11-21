@@ -235,7 +235,7 @@
       <div class="pt-role">${T(ROLE[role].bn, ROLE[role].en)}</div>
       <nav aria-label="portal">${nav.map(x => `<a href="#${role}-${x.k}" ${x === cur ? 'aria-current="page"' : ''}>${ic(x.i)}<span>${x.l}</span>${x.badge ? `<em>${x.badge}</em>` : ''}</a>`).join('')}</nav>
       <div class="pt-foot"><a href="#portal">${T('পোর্টাল বদলান', 'Switch portal')}</a><a href="#home">${T('সাইটে ফিরুন', 'Back to site')}</a></div></aside>
-      <div class="pt-main"><header class="pt-top"><button class="burger pt-burger" data-pa="side" aria-label="menu">${ic('menu')}</button><h1>${esc(PX.S.title)}</h1><div class="pt-tools">${lvSel}<button class="lang" data-act="lang">${ic('globe')}<span>${CH.lang() === 'bn' ? 'EN' : 'বাংলা'}</span></button><span class="pt-user">${user.av || `<span class="av" style="--s:32px;--c:#8C52FF">${esc(user.n.slice(0, 1))}</span>`}<b>${esc(user.n)}</b></span></div></header>
+      <div class="pt-main"><header class="pt-top"><button class="burger pt-burger" data-pa="side" aria-label="menu">${ic('menu')}</button><h1>${esc(PX.S.title)}</h1><div class="pt-tools"><label class="tsrch">${ic('search')}<input type="search" data-rs placeholder="${T('খুঁজুন…', 'Search…')}" autocomplete="off" aria-label="${T('এই পেজের টেবিলে খুঁজুন', 'Search this page')}"></label>${lvSel}<button class="lang" data-act="lang">${ic('globe')}<span>${CH.lang() === 'bn' ? 'EN' : 'বাংলা'}</span></button><span class="pt-user">${user.av || `<span class="av" style="--s:32px;--c:#8C52FF">${esc(user.n.slice(0, 1))}</span>`}<b>${esc(user.n)}</b></span></div></header>
       <div class="pt-body">${body}</div></div>${PX.S.side ? '<div class="pt-scrim" data-pa="side"></div>' : ''}</div>`;
   };
   PX.title = () => PX.S.title || '';

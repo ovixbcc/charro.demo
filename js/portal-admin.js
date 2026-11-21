@@ -103,8 +103,8 @@
   /* ---------- স্টুডেন্ট CRM ---------- */
   def.students = ['students', () => {
     const q = (PX.S.q || '').toLowerCase();
-    const l = DB.crm.filter(u => !q || (u.name + u.phone + u.district + u.sid).toLowerCase().includes(q.replace(/^#/, '')));
-    return UI.card(T('স্টুডেন্ট তালিকা', 'Students'), `<div class="bar-t"><input type="search" class="srch" placeholder="${T('আইডি / নাম / ফোন / জেলা খুঁজুন', 'Search by ID / name / phone / district')}" value="${esc(PX.S.q || '')}" data-pc="q"><span class="bar-b">${PX.exportBtns('a', 'students')} <button class="btn btn-o btn-sm" data-pa="qenrol">${ic('plus')} ${T('আইডি দিয়ে এনরোল', 'Enrol by ID')}</button> <button class="btn btn-p btn-sm" data-pa="newstu">${ic('plus')} ${T('নতুন স্টুডেন্ট', 'New student')}</button></span></div>` +
+    const l = DB.crm;
+    return UI.card(T('স্টুডেন্ট তালিকা', 'Students'), `<div class="bar-t"><span class="bar-b">${PX.exportBtns('a', 'students')} <button class="btn btn-o btn-sm" data-pa="qenrol">${ic('plus')} ${T('আইডি দিয়ে এনরোল', 'Enrol by ID')}</button> <button class="btn btn-p btn-sm" data-pa="newstu">${ic('plus')} ${T('নতুন স্টুডেন্ট', 'New student')}</button></span></div>` +
       UI.tbl([T('নাম', 'Name'), T('ফোন', 'Phone'), T('জেলা', 'District'), T('কোর্স', 'Courses'), T('অবস্থা', 'Status'), ''], l.map(u => [`<b>${esc(u.name)}</b>`, esc(u.phone), esc(u.district), n(u.courses.length), u.blocked ? UI.chip(T('ব্লক', 'Blocked'), 'bad') : UI.chip(T('সক্রিয়', 'Active'), 'ok'), `<button class="btn btn-o btn-sm" data-pa="profview" data-kind="s" data-id="${u.id}">${T('প্রোফাইল', 'Profile')}</button> <button class="btn btn-o btn-sm" data-pa="msgto" data-kind="s" data-id="${u.id}" title="${T('মেইল / মেসেজ', 'Mail / message')}">${ic('chat')}</button> <button class="btn btn-o btn-sm" data-pa="stuview" data-id="${u.id}">${T('বিস্তারিত', 'Open')}</button>`])));
   }];
   PX.CHG.q = el => { PX.S.q = el.value; PX.S.qfocus = true; PX.refresh(); const i = document.querySelector('.srch'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } };
