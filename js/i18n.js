@@ -123,7 +123,7 @@ add('tb2', 'কুপন CHAATRO10 দিলে ১০% ছাড়', 'Use coup
 add('tb3', 'ক্লাস কীভাবে হয়, দেখে নিন', 'See how classes work');
 add('home_find_t', 'আপনার কোর্সটি খুঁজে নিন', 'Find your course');
 add('home_find_d', 'প্রোগ্রাম, বিষয়, ক্লাসের ধরন, টিচার ও বাজেট দিয়ে ছেঁকে নিন।', 'Filter by program, subject, class type, teacher and budget.');
-add('see_all_courses', 'সব কোর্স দেখুন', 'See all courses');
+add('see_all_courses', 'আরও কোর্স ব্রাউজ করুন', 'Browse more courses');
 add('prog_t', 'প্রোগ্রাম অনুযায়ী দেখুন', 'Browse by program');
 add('prog_d', 'কোন পরীক্ষার প্রস্তুতি নিচ্ছেন, সেটি বেছে নিন।', 'Pick the exam you are preparing for.');
 add('brt_t', 'টিচার অনুযায়ী দেখুন', 'Browse by teacher');

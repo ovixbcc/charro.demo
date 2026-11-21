@@ -277,7 +277,8 @@
     const list = filtered();
     const rc = $('#rcount'); if (rc) rc.textContent = num(list.length) + ' ' + t('found');
     const box = $('#results'); if (!box) return;
-    box.innerHTML = list.length ? list.map(courseCard).join('') :
+    const shown = route().name === 'home' ? list.slice(0, 9) : list;
+    box.innerHTML = list.length ? shown.map(courseCard).join('') :
       `<div class="empty"><h3>${t('empty_t')}</h3><p>${t('empty_d')}</p><button class="btn btn-p" data-act="reset">${t('f_reset')}</button></div>`;
   }
 
