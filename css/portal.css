@@ -241,3 +241,9 @@ fieldset { min-width: 0; }
 
 .seg { display: flex; gap: .6rem; flex-wrap: wrap; } .seg-i { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; padding: .55rem .8rem; border: 1px solid var(--line, #E5DEF5); border-radius: 12px; cursor: pointer; min-width: 0; } .seg-i small { color: var(--mute); overflow-wrap: anywhere; }
 .pc-tot { display: flex; justify-content: space-between; align-items: center; background: #F6F1FF; border-radius: 12px; padding: .7rem 1rem; } .pc-tot b { font-size: 1.3rem; color: var(--p); }
+
+/* ওয়েবসাইট সেটিংস */
+.sitetxt { border: 1px solid var(--line); border-radius: 14px; padding: .8rem 1rem; margin: .7rem 0; } .sitetxt.ed { border-color: var(--p); background: var(--pxl); } .sitetxt .sk { display: flex; gap: .6rem; align-items: center; margin-bottom: .4rem; } .sitetxt code { font-size: .78rem; color: var(--mute); overflow-wrap: anywhere; }
+.site-f { display: flex; gap: .6rem; flex-wrap: wrap; } .site-f select, .site-f .srch { min-width: 0; flex: 1 1 180px; }
+.navrow { display: grid; grid-template-columns: 130px minmax(0, 1fr) minmax(0, 1fr); gap: .5rem; align-items: center; } @media (max-width: 640px) { .navrow { grid-template-columns: minmax(0, 1fr); } }
+.clr { display: flex; gap: .5rem; align-items: center; } .clr input[type=color] { width: 48px; height: 40px; padding: 2px; flex: none; }

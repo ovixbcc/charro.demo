@@ -26,6 +26,7 @@
     ['staff', 'কর্মী ও অ্যাক্সেস', 'Staff & access', 'users', 'staff'],
     ['export', 'ডাটা ডাউনলোড', 'Data export', 'download', null],
     ['settings', 'সেটিংস', 'Settings', 'menu', 'settings'],
+    ['website', 'ওয়েবসাইট সেটিংস', 'Website settings', 'globe', 'settings'],
   ];
   const ALSO = { courses: ['newcourse'] };
   const badge = {
@@ -98,6 +99,7 @@
   A.con = a => { const i = DB.offList.findIndex(c => c.id === a.dataset.id); COURSES.push(DB.offList.splice(i, 1)[0]); PX.refresh(); };
 
   def.export = [null, () => PX.exportUI('a')];
+  def.website = ['settings', () => PX.siteUI()];
   /* ---------- স্টুডেন্ট CRM ---------- */
   def.students = ['students', () => {
     const q = (PX.S.q || '').toLowerCase();

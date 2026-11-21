@@ -644,3 +644,7 @@ button { cursor: pointer; }
 .thf-prev img { width: 100%; height: 100%; object-fit: cover; }
 .ytp { margin-top: .5rem; max-width: 360px; }
 @media (max-width: 520px) { .thf { grid-template-columns: minmax(0, 1fr); } .vp-b { width: 54px; height: 54px; } }
+
+/* সাইট সেটিংস: টপ ব্যানার ও স্লাইড ছবি */
+.site-bar { text-align: center; padding: .5rem 1rem; font-size: .9rem; font-weight: 600; color: #fff; } .site-bar a, .site-bar span { color: #fff; text-decoration: none; display: block; } .site-bar a:hover { text-decoration: underline; }
+.sl-img { width: 100%; height: 100%; max-height: 320px; object-fit: cover; border-radius: 20px; display: block; }

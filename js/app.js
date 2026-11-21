@@ -8,7 +8,8 @@
   let lang = 'en';
   try { const v = localStorage.getItem('chaatro-lang'); if (v === 'en' || v === 'bn') lang = v; } catch (e) { /* ignore */ }
 
-  const t = k => (I[lang] && I[lang][k] != null ? I[lang][k] : (I.bn[k] != null ? I.bn[k] : k));
+  const t = k => { const o = SITE.data.texts[lang]; if (o && o[k]) return o[k]; return I[lang] && I[lang][k] != null ? I[lang][k] : (I.bn[k] != null ? I.bn[k] : k); };
+  const BR = () => SITE.data.brand, sname = () => BR().name || 'ছাত্র.com';
   const L = o => (o ? (o[lang] || o.bn || '') : '');
   const BNUM = '০১২৩৪৫৬৭৮৯';
   const num = x => { const s = String(x); return lang === 'bn' ? s.replace(/\d/g, d => BNUM[d]) : s; };
@@ -203,23 +204,20 @@
   const pagehead = (title, sub, crumbs) => `<div class="phead"><div class="wrap"><nav class="crumbs" aria-label="breadcrumb"><a href="#home">${t('nav_home')}</a>${crumbs || ''}</nav><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
 
   /* ---------- header / footer ---------- */
-  const LOGO = `<a class="logo" href="#home" aria-label="Chaatro.com"><img src="img/logo.png" alt="Chaatro.com" width="400" height="120"></a>`;
+  const logoH = () => `<a class="logo" href="#home" aria-label="${esc(sname())}"><img src="${BR().logo || 'img/logo.png'}" alt="${esc(sname())}" width="400" height="120"></a>`;
+  const navOn = k => !SITE.data.nav.hidden[k];
+  const siteBar = () => { const b = SITE.data.bar, tx = (b.text && (b.text[lang] || b.text.bn || b.text.en)) || ''; return b.on && tx ? `<div class="site-bar" style="background:${esc(b.bg || '#8C52FF')}">${b.link ? `<a href="${esc(b.link)}">${esc(tx)}</a>` : `<span>${esc(tx)}</span>`}</div>` : ''; };
   let menuOpen = false;
 
   function header(r) {
     const act = n => (r.name === n || (n === 'courses' && r.name === 'course') || (n === 'teachers' && r.name === 'teacher') || (n === 'blog' && r.name === 'post')) ? ' aria-current="page"' : '';
-    return `<div class="wrap hd-in">
-      ${LOGO}
+    return `${siteBar()}<div class="wrap hd-in">
+      ${logoH()}
       <nav class="nav ${menuOpen ? 'open' : ''}" id="nav" aria-label="main">
-        <a href="#home"${act('home')}>${t('nav_home')}</a>
-        <a href="#courses"${act('courses')}>${t('nav_courses')}</a>
-        <a href="#teachers"${act('teachers')}>${t('nav_teachers')}</a>
-        <a href="#how-it-works"${act('how-it-works')}>${t('nav_how')}</a>
-        <a href="#blog"${act('blog')}>${t('nav_blog')}</a>
-        <a href="#contact"${act('contact')}>${t('nav_contact')}</a>
+        ${navOn('home') ? `<a href="#home"${act('home')}>${t('nav_home')}</a>` : ''}${navOn('courses') ? `<a href="#courses"${act('courses')}>${t('nav_courses')}</a>` : ''}${navOn('teachers') ? `<a href="#teachers"${act('teachers')}>${t('nav_teachers')}</a>` : ''}${navOn('how') ? `<a href="#how-it-works"${act('how-it-works')}>${t('nav_how')}</a>` : ''}${navOn('blog') ? `<a href="#blog"${act('blog')}>${t('nav_blog')}</a>` : ''}${navOn('contact') ? `<a href="#contact"${act('contact')}>${t('nav_contact')}</a>` : ''}
         <div class="nav-end">
           <a class="btn btn-o btn-sm" href="#login"${act('login')}>${t('login')}</a>
-          <a class="btn btn-p btn-sm becomet" href="#become-teacher"${act('become-teacher')}>${ic('award')}${t('nav_become')}</a>
+          ${navOn('become') ? `<a class="btn btn-p btn-sm becomet" href="#become-teacher"${act('become-teacher')}>${ic('award')}${t('nav_become')}</a>` : ''}
         </div>
       </nav>
       <div class="hd-tools">
@@ -232,10 +230,10 @@
   function footer() {
     const lk = (h, k) => `<a href="#${h}">${t(k)}</a>`;
     return `<div class="wrap">
-      <div class="ft-top"><a class="logo" href="#home" aria-label="Chaatro.com"><img src="img/logo-footer.png" alt="Chaatro.com" width="800" height="240"></a><p>${t('ft_short')}</p></div>
+      <div class="ft-top"><a class="logo" href="#home" aria-label="${esc(sname())}"><img src="${BR().logoFooter || BR().logo || 'img/logo-footer.png'}" alt="${esc(sname())}" width="800" height="240"></a><p>${t('ft_short')}</p></div>
       <nav class="ft-links" aria-label="footer">${lk('about', 'nav_about')}${lk('how-it-works', 'nav_how')}${lk('blog', 'nav_blog')}${lk('faq', 'nav_faq')}${lk('become-teacher', 'nav_become')}${lk('contact', 'nav_contact')}</nav>
       <nav class="ft-pol" aria-label="policies">${lk('policy-payment', 'p_payment')}${lk('policy-refund', 'p_refund')}${lk('policy-cookie', 'p_cookie')}${lk('policy-terms', 'p_terms')}${lk('policy-privacy', 'p_privacy')}</nav>
-      <div class="ft-bot"><span>© ${num(2026)} ছাত্র.com · ${t('ft_rights')}</span><span>${t('ft_demo')}</span></div>
+      <div class="ft-bot"><span>${BR().copyright ? esc(BR().copyright) : `© ${num(2026)} ${esc(sname())} · ${t('ft_rights')}`}</span><span>${t('ft_demo')}</span></div>
     </div>`;
   }
 
@@ -284,11 +282,12 @@
   }
 
   /* ---------- views ---------- */
-  const SLIDES = [
+  const SLIDES_ALL = [
     { k: 's1', cls: 'sl-1', href: '#courses' },
     { k: 's2', cls: 'sl-2', href: '#courses', pick: 'crash' },
     { k: 's3', cls: 'sl-3', href: '#courses', prog: 'cadet' },
   ];
+  const SLIDES = { get length() { return SLIDES_ALL.filter(x => !(SITE.data.slides[x.k] || {}).off).length || SLIDES_ALL.length; }, filter: f => SLIDES_ALL.filter(f), map: f => SLIDES_ALL.map(f), find: f => SLIDES_ALL.find(f) };
   let slide = 0, timer = null;
 
   const SART = {
@@ -407,12 +406,12 @@
     return `
     <section class="banner"><div class="wrap">
       <div class="slides" role="region" aria-roledescription="carousel" aria-label="${t('banner_label')}">
-        ${SLIDES.map((s, i) => `<div class="slide ${s.cls}" data-i="${i}" aria-hidden="${i !== 0}" ${i === 0 ? 'data-on="1"' : ''}>
+        ${(SLIDES_ALL.filter(s => !(SITE.data.slides[s.k] || {}).off).length ? SLIDES_ALL.filter(s => !(SITE.data.slides[s.k] || {}).off) : SLIDES_ALL).map((s, i) => `<div class="slide ${s.cls}" data-i="${i}" aria-hidden="${i !== 0}" ${i === 0 ? 'data-on="1"' : ''}>
           <div class="sl-txt"><span class="sl-eyebrow">${t(s.k + '_e')}</span><h1>${t(s.k + '_t')}</h1><p>${t(s.k + '_d')}</p>
           <div class="sl-cta"><button class="btn btn-w" data-go-filter="${s.pick || ''}" data-prog="${s.prog || ''}">${t(s.k + '_c')}${ic('arrow')}</button></div></div>
-          <div class="sl-art" aria-hidden="true">${slideArt(s.k)}</div></div>`).join('')}
+          <div class="sl-art" aria-hidden="true">${(SITE.data.slides[s.k] || {}).img ? `<img class="sl-img" src="${SITE.data.slides[s.k].img}" alt="">` : slideArt(s.k)}</div></div>`).join('')}
         <div class="sl-ctl"><button data-act="prev" aria-label="${t('prev')}">${ic('left')}</button>
-          <div class="dots">${SLIDES.map((s, i) => `<button data-act="dot" data-i="${i}" aria-label="${num(i + 1)}" aria-current="${i === 0}"></button>`).join('')}</div>
+          <div class="dots">${Array.from({ length: SLIDES.length }, (_, i) => i).map(i => `<button data-act="dot" data-i="${i}" aria-label="${num(i + 1)}" aria-current="${i === 0}"></button>`).join('')}</div>
           <button data-act="next" aria-label="${t('next')}">${ic('right')}</button></div>
       </div>
       <div class="thin">
@@ -986,7 +985,7 @@
       $('#hd').innerHTML = ''; $('#ft').innerHTML = '';
       $('#app').innerHTML = window.PX ? PX.view(r.role, r.sec, r.arg) : '';
       document.documentElement.lang = lang === 'bn' ? 'bn' : 'en';
-      document.title = (window.PX && PX.title ? PX.title() + ' | ' : '') + 'ছাত্র.com';
+      document.title = (window.PX && PX.title ? PX.title() + ' | ' : '') + sname();
       if (window.PX && PX.after) PX.after();
       if (!keep) window.scrollTo(0, 0);
       return;
@@ -1004,7 +1003,7 @@
     if (r.name === 'checkout' || r.name === 'bpay') ttl = t('ck_t');
     if (r.name === 'bundles') ttl = t('bd_t');
     if (r.name === 'bundle') { const x = byId(BUNDLES, r.id); if (x) ttl = L(x.title); }
-    document.title = (ttl ? ttl + ' | ' : '') + 'ছাত্র.com';
+    document.title = (ttl ? ttl + ' | ' : '') + sname();
     if (r.name === 'home' || r.name === 'courses') results();
     if (r.name === 'teachers') teachersGrid();
     if (r.name === 'home') startSlides();
@@ -1154,7 +1153,7 @@
     if (ev === 'drop' && e.dataTransfer) addFiles(z.dataset.dz, e.dataTransfer.files);
   }));
 
-  window.CH = { ytId, player, lang: () => lang, num, money, esc, L, fdate, byId, ic, avatar, rate, PCOLOR, planOptions, planLabel, firstOf, cyc, couponFor, rerender: () => render(true), t };
+  window.CH = { SLIDES: SLIDES_ALL, ytId, player, lang: () => lang, num, money, esc, L, fdate, byId, ic, avatar, rate, PCOLOR, planOptions, planLabel, firstOf, cyc, couponFor, rerender: () => render(true), t };
   window.addEventListener('hashchange', () => { menuOpen = false; closeModal(); render(false); });
   document.addEventListener('DOMContentLoaded', () => render(false));
   if (document.readyState !== 'loading') render(false);
