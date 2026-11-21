@@ -230,7 +230,7 @@
     PX.S.title = cur ? cur.l : '';
     const user = role === 's' ? { n: DB.me.name, av: '' } : role === 't' ? { n: TEACH('t01').n.bn, av: CH.avatar(TEACH('t01'), 32) } : { n: T('অ্যাডমিন', 'Admin'), av: '' };
     const lvSel = role === 'a' ? `<label class="lvsel"><span>${T('অ্যাক্সেস লেভেল (ডেমো)', 'Access level (demo)')}</span><select data-pc="level">${Object.keys(DB.levels).map(k => `<option value="${k}" ${PX.S.level === k ? 'selected' : ''}>${DB.levels[k].label}</option>`).join('')}</select></label>` : '';
-    return `<div class="pt pt-${role}"><aside class="pt-side ${PX.S.side ? 'open' : ''}" id="pt-side">
+    return `<div class="pt pt-${role} ${PX.S.collapsed ? 'pt-collapsed' : ''}"><aside class="pt-side ${PX.S.side ? 'open' : ''}" id="pt-side">
       <a class="pt-logo" href="#home"><img src="img/logo.png" alt="Chaatro.com" width="400" height="120"></a>
       <div class="pt-role">${T(ROLE[role].bn, ROLE[role].en)}</div>
       <nav aria-label="portal">${nav.map(x => `<a href="#${role}-${x.k}" ${x === cur ? 'aria-current="page"' : ''}>${ic(x.i)}<span>${x.l}</span>${x.badge ? `<em>${x.badge}</em>` : ''}</a>`).join('')}</nav>
@@ -274,7 +274,7 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') PX.closeModal(); });
   Object.assign(PX.ACT, {
     close: () => PX.closeModal(),
-    side: () => { PX.S.side = !PX.S.side; PX.refresh(); },
+    side: () => { if (window.innerWidth > 900) PX.S.collapsed = !PX.S.collapsed; else PX.S.side = !PX.S.side; PX.refresh(); },
     tab: a => { PX.S.tab[a.dataset.k] = a.dataset.v; PX.refresh(); },
     go: a => { PX.closeModal(); location.hash = a.dataset.h; },
   });

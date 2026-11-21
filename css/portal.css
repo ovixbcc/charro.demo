@@ -181,3 +181,17 @@ hr { border: 0; border-top: 1.5px solid var(--line); margin: .3rem 0; }
 .tk-meta{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;color:#555}
 tr[hidden],.tk[hidden],.row-i[hidden],details[hidden]{display:none!important}
 .bar-b{display:flex;gap:.5rem;flex-wrap:wrap}
+
+/* featured institution radios: keep text inside the box */
+.featsel { min-width: 0; }
+.featsel .opt { min-width: 0; align-items: center; }
+.featsel .opt input[type=radio] { width: 18px; height: 18px; padding: 0; border: 0; flex: none; margin: 0; box-shadow: none; background: transparent; }
+.featsel .opt > span { flex: 1; min-width: 0; text-align: left; overflow-wrap: anywhere; }
+
+/* collapsible sidebar (desktop) */
+.pt-burger { display: inline-flex; }
+.pt { transition: grid-template-columns .2s; }
+.pt.pt-collapsed { grid-template-columns: 0 1fr; }
+.pt.pt-collapsed .pt-side { display: none; }
+@media (max-width: 900px) { .pt.pt-collapsed { grid-template-columns: 1fr; } .pt.pt-collapsed .pt-side { display: flex; } }
+.pt-burger{align-items:center;justify-content:center}
