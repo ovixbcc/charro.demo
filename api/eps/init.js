@@ -1,4 +1,5 @@
 const E = require('../_eps');
+const SB = require('../_sb');
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') { res.status(405).json({ ok: false, error: 'Method not allowed' }); return; }
@@ -24,6 +25,7 @@ module.exports = async (req, res) => {
       console.error('EPS init failed', JSON.stringify(d).slice(0, 500));
       res.status(502).json({ ok: false, error: 'EPS could not start the payment: ' + det, detail: d }); return;
     }
+    await SB.insertOrder({ order_id: String(b.orderId || '').slice(0, 40) || txn, txn, customer_name: name, customer_phone: phone, customer_email: String(b.email || '').trim() || null, product: String(b.product || '').slice(0, 100), amount, sandbox: c.sandbox, status: 'PENDING' });
     res.status(200).json({ ok: true, txn, redirectUrl: url });
   } catch (e) { res.status(502).json({ ok: false, error: String(e.message || e) }); }
 };

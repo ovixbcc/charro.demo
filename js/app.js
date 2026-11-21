@@ -971,6 +971,8 @@
           ${fld({ name: 'a_pass', label: t('f_pass'), req: true, type: 'password', auto: su ? 'new-password' : 'current-password' })}
           ${su ? fld({ name: 'a_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' }) : ''}
           <button class="btn btn-p btn-lg btn-block" type="submit">${su ? t('signup') : t('login')}</button>
+          <p class="mute sm center">— ${t('login')} / ${t('signup')} —</p>
+          <button class="btn btn-o btn-lg btn-block" type="button" data-google>Google</button>
           <p class="mute sm center">${su ? `${t('have_acc')} <a href="#login">${t('login')}</a>` : `${t('no_acc')} <a href="#signup">${t('signup')}</a>`}</p>
           <p class="mute sm center">${t('teacher_q')} <a href="#become-teacher">${t('nav_become')}</a></p>
         </form>
