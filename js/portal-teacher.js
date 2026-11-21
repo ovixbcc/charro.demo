@@ -127,9 +127,11 @@
   PX.courseForm = (c, admin) => {
     c = c || { program: 'cadet', subject: 'math', kind: 'regular', weeks: 12, cpw: 2, days: [], time: '', formats: ['group'], plans: {}, tid: TID, title: '', desc: '', video: '' };
     const pl = (f, m) => (c.plans[f] || []).find(x => x.m === m) || null;
-    const fmt = f => `<div class="pf"><h4 class="sub">${esc(L(ctype(f)))} — ${T('মূল্য', 'pricing')}</h4><p class="soft">${T('যে মেয়াদ চালু রাখতে চান তাতে টিক দিন। স্টুডেন্ট এনরোলের সময় এগুলো থেকে বেছে নেবে। “প্রথম পেমেন্ট” ঘরে প্রথম মাসের আলাদা দাম দিতে পারেন।', 'Tick the tenures to offer. Students choose at enrollment. Use “first payment” for a different first-period price.')}</p>${UI.tbl([T('চালু', 'On'), T('মেয়াদ', 'Tenure'), T('আসল দাম ৳', 'Actual ৳'), T('ছাড়ের দাম ৳', 'Discounted ৳'), T('প্রথম পেমেন্ট ৳ (ঐচ্ছিক)', 'First payment ৳ (optional)')], TEN.map(([m, lb]) => { const p = pl(f, m), k = `p_${f}_${m}`; return [`<input type="checkbox" name="${k}_on" ${p ? 'checked' : ''}>`, lb(), `<input type="number" min="0" name="${k}_a" value="${p ? p.actual : ''}">`, `<input type="number" min="0" name="${k}_d" value="${p ? p.disc : ''}">`, m ? `<input type="number" min="0" name="${k}_f" value="${p && p.first != null ? p.first : ''}">` : '—']; }))}</div>`;
+    const cur = (c.formats && c.formats[0]) || 'group';
+    const fmt = f => `<div class="pf" data-f="${f}"${f === cur ? '' : ' hidden'}><h4 class="sub">${esc(L(ctype(f)))} — ${T('মূল্য', 'pricing')}</h4><p class="soft">${T('যে মেয়াদ চালু রাখতে চান তাতে টিক দিন। স্টুডেন্ট এনরোলের সময় এগুলো থেকে বেছে নেবে। “প্রথম পেমেন্ট” ঘরে প্রথম মাসের আলাদা দাম দিতে পারেন।', 'Tick the tenures to offer. Students choose at enrollment. Use “first payment” for a different first-period price.')}</p>${UI.tbl([T('চালু', 'On'), T('মেয়াদ', 'Tenure'), T('আসল দাম ৳', 'Actual ৳'), T('ছাড়ের দাম ৳', 'Discounted ৳'), T('প্রথম পেমেন্ট ৳ (ঐচ্ছিক)', 'First payment ৳ (optional)')], TEN.map(([m, lb]) => { const p = pl(f, m), k = `p_${f}_${m}`; return [`<input type="checkbox" name="${k}_on" ${p ? 'checked' : ''}>`, lb(), `<input type="number" min="0" name="${k}_a" value="${p ? p.actual : ''}">`, `<input type="number" min="0" name="${k}_d" value="${p ? p.disc : ''}">`, m ? `<input type="number" min="0" name="${k}_f" value="${p && p.first != null ? p.first : ''}">` : '—']; }))}</div>`;
     return `<form data-pf="newcourse" data-id="${c.id || ''}" data-admin="${admin ? 1 : ''}" class="fgrid">
       ${admin ? UI.fi({ name: 'tid', label: T('টিচার', 'Teacher'), half: 1, req: 1, opts: TEACHERS.map(t => [t.id, t.n.bn]), val: c.tid }) : ''}
+      <fieldset class="fld cks"><legend>${T('ক্লাসের ধরন — আগে বেছে নিন', 'Class type — choose first')} <b class="rq">*</b></legend><div class="ck-g">${CTYPES.filter(x => x.on || x.id === cur).map(x => `<label class="ck"><input type="radio" name="formats" value="${x.id}" ${x.id === cur ? 'checked' : ''} data-pc="ctsel"><span>${esc(L(x))}${x.seats > 1 ? ' (' + T('সর্বোচ্চ ', 'max ') + n(x.seats) + ')' : ''}</span></label>`).join('')}</div><small class="soft">${T('একটি কোর্স একটিমাত্র ধরনের হয়। নিচে শুধু বেছে নেওয়া ধরনের মূল্য বসাবেন; অন্য ধরনের জন্য আলাদা কোর্স বানান।', 'A course has exactly one class type. You price only the chosen type below; create a separate course for another type.')}</small></fieldset>
       ${UI.fi({ name: 'title', label: T('কোর্সের নাম', 'Course title'), req: 1, val: c.title, half: !admin })}
       ${UI.fi({ name: 'program', label: T('প্রোগ্রাম', 'Program'), half: 1, opts: PROGRAMS.filter(p => !p.hidden || p.id === c.program).map(p => [p.id, L(p)]), val: c.program })}
       ${UI.fi({ name: 'subject', label: T('বিষয়', 'Subject'), half: 1, opts: SUBJECTS.map(s => [s.id, L(s)]), val: c.subject })}
@@ -138,17 +140,18 @@
       ${UI.fi({ name: 'cpw', label: T('সপ্তাহে ক্লাস', 'Classes / week'), type: 'number', min: 1, half: 1, req: 1, val: c.cpw })}
       ${UI.fi({ name: 'time', label: T('ক্লাসের সময়', 'Class time'), req: 1, half: 1, val: c.time, ph: 'রাত ৯:০০' })}
       ${UI.checks('days', Object.keys(DAYS).map(d => [d, L(DAYS[d])]), c.days, T('ক্লাসের দিন', 'Class days'))}
-      ${UI.checks('formats', CTYPES.filter(x => x.on || c.formats.includes(x.id)).map(x => [x.id, L(x) + (x.seats > 1 ? ' (' + T('সর্বোচ্চ ', 'max ') + n(x.seats) + ')' : '')]), c.formats, T('ক্লাসের ধরন', 'Class types'))}
+
       ${UI.fi({ name: 'desc', label: T('কোর্সের বিবরণ', 'Description'), rows: 3, val: c.desc })}
       ${PX.thumbField(c.thumb, T('কোর্সের থাম্বনেল', 'Course thumbnail'))}
       ${PX.ytField(c.video, T('পরিচিতি ভিডিও (ইউটিউব লিংক)', 'Intro video (YouTube link)'))}
-      <div class="fld full">${CTYPES.filter(x => x.on || c.formats.includes(x.id)).map(x => fmt(x.id)).join('')}</div>
+      <div class="fld full" id="pf-blocks">${CTYPES.filter(x => x.on || x.id === cur).map(x => fmt(x.id)).join('')}</div>
       ${admin ? UI.fi({ name: 'status', label: T('অবস্থা', 'Status'), half: 1, opts: [['live', T('সরাসরি লাইভ', 'Go live')], ['draft', T('খসড়া', 'Draft')]] }) : UI.fi({ name: 'status', label: T('এখন কী করবেন?', 'Action'), half: 1, opts: [['review', T('অ্যাডমিন রিভিউয়ে জমা দিন', 'Submit for admin review')], ['draft', T('খসড়া হিসেবে রাখুন', 'Save as draft')]] })}
       <div class="fld"><button class="btn btn-p">${T('সংরক্ষণ', 'Save')}</button></div></form>`;
   };
   S.new = () => UI.card(T('নতুন কোর্স তৈরি', 'Create a course'), `<p class="soft">${T('জমা দেওয়ার পর অ্যাডমিন অনুমোদন দিলে কোর্স সাইটে লাইভ হবে।', 'Once admin approves, the course goes live on the site.')}</p>` + PX.courseForm(null, false));
   S.edit = id => { const c = DB.newCourses.find(x => x.id === id); return c ? UI.card(T('কোর্স সম্পাদনা', 'Edit course'), PX.courseForm(c, false)) : UI.card('', UI.empty('—')); };
 
+  PX.CHG.ctsel = el => { const f = el.form, v = el.value; f.querySelectorAll('#pf-blocks .pf').forEach(b => { b.hidden = b.dataset.f !== v; }); };
   PX.buildPlans = d => {
     const out = {};
     CTYPES.map(x => x.id).forEach(f => {
@@ -170,9 +173,10 @@
     nc.liveId = made[0].id; nc.status = 'live'; return made[0];
   };
   PX.FORMS.newcourse = (f, d) => {
+    d.formats = [].concat(d.formats || []).slice(0, 1);
     const plans = PX.buildPlans(d);
-    if (!(d.days || []).length || !(d.formats || []).length) { PX.toast(T('ক্লাসের দিন ও ধরন বেছে নিন', 'Pick class days and types')); return; }
-    if (!(d.formats || []).every(x => plans[x])) { PX.toast(T('প্রতিটি ধরনের জন্য অন্তত একটি মেয়াদের দাম দিন', 'Add at least one priced tenure per class type')); return; }
+    if (!(d.days || []).length || !(d.formats || []).length) { PX.toast(T('ক্লাসের দিন ও ধরন বেছে নিন', 'Pick class days and a class type')); return; }
+    if (!(d.formats || []).every(x => plans[x])) { PX.toast(T('বেছে নেওয়া ধরনের জন্য অন্তত একটি মেয়াদের দাম দিন', 'Add at least one priced tenure for the chosen class type')); return; }
     const ye = PX.ytCheck(d.video); if (ye) { const e = f.querySelector('[data-yte]'); if (e) e.textContent = ye; PX.toast(ye); return; }
     const admin = !!f.dataset.admin, tid = admin ? d.tid : TID;
     const rec = { id: f.dataset.id || 'n' + (DB.newCourses.length + 1), tid, title: d.title, program: d.program, subject: d.subject, kind: d.kind, weeks: +d.weeks, cpw: +d.cpw, days: d.days, time: d.time, formats: d.formats, desc: d.desc, video: (d.video || '').trim(), thumb: d.thumb || '', plans, date: TODAY, status: d.status, reason: '' };
