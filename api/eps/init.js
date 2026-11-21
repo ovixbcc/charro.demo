@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   if (!(amount > 0) || amount > 500000) { res.status(400).json({ ok: false, error: 'Invalid amount' }); return; }
   if (!/^01\d{9}$/.test(phone)) { res.status(400).json({ ok: false, error: 'Enter a valid mobile number (01XXXXXXXXX)' }); return; }
   const name = String(b.name || '').trim().slice(0, 80); if (!name) { res.status(400).json({ ok: false, error: 'Name is required' }); return; }
-  const txn = String(Date.now()) + String(Math.floor(100 + Math.random() * 900)), o = E.origin(req);
+  const txn = 'TXN' + Date.now() + Math.floor(100 + Math.random() * 900), o = E.origin(req);
   try {
     const token = await E.getToken(c);
     const d = await E.initialize(c, token, txn, {
@@ -19,7 +19,11 @@ module.exports = async (req, res) => {
       productName: String(b.product || 'Chaatro course').slice(0, 100), productProfile: 'general', productCategory: 'Education',
     });
     const url = d.RedirectURL || d.redirectURL || d.redirectUrl;
-    if (!url) { res.status(502).json({ ok: false, error: 'EPS could not start the payment' + (d.ErrorMessage || d.errorMessage ? ': ' + (d.ErrorMessage || d.errorMessage) : '') }); return; }
+    if (!url) {
+      const det = [d.ErrorCode || d.errorCode, d.ErrorMessage || d.errorMessage || d.message || d.title, d.raw].filter(Boolean).join(' · ') || JSON.stringify(d).slice(0, 300);
+      console.error('EPS init failed', JSON.stringify(d).slice(0, 500));
+      res.status(502).json({ ok: false, error: 'EPS could not start the payment: ' + det, detail: d }); return;
+    }
     res.status(200).json({ ok: true, txn, redirectUrl: url });
   } catch (e) { res.status(502).json({ ok: false, error: String(e.message || e) }); }
 };
