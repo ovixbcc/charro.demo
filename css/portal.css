@@ -272,3 +272,4 @@ fieldset { min-width: 0; }
 .cf-box{background:#fff;border-radius:16px;padding:1.4rem;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);outline:0}.cf-box h3{margin:0 0 .4rem}.cf-l{font-weight:700;color:var(--pd)}
 .cf-box textarea{width:100%;margin:.4rem 0;padding:.6rem;border:1.5px solid var(--line);border-radius:10px;font:inherit}.cf-b{display:flex;gap:.6rem;justify-content:flex-end;margin-top:.8rem}
 .btn.danger.btn-p{background:#d6336c;border-color:#d6336c}
+.apv-h{margin:1rem 0 .4rem}.apv-top{display:flex;gap:.9rem;align-items:center}.apv-f textarea{width:100%}

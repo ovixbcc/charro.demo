@@ -9,6 +9,8 @@
     del: { t: ['মুছে ফেলবেন?', 'Delete this?'], m: ['এটি মুছে গেলে আর ফেরানো যাবে না।', 'Once deleted, this cannot be undone.'], reason: '', ok: ['হ্যাঁ, মুছুন', 'Yes, delete'], danger: 1 },
     undo: { t: ['পরিবর্তন করবেন?', 'Change this?'], m: ['আপনি কি নিশ্চিত?', 'Are you sure you want to do this?'], reason: '', ok: ['হ্যাঁ, নিশ্চিত', 'Yes, confirm'] },
     accept: { t: ['নিশ্চিত করবেন?', 'Confirm this?'], m: ['আপনি কি এটি গ্রহণ/নিশ্চিত করতে চান?', 'Do you want to accept / confirm this?'], reason: '', ok: ['হ্যাঁ, নিশ্চিত', 'Yes, confirm'] },
+    approve0: { t: ['টিচারকে অনুমোদন করবেন?', 'Approve this teacher?'], m: ['আপনার মন্তব্যসহ অনুমোদন সম্পন্ন হবে।', 'The approval will be saved with your comment.'], reason: '', ok: ['হ্যাঁ, অনুমোদন', 'Yes, approve'] },
+    reject0: { t: ['আবেদন বাতিল করবেন?', 'Reject this application?'], m: ['আপনার মন্তব্যসহ আবেদন বাতিল হবে।', 'The application will be rejected with your comment.'], reason: '', ok: ['হ্যাঁ, বাতিল', 'Yes, reject'], danger: 1 },
     wd: { t: ['রিকোয়েস্ট প্রত্যাহার করবেন?', 'Withdraw this request?'], m: ['প্রত্যাহার করলে রিকোয়েস্টটি আর বিবেচনায় থাকবে না।', 'Once withdrawn, the request will no longer be considered.'], reason: '', ok: ['হ্যাঁ, প্রত্যাহার', 'Yes, withdraw'], danger: 1 },
   };
   const ACTS = {
@@ -62,7 +64,13 @@
       ask(kind, (f.closest('.m-box') || {}).querySelector ? ((f.closest('.m-box').querySelector('h3') || {}).textContent || '').trim() : '', reason => { PX._cfOk = true; try { orig.call(this, f, d); } finally { PX._cfOk = false; } log(name + ':' + (d.dec || ''), (f.closest('.m-box') && (f.closest('.m-box').querySelector('h3') || {}).textContent || '').trim(), reason); });
     };
   };
-  wrapF('apdec', d => d.dec === 'approved' ? 'approve' : 'reject');
+  const apo = PX.FORMS.apdec;
+  PX.FORMS.apdec = function (f, d) {
+    if (PX._cfOk) return apo.call(this, f, d);
+    const er = f.querySelector('#ap-err'); if (!(d.note || '').trim() || d.note.trim().length < 3) { if (er) er.textContent = T('অনুমোদন বা বাতিলের মন্তব্য লিখুন', 'Write a comment for the approval or rejection'); return; }
+    if (er) er.textContent = '';
+    ask(d.dec === 'approved' ? 'approve0' : 'reject0', (f.closest('.m-box').querySelector('h3') || {}).textContent, () => { PX._cfOk = true; try { apo.call(this, f, d); } finally { PX._cfOk = false; } log('apdec:' + d.dec, (f.closest('.m-box').querySelector('h3') || {}).textContent, d.note.trim()); });
+  };
   wrapF('cdec', d => d.dec === 'approve' ? 'approve' : 'reject');
   wrapF('payconfirm', d => (d.ref || '').trim().length >= 4 ? 'approve' : '');
   wrapF('manpayout', () => 'accept');

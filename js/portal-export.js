@@ -98,6 +98,7 @@
     if (kind === 't' && !r.docs) r.docs = [{ k: 'nid', label: 'NID copy', name: 'nid-' + key + '.pdf', st: 'ok' }, { k: 'uni', label: 'University ID card', name: 'university-id-' + key + '.jpg', st: 'ok' }];
     return r;
   };
+  PX.demoRec = demo;
   const kv = (rows) => `<div class="kv2">${rows.filter(r => r).map(r => `<div><small>${esc(r[0])}</small><b>${esc(r[1] || '—')}</b></div>`).join('')}</div>`;
   const photo = (r, nm) => r.photo ? `<img src="${r.photo}" alt="">` : `<span>${esc((nm || '?').trim().charAt(0))}</span>`;
   const stuData = u => { const r = demo(u.id, 's', u); return { r, pairs: [['Student ID', '#' + u.sid], ['Name', u.name], ['Phone', u.phone], ['Email', u.email], ['Date of birth', r.dob], ['District', u.district], ['Address', r.addr], ['Class / level', u.level], ['Joined', u.joined], ['Father', r.father], ['Mother', r.mother], ['Guardian / emergency', (r.emName || u.guardian.name) + ' · ' + (r.emPhone || u.guardian.phone)], ['Enrolled courses', u.courses.map(c => tt(COURSE(c).title)).join('; ') || '—'], ['Status', u.blocked ? 'Blocked' : 'Active']] }; };
