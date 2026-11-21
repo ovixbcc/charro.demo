@@ -195,8 +195,8 @@
 
   function verBadges(tc, compact) {
     const b = tc.badges;
-    const it = (ok, k) => `<span class="vb ${ok ? 'ok' : 'wait'}">${ic(ok ? 'shield' : 'clock')}${t(k)}${ok ? '' : ' · ' + t('pending')}</span>`;
-    return it(b.id, 'v_id') + it(b.pay, 'v_pay') + it(b.doc, 'v_doc');
+    const it = (ok, k, icn) => `<span class="vg ${ok ? 'ok' : 'wait'}" title="${t(k)}${ok ? '' : ' · ' + t('pending')}"><span class="vg-c">${ic(ok ? icn : 'clock')}${ok ? `<i>${ic('check')}</i>` : ''}</span><small>${t(k)}</small></span>`;
+    return it(b.id, 'v_id', 'user') + it(b.pay, 'v_pay', 'award') + it(b.doc, 'v_doc', 'file');
   }
 
   const sec = (cls, head, body) => `<section class="sec ${cls || ''}"><div class="wrap">${head || ''}${body}</div></section>`;
@@ -557,7 +557,7 @@
         <section class="blk"><h2>${t('your_teacher')}</h2>
           <a class="thl" href="#teacher-${tc.id}">${avatar(tc, 72)}<span><b>${esc(L(tc.n))}</b><small>${esc(L(tc.inst))} · ${esc(L(tc.dept))}</small>
           <span class="meta"><span>${rate(tc.rating)}</span><span>${ic('users')}${num(tc.stu)} ${t('students')}</span><span>${ic('clock')}${num(tc.exp)} ${t('yrs_exp')}</span></span></span></a>
-          <p>${esc(L(tc.bio))}</p><div class="vbadges">${verBadges(tc)}</div>
+          <p>${esc(L(tc.bio))}</p><div class="vbadges">${verBadges(tc)}</div>${window.PXB ? PXB.strip(tc) : ''}
           <a class="btn btn-o" href="#teacher-${tc.id}">${t('view_profile')}${ic('arrow')}</a></section>
 
         <section class="blk"><h2>${t('reviews')}</h2>
@@ -637,7 +637,7 @@
         <p class="tp-inst">${esc(L(tc.inst))} · ${esc(L(tc.dept))} · ${esc(L(tc.yr))}</p>
         ${tc.feat ? `<span class="featinst">${ic('check')}${t('featured_inst')}: <b>${esc(L(tc.feat))}</b></span>` : ''}
         <ul class="meta meta-w"><li>${rate(tc.rating)}</li><li>${ic('users')}${num(tc.stu)} ${t('students')}</li><li>${ic('clock')}${num(tc.exp)} ${t('yrs_exp')}</li><li>${ic('book')}${num(cs.length)} ${t('courses_n')}</li></ul>
-        <div class="vbadges vb-w">${verBadges(tc)}</div></div>
+        <div class="vbadges vb-w">${verBadges(tc)}</div>${window.PXB ? PXB.strip(tc) : ''}</div>
     </div></div>
     <div class="wrap tp">
       <div class="tp-main">
