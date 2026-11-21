@@ -675,6 +675,13 @@
       <input id="${o.name}" name="${o.name}" type="${o.type || 'text'}" ${o.req ? 'required aria-required="true"' : ''} placeholder="${esc(o.ph || '')}" autocomplete="${o.auto || 'off'}" aria-describedby="e-${o.name}">
       <small class="err" id="e-${o.name}" role="alert"></small>${o.hint ? `<small class="hint">${o.hint}</small>` : ''}</div>`;
   }
+  /* বর্তমান প্রতিষ্ঠান: UGC তালিকার সব বিশ্ববিদ্যালয়ের ড্রপডাউন */
+  function instFld() {
+    const og = (lb, l) => `<optgroup label="${lb}">${l.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('')}</optgroup>`;
+    return `<div class="fld half"><label for="institution">${t('f_inst')}<b class="rq" aria-hidden="true"> *</b></label>
+      <select id="institution" name="institution" required aria-required="true" aria-describedby="e-institution"><option value="">${t('choose')}</option>${og(lang === 'bn' ? 'সরকারি বিশ্ববিদ্যালয়' : 'Public universities', UNIVERSITIES.public)}${og(lang === 'bn' ? 'বেসরকারি বিশ্ববিদ্যালয়' : 'Private universities', UNIVERSITIES.private)}${og(lang === 'bn' ? 'আন্তর্জাতিক' : 'International', UNIVERSITIES.intl)}<option value="other">${t('other')}</option></select>
+      <small class="err" id="e-institution" role="alert"></small></div>`;
+  }
   function areaFld(o) {
     return `<div class="fld"><label for="${o.name}">${o.label}${o.req ? '<b class="rq" aria-hidden="true"> *</b>' : ''}</label>
       <textarea id="${o.name}" name="${o.name}" rows="${o.rows || 4}" ${o.req ? 'required' : ''} placeholder="${esc(o.ph || '')}" aria-describedby="e-${o.name}"></textarea>
@@ -736,7 +743,7 @@
 
     ${sec('sec-soft', '', `<div class="bt-wrap" id="apply">
       <div class="bt-side"><h2>${t('bt_form_t')}</h2><p>${t('bt_form_d')}</p>
-        <h4>${t('bt_need')}</h4><ul class="outs"><li>${ic('file')}${t('bt_n1')}</li><li>${ic('file')}${t('bt_n2')}</li><li>${ic('file')}${t('bt_n3')}</li><li>${ic('file')}${t('bt_n4')}</li><li>${ic('phone')}${t('bt_n5')}</li></ul>
+        <h4>${t('bt_need')}</h4><ul class="outs"><li>${ic('file')}${t('bt_n1')}</li><li>${ic('file')}${t('bt_n2')}</li><li>${ic('file')}${t('bt_n3')}</li><li>${ic('file')}${t('bt_n4')}</li></ul>
         <p class="mute sm">${t('bt_note')}</p></div>
       <div class="bt-form" id="bt-form-wrap"><form data-form="teacher" novalidate>
         <h3 class="fs-t">${t('fs_personal')}</h3>
@@ -744,14 +751,14 @@
         <div class="row">${fld({ name: 'email', label: t('f_email'), req: true, half: true, type: 'email', auto: 'email' })}${selFld({ name: 'district', label: t('f_district'), req: true, half: true, opts: [['', t('choose')]].concat(DIST.map((d, i) => [d, lang === 'bn' ? d : DIST_EN[i]])) })}</div>
 
         <h3 class="fs-t">${t('fs_edu')}</h3>
-        <div class="row">${selFld({ name: 'institution', label: t('f_inst'), req: true, half: true, opts: [['', t('choose')]].concat(INSTITUTIONS.map(i => [i.id, L(i)])).concat([['other', t('other')]]) })}${fld({ name: 'dept', label: t('f_dept'), req: true, half: true })}</div>
+        <div class="row">${instFld()}${fld({ name: 'dept', label: t('f_dept'), req: true, half: true })}</div>
         <div class="row">${selFld({ name: 'status', label: t('f_status'), req: true, half: true, opts: [['', t('choose')], ['student', t('st_student')], ['faculty', t('st_faculty')], ['grad', t('st_grad')]] })}${fld({ name: 'year', label: t('f_year'), half: true, ph: t('f_year_ph') })}</div>
 
         <h3 class="fs-t">${t('fs_teach')}</h3>
         ${checks('subjects', SUBJ_OPTS(), t('f_subjects'), true)}
         ${checks('programs', PROG_OPTS(), t('f_programs'), false)}
         ${checks('formats', CTYPES.filter(x => x.on).map(x => [x.id, L(x)]), t('f_formats'), false)}
-        <div class="row">${selFld({ name: 'exp', label: t('f_exp'), half: true, opts: [['', t('choose')], ['0', t('exp0')], ['1', t('exp1')], ['3', t('exp3')]] })}${fld({ name: 'video', label: t('f_video'), half: true, type: 'url', ph: 'https://youtube.com/…', hint: t('f_video_h') })}</div>
+        <div class="row">${fld({ name: 'exp', label: t('f_exp') + (lang === 'bn' ? ' (কত বছর)' : ' (years)'), half: true, type: 'number', ph: lang === 'bn' ? 'যেমন ২ (নতুন হলে ০)' : 'e.g. 2 (0 if new)', hint: lang === 'bn' ? 'সংখ্যায় লিখুন' : 'Type the number of years' })}${fld({ name: 'video', label: t('f_video'), half: true, type: 'url', ph: 'https://youtube.com/…', hint: t('f_video_h') })}</div>
         ${areaFld({ name: 'bio', label: t('f_bio'), req: true, ph: t('f_bio_ph'), rows: 4 })}
 
         <h3 class="fs-t">${t('fs_docs')}</h3>
@@ -759,7 +766,6 @@
         ${dz('idDoc', t('u_id'), t('u_id_h'), true)}
         ${dz('certs', t('u_cert'), t('u_cert_h'), false)}
         ${dz('photo', t('u_photo'), t('u_photo_h'), true)}
-        ${fld({ name: 'payAcc', label: t('f_pay'), ph: '01XXXXXXXXX', hint: t('f_pay_h'), type: 'tel' })}
 
         <h3 class="fs-t">${t('fs_ref')}</h3>
         ${fld({ name: 'referral', label: t('f_ref'), ph: 'CHAATRO-XXXX', hint: t('f_ref_h') })}
@@ -784,7 +790,7 @@
     if (!UP.cv.length) errs.cv = t('e_file');
     if (!UP.idDoc.length) errs.idDoc = t('e_file');
     if (!UP.photo.length) errs.photo = t('e_file');
-    if (v('payAcc') && !/^(?:\+?88)?01[3-9]\d{8}$/.test(v('payAcc').replace(/[\s-]/g, ''))) errs.payAcc = t('e_phone');
+    if (v('exp') && !(/^\d{1,2}(\.\d)?$/.test(v('exp')) && +v('exp') <= 60)) errs.exp = lang === 'bn' ? 'অভিজ্ঞতা বছরে সংখ্যায় লিখুন (০–৬০)' : 'Enter experience as a number of years (0–60)';
     if (!form.elements.agree.checked) errs.agree = t('e_agree');
     showErrors(form, errs);
     if (Object.keys(errs).length) return;
