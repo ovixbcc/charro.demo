@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const PX = window.PX, { T } = PX;
-  const MOVED = [['settings', 'সাধারণ ও পেমেন্ট', 'General & payments'], ['website', 'ওয়েবসাইট সেটিংস', 'Website settings'], ['badges', 'ব্যাজ', 'Badges'], ['declog', 'সিদ্ধান্তের লগ', 'Decision log'], ['programs', 'প্রোগ্রাম ও কোর্স টাইপ', 'Programs & course types'], ['pricing', 'কুপন, রেফারেল ও প্রাইসিং', 'Coupons, referral & pricing'], ['referral', 'রেফারেল (স্টুডেন্ট ও টিচার)', 'Referral (students & teachers)'], ['staff', 'কর্মী ও অ্যাক্সেস', 'Staff & access'], ['policies', 'পলিসি', 'Policies'], ['export', 'ডাটা এক্সপোর্ট', 'Data export']];
+  const MOVED = [['settings', 'সাধারণ ও পেমেন্ট', 'General & payments'], ['website', 'ওয়েবসাইট সেটিংস', 'Website settings'], ['gateway', 'পেমেন্ট গেটওয়ে (EPS)', 'Payment gateway (EPS)'], ['badges', 'ব্যাজ', 'Badges'], ['declog', 'সিদ্ধান্তের লগ', 'Decision log'], ['programs', 'প্রোগ্রাম ও কোর্স টাইপ', 'Programs & course types'], ['pricing', 'কুপন, রেফারেল ও প্রাইসিং', 'Coupons, referral & pricing'], ['referral', 'রেফারেল (স্টুডেন্ট ও টিচার)', 'Referral (students & teachers)'], ['staff', 'কর্মী ও অ্যাক্সেস', 'Staff & access'], ['policies', 'পলিসি', 'Policies'], ['export', 'ডাটা এক্সপোর্ট', 'Data export']];
   const keys = MOVED.map(m => m[0]);
   const prevNav = PX.nav.a;
   const kids = () => { const have = new Set(prevNav().map(x => x.k)); return MOVED.filter(m => have.has(m[0])); };

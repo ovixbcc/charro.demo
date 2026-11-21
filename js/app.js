@@ -832,12 +832,54 @@
 
   /* ---------- checkout ---------- */
   function payNote() {
+    if (CO.pay === 'online' && epsOn()) return `<p class="paynote ok">${ic('check')}${lang === 'bn' ? 'পেমেন্ট সম্পন্ন করতে আপনাকে EPS-এর নিরাপদ পেজে নিয়ে যাওয়া হবে।' : 'You will be taken to the secure EPS page to complete the payment.'}</p>`;
     return CO.pay === 'cash' ? `<p class="paynote ok">${ic('check')}${t('ck_cash_note')}</p>` : `<p class="paynote bad">${ic('close')}${t('ck_online_err')}</p>`;
+  }
+
+  /* ---------- EPS অনলাইন পেমেন্ট ---------- */
+  const epsOn = () => !!(window.PGW && PGW.epsOn());
+  const PEND = 'chaatro_eps_pending';
+  async function startEps(f) {
+    const c = byId(COURSES, CO.id), k = calc(c, CO), btn = f.querySelector('button[type=submit]'), er = $('#e-pay'), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
+    const nm = fv(f, 'en_name'), ph = fv(f, 'en_phone'), em = fv(f, 'en_email');
+    er.textContent = ''; btn.disabled = true; const lbl = btn.innerHTML; btn.textContent = lang === 'bn' ? 'EPS-এ নেওয়া হচ্ছে…' : 'Redirecting to EPS…';
+    try {
+      const r = await fetch('/api/eps/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: k.now, orderId: oid, name: nm, phone: ph, email: em, product: L(c.title) }) });
+      const d = await r.json().catch(() => ({}));
+      if (!d.ok) throw new Error(d.code === 'NOT_CONFIGURED' ? (lang === 'bn' ? 'অনলাইন পেমেন্ট এখনও সম্পূর্ণ চালু হয়নি। অনুগ্রহ করে ক্যাশ পেমেন্ট বেছে নিন।' : 'Online payment is not fully set up yet. Please choose cash payment.') : (d.error || 'Payment could not start'));
+      try { localStorage.setItem(PEND, JSON.stringify({ txn: d.txn, cid: c.id, fmt: CO.fmt, pref: CO.pref || '', amount: k.now, oid, name: nm, phone: ph, email: em, at: Date.now() })); } catch (e) {}
+      location.href = d.redirectUrl;
+    } catch (e) { er.textContent = e.message; btn.disabled = false; btn.innerHTML = lbl; }
+  }
+  function viewEpsRes(txn) {
+    setTimeout(() => finishEps(txn), 0);
+    return pagehead(lang === 'bn' ? 'পেমেন্টের ফলাফল' : 'Payment result', '', '') + sec('', '', `<div class="bt-form done-w" id="eps-res"><div class="done"><h3>${lang === 'bn' ? 'পেমেন্ট যাচাই করা হচ্ছে…' : 'Verifying your payment…'}</h3></div></div>`);
+  }
+  async function finishEps(txn) {
+    const box = $('#eps-res'); if (!box) return;
+    let pend = null; try { pend = JSON.parse(localStorage.getItem(PEND) || 'null'); } catch (e) {}
+    if (!txn && pend) txn = pend.txn;
+    const show = (ic0, ttl, msg, extra) => { box.innerHTML = `<div class="done"><span class="done-i">${ic(ic0)}</span><h3>${ttl}</h3><p>${msg}</p>${extra || ''}<div class="btns"><a class="btn btn-p" href="#courses">${t('nav_courses')}</a> <a class="btn btn-o" href="#home">${t('back_home')}</a></div></div>`; };
+    if (!txn) { show('close', lang === 'bn' ? 'কোনো পেমেন্ট পাওয়া যায়নি' : 'No payment found', ''); return; }
+    let d; try { const r = await fetch('/api/eps/verify?txn=' + encodeURIComponent(txn)); d = await r.json(); } catch (e) { d = { ok: false }; }
+    if (!d.ok) { show('close', lang === 'bn' ? 'যাচাই করা যায়নি' : 'Could not verify', lang === 'bn' ? 'কিছুক্ষণ পর আবার চেষ্টা করুন বা সাপোর্টে যোগাযোগ করুন। লেনদেন আইডি: ' + txn : 'Try again shortly or contact support. Transaction ID: ' + txn); return; }
+    if (d.status === 'SUCCESS') {
+      const c = pend && pend.txn === txn ? byId(COURSES, pend.cid) : null;
+      if (pend && pend.txn === txn && !pend.done && c) {
+        if (d.amount != null && Math.abs(d.amount - pend.amount) > 0.5) { show('close', lang === 'bn' ? 'পরিমাণ মেলেনি' : 'Amount mismatch', (lang === 'bn' ? 'সাপোর্টে যোগাযোগ করুন। লেনদেন আইডি: ' : 'Please contact support. Transaction ID: ') + txn); return; }
+        if (!c.formats.includes('one')) c.seats = Math.max(0, c.seats - 1);
+        pend.done = true; try { localStorage.setItem(PEND, JSON.stringify(pend)); } catch (e) {}
+        LASTRC = { heading: t('rc_title'), no: pend.oid, date: new Date().toISOString().slice(0, 10), lines: [[t('f_name'), pend.name], [t('f_phone'), pend.phone], [t('f_email'), pend.email]].filter(x => x[1]).concat([[t('nav_courses'), L(c.title)], [t('rc_teacher'), L(byId(TEACHERS, c.teacher).n)], [t('rc_method'), 'EPS'], ['EPS Transaction ID', txn]]), amount: money(pend.amount), status: lang === 'bn' ? 'পরিশোধিত' : 'Paid', note: t('rc_note') };
+      }
+      show('check', lang === 'bn' ? 'পেমেন্ট সফল হয়েছে' : 'Payment successful', (lang === 'bn' ? 'ধন্যবাদ! আপনার এনরোলমেন্ট নিশ্চিত হয়েছে। লেনদেন আইডি: ' : 'Thank you! Your enrolment is confirmed. Transaction ID: ') + txn, LASTRC && pend && pend.txn === txn ? `<div class="btns"><button type="button" class="btn btn-p" data-act="receipt">${ic('download')} ${t('rc_btn')}</button></div>` : '');
+    } else if (d.status === 'CANCEL') show('close', lang === 'bn' ? 'পেমেন্ট বাতিল করা হয়েছে' : 'Payment cancelled', lang === 'bn' ? 'আপনার কোনো টাকা কাটা হয়নি।' : 'You have not been charged.');
+    else if (d.status === 'PENDING') show('clock', lang === 'bn' ? 'পেমেন্ট প্রক্রিয়াধীন' : 'Payment pending', (lang === 'bn' ? 'কিছুক্ষণ পর আবার দেখুন। লেনদেন আইডি: ' : 'Please check again shortly. Transaction ID: ') + txn);
+    else show('close', lang === 'bn' ? 'পেমেন্ট ব্যর্থ হয়েছে' : 'Payment failed', lang === 'bn' ? 'আবার চেষ্টা করুন বা ক্যাশ পেমেন্ট বেছে নিন।' : 'Please try again or choose cash payment.');
   }
   function viewCheckout(id) {
     const c = byId(COURSES, id); if (!c || !progOn(c.program)) return view404();
     if (!CO || CO.id !== c.id) CO = { id: c.id, fmt: c.formats[0], plan: 'x', code: '', input: '', err: false };
-    if (!CO.pay) CO.pay = 'cash';
+    if (!CO.pay) CO.pay = epsOn() ? 'online' : 'cash';
     const k = calc(c, CO), tc = byId(TEACHERS, c.teacher);
     const pay = (v, ti, de, on, soon) => `<label class="opt ${CO.pay === v ? 'on' : ''}"><input type="radio" name="pay" value="${v}" ${CO.pay === v ? 'checked' : ''}><span><b>${ti}</b><small>${de}</small></span>${soon ? `<em class="soon">${t('ck_soon')}</em>` : ''}</label>`;
     return pagehead(t('ck_t'), t('ck_d'), `<span>/</span><a href="#course-${c.id}">${esc(L(c.title))}</a><span>/</span><span>${t('ck_t')}</span>`) +
@@ -848,7 +890,7 @@
         <div class="row">${fld({ name: 'en_email', label: t('f_email'), type: 'email', auto: 'email' })}${fld({ name: 'en_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' })}</div>
         <h3 class="fs-t">${t('ck_pay')}</h3>
         <fieldset class="co-g pays"><legend class="sr">${t('ck_pay')}</legend>
-          ${pay('online', t('ck_online'), t('ck_online_d'), false, true)}
+          ${epsOn() ? pay('online', PGW.get().eps[lang] || 'EPS', lang === 'bn' ? 'নিরাপদ EPS পেজে গিয়ে পেমেন্ট করুন' : 'Pay on the secure EPS page', true, false) : pay('online', t('ck_online'), t('ck_online_d'), false, true)}
           ${pay('cash', t('ck_cash'), t('ck_cash_d'), true, false)}
         </fieldset>
         <div id="pay-note" aria-live="polite">${payNote()}</div>
@@ -943,6 +985,7 @@
     if (h === 'portal') return { name: 'portal', role: null };
     const pm = h.match(/^([sta])-([a-z0-9]+)(?:-(.+))?$/);
     if (pm) return { name: 'portal', role: pm[1], sec: pm[2], arg: pm[3] };
+    const em = h.match(/^eps-return(?:-(.+))?$/); if (em) return { name: 'epsres', id: em[1] || '' };
     const m = h.match(/^(course|teacher|policy|checkout|post|bundle|bpay)-(.+)$/);
     if (m) return { name: m[1], id: m[2] };
     return { name: h };
@@ -975,7 +1018,7 @@
     const r = route();
     const snap = keep && r.name !== 'portal' ? snapshot() : null;
     const V = {
-      home: viewHome, blog: viewBlog, post: () => viewPost(r.id), checkout: () => viewCheckout(r.id), bundles: viewBundles, bundle: () => viewBundle(r.id), bpay: () => viewBundlePay(r.id), courses: viewCourses, course: () => viewCourse(r.id), teachers: viewTeachers, teacher: () => viewTeacher(r.id),
+      home: viewHome, blog: viewBlog, post: () => viewPost(r.id), checkout: () => viewCheckout(r.id), epsres: () => viewEpsRes(r.id), bundles: viewBundles, bundle: () => viewBundle(r.id), bpay: () => viewBundlePay(r.id), courses: viewCourses, course: () => viewCourse(r.id), teachers: viewTeachers, teacher: () => viewTeacher(r.id),
       'become-teacher': viewBecome, 'how-it-works': viewHow, about: viewAbout, faq: viewFaq, contact: viewContact,
       login: () => viewAuth('login'), signup: () => viewAuth('signup'), policy: () => viewPolicy(r.id),
     };
@@ -1001,6 +1044,7 @@
     if (r.name === 'policy' && POLS[r.id]) ttl = t(POLS[r.id][0]);
     if (r.name === 'post') { const x = byId(BLOG, r.id); if (x) ttl = L(x.title); }
     if (r.name === 'checkout' || r.name === 'bpay') ttl = t('ck_t');
+    if (r.name === 'epsres') ttl = lang === 'bn' ? 'পেমেন্টের ফলাফল' : 'Payment result';
     if (r.name === 'bundles') ttl = t('bd_t');
     if (r.name === 'bundle') { const x = byId(BUNDLES, r.id); if (x) ttl = L(x.title); }
     document.title = (ttl ? ttl + ' | ' : '') + sname();
@@ -1121,6 +1165,7 @@
       }
     }
     if (kind === 'checkout') {
+      if (CO.pay === 'online' && epsOn()) { startEps(f); return; }
       if (CO.pay !== 'cash') { $('#e-pay').textContent = t('ck_online_err'); $('#pay-note').scrollIntoView({ block: 'center' }); return; }
       const c = byId(COURSES, CO.id), k = calc(c, CO), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
       mkRc(f, oid, [[t('nav_courses'), L(c.title)], [t('rc_teacher'), L(byId(TEACHERS, c.teacher).n)]], money(k.now));
