@@ -43,7 +43,7 @@
     return `<div class="p2pc"><header><b>#P${p.no} · ${esc(subjName(p.subject))}${p.program ? ' · ' + esc(progName(p.program)) : ''}</b>${stChip(p.status)}<small>${fd(p.date)}</small></header>
       <p class="tpc">${p.topics.map(x => `<span class="tag">${esc(x)}</span>`).join(' ')}</p><p>${esc(p.problem)}</p>
       <p class="soft">${T('ক্লাস', 'Classes')}: ${n(p.classes)} · ${T('বাজেট', 'Budget')}: ${mny(p.budget)}${p.pref ? ' · ' + esc(p.pref) : ''}${p.cid ? ' · ' + esc(L(COURSE(p.cid).title)) : ''}</p>
-      ${p.status === 'open' ? `<h4 class="sub">${T('টিচারদের আবেদন', 'Teacher applications')} (${n(p.bids.length)})</h4>${bids || `<p class="soft">${T('এখনো কেউ আবেদন করেননি।', 'No applications yet.')}</p>`}<button class="btn btn-o btn-sm" data-pa="p2pclose" data-id="${p.id}">${T('পোস্ট বন্ধ করুন', 'Close post')}</button>` : ''}
+      ${p.status === 'open' ? `<h4 class="sub">${T('টিচারদের আবেদন', 'Teacher applications')} (${n(p.bids.length)})</h4>${bids || `<p class="soft">${T('এখনো কেউ আবেদন করেননি।', 'No applications yet.')}</p>`}<button class="btn btn-o btn-sm" data-pa="p2pclose" data-id="${p.id}">${T('রিকোয়েস্ট প্রত্যাহার', 'Withdraw request')}</button>` : ''}
       ${p.status === 'accepted' ? `<div class="alert warn">${ic('clock')}<div><b>${T('টিচার: ', 'Teacher: ')}${esc(L(tc.n))} · ${mny(p.price)}</b><p>${T('পেমেন্ট করলেই আপনার ও টিচারের ব্যক্তিগত P2P ক্লাস শুরু হবে।', 'Once you pay, your private P2P classes with this teacher begin.')}</p></div></div><button class="btn btn-p" data-pa="p2ppay" data-id="${p.id}">${T('পেমেন্ট করুন', 'Pay now')} ${mny(p.price)}</button>` : ''}
       ${p.status === 'paid' || p.status === 'done' ? `<div class="alert ok">${ic('check')}<div><b>${T('টিচার: ', 'Teacher: ')}<a href="#teacher-${tc.id}">${esc(L(tc.n))}</a> · ${mny(p.price)} ${T('পরিশোধিত', 'paid')} (${fd(p.paidAt)})</b><p>${T('টিচার আপনার সঙ্গে যোগাযোগ করে ক্লাসের সময় ঠিক করবেন। ফোন: ', 'The teacher will contact you to fix class times. Phone: ')}${esc(tc.phone || '')}</p></div></div>${p.status === 'paid' ? `<button class="btn btn-o btn-sm" data-pa="p2pdone" data-id="${p.id}">${T('সমাধান সম্পন্ন', 'Mark as solved')}</button>` : ''}` : ''}
     </div>`;
@@ -65,7 +65,7 @@
     DB.p2p.unshift({ id: 'pp' + (DB.p2p.length + 1), no: 8000 + DB.p2p.length + 1, sid: 'u1', subject: d.subject, program: d.program || '', cid: d.cid || '', topics: d.topics.slice(), problem: d.problem.trim(), classes: cl, budget: bg, pref: (d.pref || '').trim(), date: TODAY, status: 'open', tid: '', price: 0, bids: [] });
     PX.toast(T('পোস্ট হয়েছে — সংশ্লিষ্ট টিচাররা দেখতে পাবেন', 'Posted — matching teachers can now see it')); PX.refresh();
   };
-  A.p2pclose = a => { const p = DB.p2p.find(x => x.id === a.dataset.id); if (p) p.status = 'closed'; PX.refresh(); };
+  A.p2pclose = a => { const p = DB.p2p.find(x => x.id === a.dataset.id); if (p) { p.status = 'withdrawn'; PX.toast(T('রিকোয়েস্ট প্রত্যাহার হয়েছে', 'Request withdrawn')); } PX.refresh(); };
   A.p2pacc = a => { const p = DB.p2p.find(x => x.id === a.dataset.id), b = p && p.bids.find(x => x.tid === a.dataset.tid); if (!b) return; p.bids.forEach(x => { x.st = x === b ? 'accepted' : 'declined'; }); p.tid = b.tid; p.price = b.price; p.status = 'accepted'; PX.toast(T('টিচার বাছাই হয়েছে। এখন পেমেন্ট করুন', 'Teacher chosen. Now pay')); PX.refresh(); };
   A.p2ppay = a => {
     const p = DB.p2p.find(x => x.id === a.dataset.id), t = TEACH(p.tid);

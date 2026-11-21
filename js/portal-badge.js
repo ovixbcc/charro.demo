@@ -54,16 +54,16 @@
   const holders = b => b.aud === 'student' ? (status(b).ok ? 1 : 0) + ' / 1' : TEACHERS.filter(t => status(b, t).ok).length + ' / ' + TEACHERS.length;
   PX.sec.a.badges = () => UI.card(T('ব্যাজ ম্যানেজার', 'Badge manager'),
     `<p class="soft">${T('টিচার ও স্টুডেন্টদের জন্য ব্যাজ বানান: কী অর্জন করলে ব্যাজ মিলবে (মাইলস্টোন) ঠিক করুন, ছবি কাস্টমাইজ করুন। শর্ত পূরণ হলেই ব্যাজ নিজে থেকে অ্যাসাইন হবে।', 'Create badges for teachers and students: set the milestone that earns it and customise its image. Badges are assigned automatically once the milestone is met.')}</p>` +
-    (canW() ? `<p><button class="btn btn-p btn-sm" data-pa="bdnew">${ic('plus')} ${T('নতুন ব্যাজ', 'New badge')}</button></p>` : '') +
+    (canW() ? `<p><button class="btn btn-p btn-sm" data-pa="bgxnew">${ic('plus')} ${T('নতুন ব্যাজ', 'New badge')}</button></p>` : '') +
     UI.tbl(['', T('নাম', 'Name'), T('কার জন্য', 'For'), T('মাইলস্টোন', 'Milestone'), T('অর্জনকারী', 'Earned by'), T('অবস্থা', 'Status'), ''],
       DB.badges.map(b => [art(b, 40), `<b>${esc(b.name)}</b><br><small class="mute">${esc(b.desc)}</small>`, b.aud === 'student' ? T('স্টুডেন্ট', 'Students') : T('টিচার', 'Teachers'), esc(rule(b)), holders(b),
         b.on ? UI.chip(T('চালু', 'Active'), 'ok') : UI.chip(T('বন্ধ', 'Off'), ''),
-        canW() ? `<button class="btn btn-o btn-sm" data-pa="bdedit" data-id="${b.id}">${T('এডিট', 'Edit')}</button> <button class="btn btn-o btn-sm" data-pa="bdtog" data-id="${b.id}">${b.on ? T('বন্ধ করুন', 'Turn off') : T('চালু করুন', 'Turn on')}</button> <button class="btn btn-o btn-sm" data-pa="bddel" data-id="${b.id}" aria-label="${T('মুছুন', 'Delete')}">${ic('close')}</button>` : '']))); 
+        canW() ? `<button class="btn btn-o btn-sm" data-pa="bgxedit" data-id="${b.id}">${T('এডিট', 'Edit')}</button> <button class="btn btn-o btn-sm" data-pa="bgxtog" data-id="${b.id}">${b.on ? T('বন্ধ করুন', 'Turn off') : T('চালু করুন', 'Turn on')}</button> <button class="btn btn-o btn-sm" data-pa="bgxdel" data-id="${b.id}" aria-label="${T('মুছুন', 'Delete')}">${ic('close')}</button>` : '']))); 
   const metOpts = (aud, cur) => MET[aud].map(m => `<option value="${m[0]}"${m[0] === cur ? ' selected' : ''}>${T(m[1], m[2])}</option>`).join('');
   const form = b => {
     b = b || { aud: 'student', name: '', desc: '', metric: 'courses', target: 1, color: '#8C52FF', icon: 'star', img: '', on: true };
-    PX.modal(b.id ? T('ব্যাজ এডিট', 'Edit badge') : T('নতুন ব্যাজ', 'New badge'), `<form data-pf="bdsave" class="fgrid"><input type="hidden" name="id" value="${b.id || ''}">
-      <div class="fld"><label>${T('কার জন্য', 'Audience')}</label><select name="aud" data-pc="bdaud"><option value="student"${b.aud === 'student' ? ' selected' : ''}>${T('স্টুডেন্ট', 'Students')}</option><option value="teacher"${b.aud === 'teacher' ? ' selected' : ''}>${T('টিচার', 'Teachers')}</option></select></div>
+    PX.modal(b.id ? T('ব্যাজ এডিট', 'Edit badge') : T('নতুন ব্যাজ', 'New badge'), `<form data-pf="bgxsave" class="fgrid"><input type="hidden" name="id" value="${b.id || ''}">
+      <div class="fld"><label>${T('কার জন্য', 'Audience')}</label><select name="aud" data-pc="bgxaud"><option value="student"${b.aud === 'student' ? ' selected' : ''}>${T('স্টুডেন্ট', 'Students')}</option><option value="teacher"${b.aud === 'teacher' ? ' selected' : ''}>${T('টিচার', 'Teachers')}</option></select></div>
       <div class="fld"><label>${T('ব্যাজের নাম', 'Badge name')}<b class="rq"> *</b></label><input name="name" value="${esc(b.name)}" maxlength="40" autocomplete="off"></div>
       <div class="fld full"><label>${T('বিবরণ', 'Description')}</label><input name="desc" value="${esc(b.desc)}" maxlength="90" autocomplete="off"></div>
       <div class="fld"><label>${T('মাইলস্টোন: কীসের ওপর', 'Milestone: based on')}</label><select name="metric">${metOpts(b.aud, b.metric)}</select></div>
@@ -74,12 +74,12 @@
         <div><label class="btn btn-o btn-sm upl">${ic('upload')} ${T('ছবি বাছুন', 'Choose image')}<input type="file" accept="image/png,image/jpeg,image/webp" data-pc="blogimg" hidden></label> <button type="button" class="btn btn-o btn-sm" data-pa="blogimgx">${T('সরান', 'Remove')}</button><small class="err" data-the role="alert"></small><input type="hidden" name="img" value="${b.img ? esc(b.img) : ''}"></div></div></div>
       <p class="err full" id="bd-err" role="alert"></p><div class="full"><button class="btn btn-p">${T('সংরক্ষণ', 'Save')}</button></div></form>`);
   };
-  PX.CHG.bdaud = el => { el.closest('form').querySelector('[name=metric]').innerHTML = metOpts(el.value, ''); };
-  PX.ACT.bdnew = () => { if (canW()) form(); };
-  PX.ACT.bdedit = a => { if (canW()) form(DB.badges.find(x => x.id === a.dataset.id)); };
-  PX.ACT.bdtog = a => { if (!canW()) return; const b = DB.badges.find(x => x.id === a.dataset.id); if (b) { b.on = !b.on; PX.refresh(); } };
-  PX.ACT.bddel = a => { if (!canW()) return; DB.badges = DB.badges.filter(x => x.id !== a.dataset.id); PX.toast(T('মুছে ফেলা হয়েছে', 'Deleted')); PX.refresh(); };
-  PX.FORMS.bdsave = (f, d) => {
+  PX.CHG.bgxaud = el => { el.closest('form').querySelector('[name=metric]').innerHTML = metOpts(el.value, ''); };
+  PX.ACT.bgxnew = () => { if (canW()) form(); };
+  PX.ACT.bgxedit = a => { if (canW()) form(DB.badges.find(x => x.id === a.dataset.id)); };
+  PX.ACT.bgxtog = a => { if (!canW()) return; const b = DB.badges.find(x => x.id === a.dataset.id); if (b) { b.on = !b.on; PX.refresh(); } };
+  PX.ACT.bgxdel = a => { if (!canW()) return; DB.badges = DB.badges.filter(x => x.id !== a.dataset.id); PX.toast(T('মুছে ফেলা হয়েছে', 'Deleted')); PX.refresh(); };
+  PX.FORMS.bgxsave = (f, d) => {
     if (!canW()) return; const er = f.querySelector('#bd-err');
     if (!(d.name || '').trim()) { er.textContent = T('ব্যাজের নাম দিন', 'Enter a badge name'); return; }
     if (!(+d.target > 0)) { er.textContent = T('মাইলস্টোনের সংখ্যা দিন', 'Enter the milestone number'); return; }

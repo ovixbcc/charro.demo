@@ -18,7 +18,7 @@
   ];
   const mine = r => DB.blogReq.filter(x => x.by === r);
   const canW = () => DB.levels[PX.S.level].perms.content >= 2;
-  const st = x => x.status === 'draft' ? UI.chip(T('ড্রাফট', 'Draft'), '') : x.status === 'published' ? UI.chip(T('প্রকাশিত', 'Published'), 'ok') : x.status === 'rejected' ? UI.chip(T('বাতিল', 'Rejected'), 'bad') : UI.chip(T('অপেক্ষমাণ', 'Pending review'), 'warn');
+  const st = x => x.status === 'withdrawn' ? UI.chip(T('প্রত্যাহৃত', 'Withdrawn'), '') : x.status === 'draft' ? UI.chip(T('ড্রাফট', 'Draft'), '') : x.status === 'published' ? UI.chip(T('প্রকাশিত', 'Published'), 'ok') : x.status === 'rejected' ? UI.chip(T('বাতিল', 'Rejected'), 'bad') : UI.chip(T('অপেক্ষমাণ', 'Pending review'), 'warn');
   const S = PX.S.blog = PX.S.blog || { mode: 'list', id: null, f: 'pending' };
   const role = () => PX.S.role;
 
@@ -102,6 +102,7 @@
     if (q.postId) { const j = BLOG.findIndex(b => b.id === q.postId); if (j >= 0) BLOG.splice(j, 1); }
     DB.blogReq.splice(i, 1); PX.toast(T('মুছে ফেলা হয়েছে', 'Deleted')); PX.refresh();
   };
+  PX.ACT.blgwd = a => { const q = DB.blogReq.find(x => x.id === a.dataset.id && x.by === role() && x.status === 'pending'); if (!q) return; q.status = 'withdrawn'; PX.toast(T('রিকোয়েস্ট প্রত্যাহার হয়েছে', 'Request withdrawn')); PX.refresh(); };
   PX.ACT.blgpub = a => {
     if (!canW()) return; const q = DB.blogReq.find(x => x.id === a.dataset.id); if (!q) return;
     q.status = 'published'; q.note = ''; q.postId = pubPost(q); PX.closeModal(); PX.toast(T('ব্লগ প্রকাশিত হয়েছে', 'Blog published')); PX.refresh();
@@ -144,7 +145,7 @@
         `<button class="btn btn-o btn-sm" data-pa="blgview" data-id="${q.id}">${T('দেখুন', 'View')}</button>` +
         (wr && (adm || q.status !== 'published') ? ` <button class="btn btn-o btn-sm" data-pa="blgedit" data-id="${q.id}">${T('এডিট', 'Edit')}</button>` : '') +
         (adm && wr && q.status !== 'published' ? ` <button class="btn btn-p btn-sm" data-pa="blgpub" data-id="${q.id}">${T('প্রকাশ', 'Publish')}</button>` : '') +
-        (adm && wr && q.status === 'pending' ? ` <button class="btn btn-o btn-sm" data-pa="blgrej" data-id="${q.id}">${T('বাতিল', 'Reject')}</button>` : '') +
+        (!adm && q.status === 'pending' ? ` <button class="btn btn-o btn-sm danger" data-pa="blgwd" data-id="${q.id}">${T('প্রত্যাহার', 'Withdraw')}</button>` : '') + (adm && wr && q.status === 'pending' ? ` <button class="btn btn-o btn-sm" data-pa="blgrej" data-id="${q.id}">${T('বাতিল', 'Reject')}</button>` : '') +
         (adm && wr && q.status === 'published' ? ` <button class="btn btn-o btn-sm" data-pa="blgunpub" data-id="${q.id}">${T('প্রকাশ তুলুন', 'Unpublish')}</button>` : '') +
         (wr && (adm || q.status !== 'published') ? ` <button class="btn btn-o btn-sm" data-pa="blgrm" data-id="${q.id}" aria-label="${T('মুছুন', 'Delete')}">${ic('close')}</button>` : '')]));
     const intro = adm ? '' : `<p class="soft">${T('আপনার লেখা অ্যাডমিন দেখে প্রকাশ করলে সাইটের ব্লগে আসবে।', 'Your post goes to the admin; once approved it appears on the site blog.')}</p>`;
