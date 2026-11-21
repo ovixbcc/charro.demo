@@ -547,7 +547,7 @@ button { cursor: pointer; }
 .ft-pol a:hover { opacity: 1; }
 .ft-bot { margin-top: 1.2rem; padding-top: .9rem; font-size: .78rem; opacity: .75; }
 
-@media (max-width: 1020px) { .ck-wrap { grid-template-columns: 1fr; } .ck-wrap .checkout { position: static; } }
+@media (max-width: 1020px) { .ck-wrap { grid-template-columns: 1fr; } .ck-wrap .checkout { position: static; order: -1; } }
 @media (max-width: 720px) {
   .grid-s { grid-template-columns: 1fr 1fr; gap: .7rem; }
   .ft-top { gap: .6rem; }
