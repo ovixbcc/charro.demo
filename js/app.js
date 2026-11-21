@@ -527,6 +527,13 @@
       <p class="co-note">${ic('video')}${t('co_note')}</p>`;
   }
 
+  /* টিচারের যোগ করা মডিউল ও লেসন প্ল্যান — কোর্স পেজে কেনার আগে দেখায় */
+  function curriculumHtml(cid) {
+    const cu = window.PX && PX.currOf && PX.currOf(cid); if (!cu) return '';
+    const bn = lang === 'bn', cnt = PX.currCount(cid), TY = { live: ['video', bn ? 'লাইভ ক্লাস' : 'Live class'], video: ['play', bn ? 'ভিডিও' : 'Video'], notes: ['file', bn ? 'নোট / পিডিএফ' : 'Notes / PDF'], quiz: ['award', bn ? 'কুইজ / মডেল টেস্ট' : 'Quiz / model test'], assign: ['book', bn ? 'অ্যাসাইনমেন্ট' : 'Assignment'] };
+    return `<p class="mute sm">${num(cnt[0])} ${bn ? 'মডিউল' : 'modules'} · ${num(cnt[1])} ${bn ? 'লেসন' : 'lessons'}</p><div class="acc">${cu.modules.map((m, i) => `<details ${i === 0 ? 'open' : ''}><summary><span class="an">${num(i + 1)}</span>${esc(m.title)}<small class="lsn-n">${num(m.lessons.length)} ${bn ? 'লেসন' : 'lessons'}</small></summary>${m.desc ? `<p>${esc(m.desc)}</p>` : ''}<ol class="lsn">${m.lessons.map(l => { const ty = TY[l.type] || TY.live; return `<li><span class="lsn-i">${ic(ty[0])}</span><div><b>${esc(l.title)}</b><em>${ty[1]}${l.when ? ' · ' + esc(l.when) : ''}${l.dur ? ' · ' + num(l.dur) + (bn ? ' মিনিট' : ' min') : ''}</em>${l.plan ? `<p>${esc(l.plan)}</p>` : ''}${l.file ? `<small class="mute">${ic('file')} ${esc(l.file)} ${bn ? '(এনরোলমেন্টের পর ডাউনলোড)' : '(download after enrolment)'}</small>` : ''}</div></li>`; }).join('') || `<li class="mute">${bn ? 'লেসন শিগগিরই যোগ হবে' : 'Lessons coming soon'}</li>`}</ol></details>`).join('')}</div>`;
+  }
+
   function viewCourse(id) {
     const c = byId(COURSES, id); if (!c || !progOn(c.program)) return view404();
     const tc = byId(TEACHERS, c.teacher), prog = byId(PROGRAMS, c.program), sub = byId(SUBJECTS, c.subject);
@@ -551,8 +558,8 @@
           <p>${esc(L(c.short))} ${t(c.kind === 'crash' ? 'crash_about' : 'reg_about')}</p>
           <ul class="outs">${outcomes.map(o => `<li>${ic('check')}${t(o)}</li>`).join('')}</ul></section>
 
-        <section class="blk"><h2>${t('content')}</h2>
-          <div class="acc">${topics.map((x, i) => `<details ${i === 0 ? 'open' : ''}><summary><span class="an">${num(i + 1)}</span>${esc(L(x.t))}</summary><p>${esc(L(x.p))}</p></details>`).join('')}</div></section>
+        <section class="blk"><h2>${t('content')}</h2>${curriculumHtml(c.id) || `
+          <div class="acc">${topics.map((x, i) => `<details ${i === 0 ? 'open' : ''}><summary><span class="an">${num(i + 1)}</span>${esc(L(x.t))}</summary><p>${esc(L(x.p))}</p></details>`).join('')}</div>`}</section>
 
         <section class="blk"><h2>${t('batch_sched')}</h2>
           <div class="info">
