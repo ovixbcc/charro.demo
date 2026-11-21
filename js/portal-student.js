@@ -148,7 +148,7 @@
     const r = DB.settings.refS, rt = r.type === 'pct' ? n(r.v) + '%' : mny(r.v), tot = DB.refS.reduce((a, x) => a + x.bonus, 0);
     return `<div class="kpis">${UI.kpi(T('আমার রেফারেল কোড', 'My code'), 'TASNIM-7A2K')}${UI.kpi(T('রেফার করা', 'Referred'), n(DB.refS.length))}${UI.kpi(T('মোট বোনাস', 'Total bonus'), mny(tot), '', 'ok')}</div>` + UI.card(T('রেফারেল প্রোগ্রাম', 'Referral program'), `<p>${T(`বন্ধুকে রেফার করলে তার প্রথম পেমেন্টে আপনি পাবেন ${rt} বোনাস।`, `Earn ${rt} bonus on your friend's first payment.`)}</p><button class="btn btn-o btn-sm" data-pa="copy">${T('কোড কপি করুন', 'Copy code')}</button>`) +
       UI.card(T('রেফারেল তালিকা', 'Referral list'), UI.tbl([T('নাম', 'Name'), T('তারিখ', 'Date'), T('অবস্থা', 'Status'), T('বোনাস', 'Bonus')], DB.refS.map(x => [esc(x.name), fd(x.date), x.status === 'enrolled' ? UI.chip(T('এনরোল করেছে', 'Enrolled'), 'ok') : UI.chip(T('যুক্ত হয়েছে', 'Joined'), 'warn'), mny(x.bonus)]))) +
-      UI.card(T('কুপন কোড', 'Coupon codes'), UI.tbl([T('কোড', 'Code'), T('ছাড়', 'Off'), T('প্রযোজ্য', 'Applies to'), T('মেয়াদ', 'Expiry')], DB.coupons.filter(c => c.active).map(c => [`<b>${esc(c.code)}</b>`, c.type === 'pct' ? n(c.v) + '%' : mny(c.v), c.scope ? ctitle(c.scope) : T('সব কোর্স', 'All courses'), fd(c.expiry)])));
+      UI.card(T('কুপন কোড', 'Coupon codes'), UI.tbl([T('কোড', 'Code'), T('ছাড়', 'Off'), T('প্রযোজ্য', 'Applies to'), T('মেয়াদ', 'Expiry')], DB.coupons.filter(c => c.active).map(c => [`<b>${esc(c.code)}</b>`, c.type === 'pct' ? n(c.v) + '%' : mny(c.v), esc(PX.scopeLabel(c.scope)), fd(c.expiry)])));
   };
 
   /* ---------- সাপোর্ট / পলিসি / প্রোফাইল ---------- */

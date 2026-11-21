@@ -419,7 +419,7 @@
     if (o.first != null && cy > 1) return (lang === 'bn' ? `প্রথমবার ${money(o.first)}, পরে ${money(o.disc)}` : `First ${money(o.first)}, then ${money(o.disc)}`) + ` · ${num(cy)}×`;
     return `<s>${money(o.actual)}</s> · ${num(cy)}×`;
   }
-  const couponFor = (c, code) => { const cp = COUPONS[code]; return cp && cp.active !== false && (!cp.scope || cp.scope === c.id) ? cp : null; };
+  const couponFor = (c, code) => { const cp = COUPONS[code]; return cp && cp.active !== false && (!cp.scope || cp.scope === c.id || cp.scope === 't:' + c.teacher || cp.scope === c.id.split('-')[0]) ? cp : null; };
   function calc(c, st) {
     const opts = planOptions(c, st.fmt), o = opts.find(x => x.key === st.plan) || opts[0];
     const tt = planTotal(c, o), cp = couponFor(c, st.code);

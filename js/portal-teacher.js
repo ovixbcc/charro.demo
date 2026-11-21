@@ -100,12 +100,13 @@
   /* ---------- কুপন ও রেফারেল ---------- */
   S.coupons = () => {
     const mine = DB.coupons.filter(c => c.by === TID), r = DB.settings.refT;
-    return UI.card(T('নতুন কুপন', 'New coupon'), `<form data-pf="coupon" data-by="${TID}" class="fgrid">${UI.fi({ name: 'code', label: T('কোড', 'Code'), req: 1, half: 1, ph: 'TANVIR20' })}${UI.fi({ name: 'type', label: T('ধরন', 'Type'), half: 1, opts: [['pct', T('শতকরা %', 'Percent')], ['flat', T('ফিক্সড ৳', 'Fixed ৳')]] })}${UI.fi({ name: 'v', label: T('পরিমাণ', 'Value'), type: 'number', req: 1, half: 1, min: 1 })}${UI.fi({ name: 'scope', label: T('কোর্স', 'Course'), half: 1, opts: mineLive().map(c => [c.id, L(c.title)]) })}${UI.fi({ name: 'limit', label: T('সর্বোচ্চ ব্যবহার', 'Max uses'), type: 'number', val: 50, half: 1, min: 1 })}${UI.fi({ name: 'expiry', label: T('মেয়াদ', 'Expiry'), type: 'date', val: '2026-12-31', half: 1 })}<div class="fld"><button class="btn btn-p btn-sm">${T('কুপন তৈরি', 'Create')}</button></div></form>`) +
+    return UI.card(T('নতুন কুপন', 'New coupon'), `<form data-pf="coupon" data-by="${TID}" class="fgrid">${UI.fi({ name: 'code', label: T('কোড', 'Code'), req: 1, half: 1, ph: 'TANVIR20' })}${UI.fi({ name: 'type', label: T('ধরন', 'Type'), half: 1, opts: [['pct', T('শতকরা %', 'Percent')], ['flat', T('ফিক্সড ৳', 'Fixed ৳')]] })}${UI.fi({ name: 'v', label: T('পরিমাণ', 'Value'), type: 'number', req: 1, half: 1, min: 1 })}${UI.fi({ name: 'scope', label: T('প্রযোজ্য', 'Applies to'), half: 1, opts: PX.scopeOpts(TID) })}${UI.fi({ name: 'limit', label: T('সর্বোচ্চ ব্যবহার', 'Max uses'), type: 'number', val: 50, half: 1, min: 1 })}${UI.fi({ name: 'expiry', label: T('মেয়াদ', 'Expiry'), type: 'date', val: '2026-12-31', half: 1 })}<div class="fld"><button class="btn btn-p btn-sm">${T('কুপন তৈরি', 'Create')}</button></div></form>`) +
       UI.card(T('আমার কুপন', 'My coupons'), couponTbl(mine)) +
       UI.card(T('টিচার রেফারেল', 'Teacher referral'), `<p>${T(`অন্য টিচারকে রেফার করলে অনুমোদনের পর পাবেন ${r.type === 'pct' ? n(r.v) + '%' : mny(r.v)} বোনাস। কোড: `, 'Bonus per approved teacher: ')}<b>TANVIR-T9</b></p>` + UI.tbl([T('নাম', 'Name'), T('তারিখ', 'Date'), T('অবস্থা', 'Status'), T('বোনাস', 'Bonus')], DB.refT.map(x => [esc(x.name), fd(x.date), x.status === 'approved' ? UI.chip(T('অনুমোদিত', 'Approved'), 'ok') : UI.chip(T('আবেদন করেছে', 'Applied'), 'warn'), mny(x.bonus)])));
   };
-  function couponTbl(l) {
-    return UI.tbl([T('কোড', 'Code'), T('ছাড়', 'Off'), T('কোর্স', 'Course'), T('ব্যবহার', 'Used'), T('মেয়াদ', 'Expiry'), T('অবস্থা', 'Status'), ''], l.map(c => [`<b>${esc(c.code)}</b>`, c.type === 'pct' ? n(c.v) + '%' : mny(c.v), c.scope ? bn(COURSE(c.scope).title) : T('সব', 'All'), `${n(c.uses)}/${n(c.limit)}`, fd(c.expiry), c.active ? UI.chip(T('চালু', 'Active'), 'ok') : UI.chip(T('বন্ধ', 'Off')), `<button class="btn btn-o btn-sm" data-pa="cptoggle" data-code="${esc(c.code)}">${c.active ? T('বন্ধ করুন', 'Disable') : T('চালু করুন', 'Enable')}</button>`]));
+  function couponTbl(l, showBy) {
+    const byL = c => c.by === 'admin' ? T('অ্যাডমিন', 'Admin') : esc(L(TEACH(c.by).n));
+    return UI.tbl([T('কোড', 'Code'), T('ছাড়', 'Off'), T('প্রযোজ্য', 'Applies to')].concat(showBy ? [T('কে বানিয়েছেন', 'Created by')] : [], [T('ব্যবহার', 'Used'), T('মেয়াদ', 'Expiry'), T('অবস্থা', 'Status'), '']), l.map(c => [`<b>${esc(c.code)}</b>`, c.type === 'pct' ? n(c.v) + '%' : mny(c.v), esc(PX.scopeLabel(c.scope))].concat(showBy ? [byL(c)] : [], [`${n(c.uses)}/${n(c.limit)}`, fd(c.expiry), c.active ? UI.chip(T('চালু', 'Active'), 'ok') : UI.chip(T('বন্ধ', 'Off')), `<button class="btn btn-o btn-sm" data-pa="cptoggle" data-code="${esc(c.code)}">${c.active ? T('বন্ধ করুন', 'Disable') : T('চালু করুন', 'Enable')}</button>`])));
   }
   PX.couponTbl = couponTbl;
 
@@ -193,6 +194,10 @@
   F.att = (f, d) => { const s = f.dataset.sid; DB.att[s] = {}; PX.roster(PX.session(s).cid).forEach(u => { DB.att[s][u.id] = (d.p || []).includes(u.id); }); PX.toast(T('উপস্থিতি সংরক্ষিত', 'Saved')); PX.refresh(); };
   F.coupon = (f, d) => {
     const code = d.code.trim().toUpperCase(); if (DB.coupons.some(c => c.code === code)) { PX.toast(T('এই কোড আগে থেকেই আছে', 'Code exists')); return; }
+    const by = f.dataset.by, ok = PX.scopeOpts(by === 'admin' ? '' : by).some(x => x[0] === (d.scope || ''));
+    if (!ok) { PX.toast(T('এই কোর্স/স্কোপে কুপন দেওয়ার অনুমতি নেই', 'Not allowed for this scope')); return; }
+    if (!(+d.v > 0) || (d.type === 'pct' && +d.v > 100)) { PX.toast(T('ছাড়ের পরিমাণ ঠিক নয় (শতকরা ১–১০০)', 'Invalid value (percent must be 1–100)')); return; }
+    if (!d.expiry || d.expiry < PX.TODAY) { PX.toast(T('মেয়াদ আজকের পরে হতে হবে', 'Expiry must be in the future')); return; }
     DB.coupons.unshift({ code, type: d.type, v: +d.v, scope: d.scope || '', by: f.dataset.by, active: true, uses: 0, limit: +d.limit || 50, expiry: d.expiry }); PX.toast(T('কুপন তৈরি হয়েছে', 'Coupon created')); PX.refresh();
   };
   PX.CHG.upnote = el => { const s = PX.session(el.dataset.sid); Array.from(el.files).forEach(f => s.notes.push({ name: f.name, size: Math.max(1, Math.round(f.size / 1024)) })); PX.toast(T('নোট যোগ হয়েছে', 'Note added')); PX.refresh(); };
