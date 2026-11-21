@@ -358,6 +358,8 @@
       ${UI.fi({ name: 'en', label: T('পুরো নাম (English)', 'Full name (English)'), val: p ? p.en : '', req: 1 })}
       ${UI.fi({ name: 'dbn', label: T('বিবরণ (বাংলা)', 'Description (Bangla)'), rows: 2, val: g(p && p.d, 'bn') })}
       ${UI.fi({ name: 'den', label: T('বিবরণ (English)', 'Description (English)'), rows: 2, val: g(p && p.d, 'en') })}
+      ${PX.thumbField(p && p.thumb, T('প্রোগ্রামের থাম্বনেল', 'Program thumbnail'))}
+      ${PX.ytField(p && p.video, T('প্রোগ্রাম পরিচিতি ভিডিও (ইউটিউব লিংক)', 'Program intro video (YouTube link)'))}
       <div class="fld"><small class="err" id="pg-err" role="alert"></small><button class="btn btn-p">${T('সংরক্ষণ', 'Save')}</button></div></form>`, 1);
   };
   F.prog = (f, d) => {
@@ -365,9 +367,10 @@
     if (!v('code') || !v('bn') || !v('en') || !v('sbn') || !v('sen')) { er.textContent = T('কোড ও নামগুলো দিন', 'Fill in the code and names'); return; }
     const ex = f.dataset.id ? PROGRAMS.find(x => x.id === f.dataset.id) : null;
     if (PROGRAMS.some(x => x !== ex && x.code.toLowerCase() === v('code').toLowerCase())) { er.textContent = T('এই কোড আগে থেকেই আছে', 'This code already exists'); return; }
-    const desc = { bn: v('dbn') || v('bn'), en: v('den') || v('en') };
-    if (ex) Object.assign(ex, { code: v('code'), bn: v('bn'), en: v('en'), s: { bn: v('sbn'), en: v('sen') }, d: desc });
-    else { const id = 'pg' + (Math.max(0, ...PROGRAMS.map(x => +(String(x.id).match(/^pg(\d+)$/) || [0, 0])[1])) + 1); PROGRAMS.push({ id, code: v('code'), bn: v('bn'), en: v('en'), s: { bn: v('sbn'), en: v('sen') }, d: desc, hidden: false }); CH.PCOLOR[id] = PCOLS[PROGRAMS.length % PCOLS.length]; }
+    const ye = PX.ytCheck(d.video); if (ye) { er.textContent = ye; return; }
+    const desc = { bn: v('dbn') || v('bn'), en: v('den') || v('en') }, media = { thumb: d.thumb || '', video: v('video') };
+    if (ex) Object.assign(ex, { code: v('code'), bn: v('bn'), en: v('en'), s: { bn: v('sbn'), en: v('sen') }, d: desc }, media);
+    else { const id = 'pg' + (Math.max(0, ...PROGRAMS.map(x => +(String(x.id).match(/^pg(\d+)$/) || [0, 0])[1])) + 1); PROGRAMS.push(Object.assign({ id, code: v('code'), bn: v('bn'), en: v('en'), s: { bn: v('sbn'), en: v('sen') }, d: desc, hidden: false }, media)); CH.PCOLOR[id] = PCOLS[PROGRAMS.length % PCOLS.length]; }
     PX.closeModal(); PX.toast(T('প্রোগ্রাম সংরক্ষিত', 'Program saved')); PX.refresh();
   };
   A.progtoggle = a => { const p = PROGRAMS.find(x => x.id === a.dataset.id); if (!p) return; p.hidden = !p.hidden; PX.toast(p.hidden ? T('প্রোগ্রাম লুকানো হয়েছে', 'Program hidden') : T('প্রোগ্রাম দেখানো হচ্ছে', 'Program visible')); PX.refresh(); };

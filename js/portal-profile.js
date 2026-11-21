@@ -86,6 +86,7 @@
     return UI.card(T('ওয়েব প্রোফাইল (ওয়েবসাইটে স্টুডেন্টরা যা দেখে)', 'Web profile (what students see on the website)'), `<form data-pf="tpub" class="fgrid prof-f">
       <div class="fld ph-wrap"><div class="ph-prev" id="pub-prev">${tc.photo ? `<img src="${tc.photo}" alt="">` : CH.avatar(tc, 84)}</div>
         <div><label class="btn btn-o btn-sm upl">${ic('upload')} ${T('পাবলিক ছবি', 'Public photo')}<input type="file" name="pubphoto" data-pc="pubpick" accept="image/png,image/jpeg,image/webp" hidden></label><small class="hint">${T('টিচার পেজ ও কোর্স কার্ডে দেখাবে। সর্বোচ্চ ২ এমবি।', 'Shown on your teacher page and course cards. Up to 2 MB.')}</small></div></div>
+      ${PX.ytField(tc.video, T('টিচারের পরিচিতি ভিডিও (ইউটিউব লিংক)', 'Teacher intro video (YouTube link)'))}
       ${UI.fi({ name: 'n', label: T('নাম', 'Name'), val: L(tc.n), half: 1, req: 1 })}
       ${UI.fi({ name: 'exp', label: T('শেখানোর অভিজ্ঞতা (বছর)', 'Teaching experience (years)'), type: 'number', val: tc.exp, half: 1, min: 0 })}
       ${UI.fi({ name: 'inst', label: T('বিশ্ববিদ্যালয় / প্রতিষ্ঠান', 'University / institution'), val: L(tc.inst), req: 1 })}
@@ -112,9 +113,10 @@
     const tc = TEACH('t01'), er = f.querySelector('#tp-err'), bad = m => { er.textContent = m; };
     if (!(d.n || '').trim() || !(d.inst || '').trim()) return bad(T('নাম ও প্রতিষ্ঠান দিতে হবে', 'Name and institution are required'));
     if (!(d.subs || []).length) return bad(T('অন্তত একটি বিষয় বেছে নিন', 'Pick at least one subject'));
+    const ye = PX.ytCheck(d.video); if (ye) return bad(ye);
     const ex = +d.exp; if (d.exp !== '' && (!(ex >= 0) || ex > 60)) return bad(T('অভিজ্ঞতার বছর ঠিক নয়', 'Invalid years of experience'));
     setL(tc, 'n', d.n); setL(tc, 'inst', d.inst); setL(tc, 'dept', d.dept); setL(tc, 'yr', d.yr); setL(tc, 'hsc', d.hsc); setL(tc, 'ssc', d.ssc); setL(tc, 'bio', d.bio);
-    tc.exp = d.exp === '' ? tc.exp : ex; tc.ik = d.ik; tc.subs = d.subs.slice();
+    tc.video = (d.video || '').trim(); tc.exp = d.exp === '' ? tc.exp : ex; tc.ik = d.ik; tc.subs = d.subs.slice();
     tc.more = toL(d.more, tc.more); tc.certs = toL(d.certs, tc.certs); tc.co = toL(d.co, tc.co);
     const opts = featOpts(tc), pick = opts.find(x => x[0] === d.featsel) || opts[0];
     if (pick) { tc.featKey = pick[0]; tc.feat = pick[0] === 'u' ? tc.inst : pick[0] === 'h' ? { bn: part(tc.hsc), en: part(tc.hsc) } : tc.more[+pick[0].slice(1)]; }

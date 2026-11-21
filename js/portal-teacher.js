@@ -139,7 +139,8 @@
       ${UI.checks('days', Object.keys(DAYS).map(d => [d, L(DAYS[d])]), c.days, T('ক্লাসের দিন', 'Class days'))}
       ${UI.checks('formats', CTYPES.filter(x => x.on || c.formats.includes(x.id)).map(x => [x.id, L(x) + (x.seats > 1 ? ' (' + T('সর্বোচ্চ ', 'max ') + n(x.seats) + ')' : '')]), c.formats, T('ক্লাসের ধরন', 'Class types'))}
       ${UI.fi({ name: 'desc', label: T('কোর্সের বিবরণ', 'Description'), rows: 3, val: c.desc })}
-      ${UI.fi({ name: 'video', label: T('পরিচিতি ভিডিও লিংক', 'Intro video link'), val: c.video, ph: 'https://' })}
+      ${PX.thumbField(c.thumb, T('কোর্সের থাম্বনেল', 'Course thumbnail'))}
+      ${PX.ytField(c.video, T('পরিচিতি ভিডিও (ইউটিউব লিংক)', 'Intro video (YouTube link)'))}
       <div class="fld full">${CTYPES.filter(x => x.on || c.formats.includes(x.id)).map(x => fmt(x.id)).join('')}</div>
       ${admin ? UI.fi({ name: 'status', label: T('অবস্থা', 'Status'), half: 1, opts: [['live', T('সরাসরি লাইভ', 'Go live')], ['draft', T('খসড়া', 'Draft')]] }) : UI.fi({ name: 'status', label: T('এখন কী করবেন?', 'Action'), half: 1, opts: [['review', T('অ্যাডমিন রিভিউয়ে জমা দিন', 'Submit for admin review')], ['draft', T('খসড়া হিসেবে রাখুন', 'Save as draft')]] })}
       <div class="fld"><button class="btn btn-p">${T('সংরক্ষণ', 'Save')}</button></div></form>`;
@@ -162,7 +163,7 @@
     nc.formats.forEach(f => {
       const id = 'c' + String(COURSES.length + 1).padStart(2, '0') + (f === 'group' ? '' : '-' + (f === 'one' ? '1on1' : f)), g = (nc.plans[f] || nc.plans.group || nc.plans.one || Object.values(nc.plans)[0])[0];
       const ct = ctype(f), sx = [' · ' + ct.bn, ' · ' + ct.en];
-      const live = { id, pid: nextCoursePid(), program: nc.program, subject: nc.subject, kind: nc.kind, teacher: nc.tid, base: g.actual, months, cpw: nc.cpw, weeks: nc.weeks, start: '2026-12-05', seats: ctSeats(f), formats: [f], rating: 4.5, reviews: 0, enrolled: 0, featured: false, days: nc.days, time: { bn: nc.time, en: nc.time }, title: { bn: nc.title + sx[0], en: nc.title + sx[1] }, short: { bn: nc.desc || nc.title, en: nc.desc || nc.title }, plans: { [f]: nc.plans[f] } };
+      const live = { id, pid: nextCoursePid(), program: nc.program, subject: nc.subject, kind: nc.kind, teacher: nc.tid, base: g.actual, months, cpw: nc.cpw, weeks: nc.weeks, start: '2026-12-05', seats: ctSeats(f), formats: [f], rating: 4.5, reviews: 0, enrolled: 0, featured: false, video: nc.video || '', thumb: nc.thumb || '', days: nc.days, time: { bn: nc.time, en: nc.time }, title: { bn: nc.title + sx[0], en: nc.title + sx[1] }, short: { bn: nc.desc || nc.title, en: nc.desc || nc.title }, plans: { [f]: nc.plans[f] } };
       COURSES.push(live); made.push(live);
     });
     nc.liveId = made[0].id; nc.status = 'live'; return made[0];
@@ -171,8 +172,9 @@
     const plans = PX.buildPlans(d);
     if (!(d.days || []).length || !(d.formats || []).length) { PX.toast(T('ক্লাসের দিন ও ধরন বেছে নিন', 'Pick class days and types')); return; }
     if (!(d.formats || []).every(x => plans[x])) { PX.toast(T('প্রতিটি ধরনের জন্য অন্তত একটি মেয়াদের দাম দিন', 'Add at least one priced tenure per class type')); return; }
+    const ye = PX.ytCheck(d.video); if (ye) { const e = f.querySelector('[data-yte]'); if (e) e.textContent = ye; PX.toast(ye); return; }
     const admin = !!f.dataset.admin, tid = admin ? d.tid : TID;
-    const rec = { id: f.dataset.id || 'n' + (DB.newCourses.length + 1), tid, title: d.title, program: d.program, subject: d.subject, kind: d.kind, weeks: +d.weeks, cpw: +d.cpw, days: d.days, time: d.time, formats: d.formats, desc: d.desc, video: d.video, plans, date: TODAY, status: d.status, reason: '' };
+    const rec = { id: f.dataset.id || 'n' + (DB.newCourses.length + 1), tid, title: d.title, program: d.program, subject: d.subject, kind: d.kind, weeks: +d.weeks, cpw: +d.cpw, days: d.days, time: d.time, formats: d.formats, desc: d.desc, video: (d.video || '').trim(), thumb: d.thumb || '', plans, date: TODAY, status: d.status, reason: '' };
     const ex = DB.newCourses.findIndex(x => x.id === rec.id); if (ex >= 0) DB.newCourses[ex] = rec; else DB.newCourses.push(rec);
     if (admin && d.status === 'live') PX.publishCourse(rec);
     PX.toast(admin ? (d.status === 'live' ? T('কোর্স লাইভ হয়েছে', 'Course is live') : T('খসড়া সংরক্ষিত', 'Saved')) : (d.status === 'review' ? T('অ্যাডমিন রিভিউয়ে জমা হয়েছে', 'Submitted for review') : T('খসড়া সংরক্ষিত', 'Draft saved')));

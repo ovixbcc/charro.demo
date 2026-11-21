@@ -85,6 +85,13 @@
     const face = l.g === 'h' ? `<ellipse cx="50" cy="48" rx="15.5" ry="19" fill="${l.skin}"/>` : `<ellipse cx="50" cy="47" rx="19" ry="22" fill="${l.skin}"/>`;
     return `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" fill="#EFE7FF"/><path d="M14 100Q14 73 50 73Q86 73 86 100Z" fill="${l.shirt}"/><rect x="44" y="62" width="12" height="15" rx="4" fill="${l.skin}" opacity=".9"/>${back}${face}${l.g === 'h' ? '' : `<circle cx="31" cy="48" r="3.4" fill="${l.skin}"/><circle cx="69" cy="48" r="3.4" fill="${l.skin}"/>`}${front}<circle cx="43" cy="49" r="2.1" fill="#0E0B16"/><circle cx="57" cy="49" r="2.1" fill="#0E0B16"/>${gl}<path d="M44.5 58 Q50 63 55.5 58" fill="none" stroke="#7A3B2E" stroke-width="2" stroke-linecap="round"/><circle cx="38" cy="56" r="3" fill="#FF8FA3" opacity=".35"/><circle cx="62" cy="56" r="3" fill="#FF8FA3" opacity=".35"/></svg>`;
   }
+  /* YouTube: লিংক থেকে আইডি, থাম্বনেল ও ক্লিক-করলে-চলা প্লেয়ার */
+  const ytId = u => { const m = String(u || '').trim().match(/^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})(?:[?&#/].*)?$/); return m ? m[1] : ''; };
+  const player = (url, thumb, title) => {
+    const id = ytId(url);
+    if (!id) return thumb ? `<div class="vp vp-img"><img src="${thumb}" alt="${esc(title || '')}"></div>` : '';
+    return `<div class="vp" data-act="ytplay" data-yt="${id}" role="button" tabindex="0" aria-label="${esc(title || 'Play video')}"><img src="${thumb || 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg'}" alt="" loading="lazy" onerror="this.style.display='none'"><span class="vp-b">${ic('play')}</span>${title ? `<span class="vp-t">${esc(title)}</span>` : ''}</div>`;
+  };
   const avatar = (tc, size = 44) => tc.photo
     ? `<span class="av av-img av-photo" style="--s:${size}px" aria-hidden="true"><img src="${tc.photo}" alt=""></span>`
     : LOOK[tc.id]
@@ -138,7 +145,7 @@
     const seats = g ? Math.max(0, c.seats) : null;
     return `<article class="cc" style="--cc:${progColor(c.program)}">
       <a class="cc-top" href="#course-${c.id}" aria-label="${esc(L(c.title))}">
-        ${courseArt(c.program)}<span class="cc-shade"></span>
+        ${c.thumb ? `<img class="cc-thumb" src="${c.thumb}" alt="">` : courseArt(c.program)}<span class="cc-shade"></span>
         <span class="cc-code">${esc(prog.code)}</span>
         <span class="cc-prog">${esc(L(prog.s))}</span>
         ${c.featured ? `<span class="cc-feat">${t('featured')}</span>` : ''}
@@ -412,7 +419,7 @@
 
     ${sec('sec-soft', sechead(t('prog_t'), t('prog_d')), scroller(PROGRAMS.filter(p => !p.hidden).map(p => {
       const n = liveCourses().filter(c => c.program === p.id).length;
-      return `<button class="scr-i pcard" data-pick="program" data-val="${p.id}" data-go="1">${progArt(p.id)}<span class="pc-shade"></span><span class="pc-code">${esc(p.code)}</span><span class="pc-t">${esc(L(p))}</span><span class="pc-d">${esc(L(p.d))}</span><span class="pc-n">${num(n)} ${t('courses_n')}${ic('arrow')}</span></button>`;
+      return `<button class="scr-i pcard" data-pick="program" data-val="${p.id}" data-go="1">${p.thumb ? `<img class="pc-thumb" src="${p.thumb}" alt="">` : progArt(p.id)}<span class="pc-shade"></span><span class="pc-code">${esc(p.code)}</span><span class="pc-t">${esc(L(p))}</span><span class="pc-d">${esc(L(p.d))}</span><span class="pc-n">${num(n)} ${t('courses_n')}${ic('arrow')}</span></button>`;
     }).join(''), 'programs'))}
 
     ${sec('sec-filter', sechead(t('home_find_t'), t('home_find_d')), `${filterBar(true)}<div class="grid grid-c" id="results"></div>
@@ -525,8 +532,7 @@
     </div></div>
     <div class="wrap cd">
       <div class="cd-main">
-        <section class="blk"><div class="video"><span class="vplay">${ic('play')}</span><div><b>${t('intro_video')}</b><small>${t('video_note')}</small></div>
-          <a class="btn btn-ow btn-sm" href="https://www.youtube.com/" target="_blank" rel="noopener">${t('yt')}</a></div></section>
+        ${(c.video && ytId(c.video)) || c.thumb ? `<section class="blk">${player(c.video, c.thumb, L(c.title))}</section>` : `<section class="blk"><div class="video"><span class="vplay">${ic('play')}</span><div><b>${t('intro_video')}</b><small>${t('video_note')}</small></div></div></section>`}
 
         <section class="blk"><h2>${t('about_course')}</h2>
           <p>${esc(L(c.short))} ${t(c.kind === 'crash' ? 'crash_about' : 'reg_about')}</p>
@@ -631,8 +637,7 @@
     </div></div>
     <div class="wrap tp">
       <div class="tp-main">
-        <section class="blk"><div class="video"><span class="vplay">${ic('play')}</span><div><b>${t('intro2')}</b><small>${t('video_note_t')}</small></div>
-          <a class="btn btn-ow btn-sm" href="https://www.youtube.com/" target="_blank" rel="noopener">${t('yt')}</a></div></section>
+        ${tc.video && ytId(tc.video) ? `<section class="blk"><h2>${t('intro2')}</h2>${player(tc.video, '', L(tc.n))}</section>` : `<section class="blk"><div class="video"><span class="vplay">${ic('play')}</span><div><b>${t('intro2')}</b><small>${t('video_note_t')}</small></div></div></section>`}
         <section class="blk"><h2>${t('about_teacher')}</h2><p>${esc(L(tc.bio))}</p>
           <div class="tags">${tc.subs.map(s => `<span class="tag">${esc(L(byId(SUBJECTS, s)))}</span>`).join('')}</div></section>
         <section class="blk"><h2>${t('education')}</h2><ol class="tl">
@@ -1054,6 +1059,7 @@
       if (couponFor(byId(COURSES, CO.id), code)) { CO.code = code; CO.err = false; } else { CO.code = ''; CO.err = !!code; }
       refreshCheckout();
     }
+    else if (act === 'ytplay') { const id = a.dataset.yt; if (id) { a.outerHTML = `<div class="vp vp-on"><iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0" title="Video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`; } }
     else if (act === 'enroll') { location.hash = '#checkout-' + CO.id; }
     else if (act === 'scroll-co') { const c = $('#checkout'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     else if (act === 'scroll-form') { const c = $('#apply'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
@@ -1139,7 +1145,7 @@
     if (ev === 'drop' && e.dataTransfer) addFiles(z.dataset.dz, e.dataTransfer.files);
   }));
 
-  window.CH = { lang: () => lang, num, money, esc, L, fdate, byId, ic, avatar, rate, PCOLOR, planOptions, planLabel, firstOf, cyc, couponFor, rerender: () => render(true), t };
+  window.CH = { ytId, player, lang: () => lang, num, money, esc, L, fdate, byId, ic, avatar, rate, PCOLOR, planOptions, planLabel, firstOf, cyc, couponFor, rerender: () => render(true), t };
   window.addEventListener('hashchange', () => { menuOpen = false; closeModal(); render(false); });
   document.addEventListener('DOMContentLoaded', () => render(false));
   if (document.readyState !== 'loading') render(false);
