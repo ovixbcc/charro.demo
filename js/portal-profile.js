@@ -19,21 +19,22 @@
   PX.DISTRICTS = DIS;
 
   DB.prof = DB.prof || {};
-  const rec = (key, base) => DB.prof[key] || (DB.prof[key] = Object.assign({ photo: '', dob: '', father: '', mother: '', fnid: '', mnid: '', emName: '', emPhone: '', addr: '', division: divOf(base.district), district: base.district || '', inst: base.inst || '', name: base.name || '', phone: base.phone || '', email: base.email || '' }, {}));
+  const rec = (key, base) => DB.prof[key] || (DB.prof[key] = Object.assign({ photo: '', dob: '', father: '', mother: '', fnid: '', mnid: '', nid: '', emName: '', emPhone: '', addr: '', division: divOf(base.district), district: base.district || '', inst: base.inst || '', name: base.name || '', phone: base.phone || '', email: base.email || '' }, {}));
 
   const form = (key, role, base, instLabel) => {
-    const r = rec(key, base), photo = r.photo ? `<img src="${r.photo}" alt="">` : `<span>${esc((r.name || '?').trim().charAt(0))}</span>`;
-    return UI.card(T('আমার তথ্য', 'My details'), `<form data-pf="myprof" data-key="${key}" data-role="${role}" class="fgrid prof-f">
+    const tch = role === 't', r = rec(key, base), photo = r.photo ? `<img src="${r.photo}" alt="">` : `<span>${esc((r.name || '?').trim().charAt(0))}</span>`;
+    return UI.card(tch ? T('সিস্টেম তথ্য (শুধু Chaatro ও অ্যাডমিন দেখবে)', 'System details (visible only to Chaatro & admin)') : T('আমার তথ্য', 'My details'), `<form data-pf="myprof" data-key="${key}" data-role="${role}" class="fgrid prof-f">
       <div class="fld ph-wrap"><div class="ph-prev" id="ph-prev">${photo}</div>
         <div><label class="btn btn-o btn-sm upl">${ic('upload')} ${T('ছবি বদলান', 'Change photo')}<input type="file" name="photo" data-pc="phpick" accept="image/png,image/jpeg,image/webp" hidden></label><small class="hint">${T('JPG, PNG বা WebP, সর্বোচ্চ ২ এমবি', 'JPG, PNG or WebP, up to 2 MB')}</small></div></div>
       ${UI.fi({ name: 'name', label: T('পুরো নাম', 'Full name'), val: r.name, half: 1, req: 1 })}
       ${UI.fi({ name: 'dob', label: T('জন্ম তারিখ', 'Date of birth'), type: 'date', val: r.dob, half: 1 })}
-      ${UI.fi({ name: 'phone', label: T('মোবাইল নম্বর', 'Mobile number'), val: r.phone, half: 1, ph: '01XXXXXXXXX' })}
-      ${UI.fi({ name: 'email', label: T('ইমেইল', 'Email'), type: 'email', val: r.email, half: 1 })}
-      ${UI.fi({ name: 'father', label: T('বাবার নাম', "Father's name"), val: r.father, half: 1 })}
+      ${UI.fi({ name: 'phone', label: T('মোবাইল নম্বর', 'Mobile number'), val: r.phone, half: 1, ph: '01XXXXXXXXX', req: tch ? 1 : 0 })}
+      ${UI.fi({ name: 'email', label: T('ইমেইল', 'Email'), type: 'email', val: r.email, half: 1, req: tch ? 1 : 0 })}
+      ${tch ? UI.fi({ name: 'nid', label: T('নিজের এনআইডি নম্বর', 'Your NID number'), val: r.nid, half: 1, req: 1, ph: T('১০, ১৩ বা ১৭ অঙ্ক', '10, 13 or 17 digits') }) : ''}
+      ${tch ? '' : `      ${UI.fi({ name: 'father', label: T('বাবার নাম', "Father's name"), val: r.father, half: 1 })}
       ${UI.fi({ name: 'fnid', label: T('বাবার এনআইডি', "Father's NID"), val: r.fnid, half: 1, ph: T('১০, ১৩ বা ১৭ অঙ্ক', '10, 13 or 17 digits') })}
       ${UI.fi({ name: 'mother', label: T('মায়ের নাম', "Mother's name"), val: r.mother, half: 1 })}
-      ${UI.fi({ name: 'mnid', label: T('মায়ের এনআইডি', "Mother's NID"), val: r.mnid, half: 1, ph: T('১০, ১৩ বা ১৭ অঙ্ক', '10, 13 or 17 digits') })}
+      ${UI.fi({ name: 'mnid', label: T('মায়ের এনআইডি', "Mother's NID"), val: r.mnid, half: 1, ph: T('১০, ১৩ বা ১৭ অঙ্ক', '10, 13 or 17 digits') })}`}
       ${UI.fi({ name: 'emName', label: T('জরুরি যোগাযোগের নাম', 'Emergency contact name'), val: r.emName, half: 1 })}
       ${UI.fi({ name: 'emPhone', label: T('জরুরি যোগাযোগের নম্বর', 'Emergency contact number'), val: r.emPhone, half: 1, ph: '01XXXXXXXXX' })}
       ${UI.fi({ name: 'addr', label: T('যোগাযোগের ঠিকানা', 'Contact address'), rows: 2, val: r.addr })}
@@ -54,11 +55,16 @@
     const nid = v => !v || /^(\d{10}|\d{13}|\d{17})$/.test(v.replace(/\s/g, '')), ph = v => !v || /^(?:\+?88)?01[3-9]\d{8}$/.test(v.replace(/[\s-]/g, ''));
     if (!ph(d.phone)) return bad(T('মোবাইল নম্বর ঠিক নয়', 'Invalid mobile number'));
     if (!ph(d.emPhone)) return bad(T('জরুরি নম্বর ঠিক নয়', 'Invalid emergency number'));
-    if (!nid(d.fnid) || !nid(d.mnid)) return bad(T('এনআইডি ১০, ১৩ বা ১৭ অঙ্কের হতে হবে', 'NID must be 10, 13 or 17 digits'));
+    if (f.dataset.role !== 't' && (!nid(d.fnid) || !nid(d.mnid))) return bad(T('এনআইডি ১০, ১৩ বা ১৭ অঙ্কের হতে হবে', 'NID must be 10, 13 or 17 digits'));
     if (d.dob && d.dob > PX.TODAY) return bad(T('জন্ম তারিখ ভবিষ্যতের হতে পারে না', 'Date of birth cannot be in the future'));
     if (d.district && d.division && !(DIS[d.division] || []).some(x => x[0] === d.district)) return bad(T('জেলাটি এই বিভাগের নয়', 'District does not belong to this division'));
+    if (f.dataset.role === 't') {
+      if (!(d.phone || '').trim() || !(d.email || '').trim() || !(d.nid || '').trim()) return bad(T('মোবাইল নম্বর, ইমেইল ও নিজের এনআইডি আবশ্যক', 'Mobile number, email and your NID are required'));
+      if (!/^\S+@\S+\.\S+$/.test(d.email.trim())) return bad(T('ইমেইল ঠিক নয়', 'Invalid email'));
+      if (!nid(d.nid)) return bad(T('এনআইডি ১০, ১৩ বা ১৭ অঙ্কের হতে হবে', 'NID must be 10, 13 or 17 digits'));
+    }
     const r = DB.prof[f.dataset.key], file = f.elements.photo.files[0];
-    ['name', 'dob', 'phone', 'email', 'father', 'mother', 'fnid', 'mnid', 'emName', 'emPhone', 'addr', 'division', 'district', 'inst'].forEach(k => { r[k] = (d[k] || '').trim(); });
+    ['name', 'dob', 'phone', 'email', 'nid', 'father', 'mother', 'fnid', 'mnid', 'emName', 'emPhone', 'addr', 'division', 'district', 'inst'].forEach(k => { r[k] = (d[k] === undefined ? (r[k] || '') : (d[k] || '').trim()); });
     if (file) r.photo = URL.createObjectURL(file);
     if (f.dataset.role === 's') { const u = DB.me; Object.assign(u, { name: r.name, phone: r.phone, email: r.email, district: r.district }); u.guardian = { name: r.emName, phone: r.emPhone }; }
     PX.toast(T('প্রোফাইল সংরক্ষিত', 'Profile saved')); PX.refresh();
@@ -77,7 +83,7 @@
   const featCur = tc => { const o = featOpts(tc), f = L(tc.feat || {}); if (tc.featKey && o.some(x => x[0] === tc.featKey)) return tc.featKey; return (o.find(x => x[2] === f || (x[0] === 'u' && f === L(tc.inst))) || [''])[0]; };
   const pubForm = tc => {
     const fk = featCur(tc);
-    return UI.card(T('পাবলিক প্রোফাইল (সাইটে যা দেখায়)', 'Public profile (shown on the website)'), `<form data-pf="tpub" class="fgrid prof-f">
+    return UI.card(T('ওয়েব প্রোফাইল (ওয়েবসাইটে স্টুডেন্টরা যা দেখে)', 'Web profile (what students see on the website)'), `<form data-pf="tpub" class="fgrid prof-f">
       <div class="fld ph-wrap"><div class="ph-prev" id="pub-prev">${tc.photo ? `<img src="${tc.photo}" alt="">` : CH.avatar(tc, 84)}</div>
         <div><label class="btn btn-o btn-sm upl">${ic('upload')} ${T('পাবলিক ছবি', 'Public photo')}<input type="file" name="pubphoto" data-pc="pubpick" accept="image/png,image/jpeg,image/webp" hidden></label><small class="hint">${T('টিচার পেজ ও কোর্স কার্ডে দেখাবে। সর্বোচ্চ ২ এমবি।', 'Shown on your teacher page and course cards. Up to 2 MB.')}</small></div></div>
       ${UI.fi({ name: 'n', label: T('নাম', 'Name'), val: L(tc.n), half: 1, req: 1 })}
@@ -118,10 +124,40 @@
 
   /* স্টুডেন্ট */
   PX.sec.s.profile = () => { const u = DB.me, r = rec('u1', { name: u.name, phone: u.phone, email: u.email, district: u.district, inst: '' }); return head(r, 's', (r.inst || T('প্রতিষ্ঠান যোগ করুন', 'Add your institution')) + ' · ID ' + u.sid) + form('u1', 's', u, T('বর্তমান শিক্ষাপ্রতিষ্ঠান', 'Current institution')); };
-  /* টিচার */
-  const oldT = PX.sec.t.profile;
-  PX.sec.t.profile = () => { const t = TEACH('t01'), r = rec('t01', { name: t.n.bn, phone: t.phone, email: 'teacher@chaatro.com', district: '', inst: L(t.inst) }); return head(r, 't', r.inst + ' · ID ' + t.pid) + pubForm(t) + form('t01', 't', {}, T('বর্তমান প্রতিষ্ঠান / বিশ্ববিদ্যালয়', 'Current institution / university')) + oldT().replace(/^<section[^>]*>.*?<\/section>/s, ''); };
+  /* টিচার: পার্সোনাল (সিস্টেম) প্রোফাইল + ডকুমেন্ট; ওয়েব প্রোফাইল আলাদা সেকশন */
+  const DOC_OK = /\.(jpe?g|png|webp|pdf)$/i, DOC_MB = 5;
+  const tdocs = () => { const r = rec('t01', {}); if (!r.docs) { const ap = DB.apps.find(a => a.id === 'ap3'); r.docs = (ap ? ap.docs : []).map(d => ({ k: 'extra', label: d[0], name: d[1], url: '', st: 'ok' })); } return r.docs; };
+  const have = k => tdocs().some(d => d.k === k);
+  const docCard = () => {
+    const docs = tdocs(), miss = [!have('nid') && T('এনআইডি কপি', 'NID copy'), !have('uni') && T('ভার্সিটি আইডি কার্ড', 'University ID card')].filter(Boolean);
+    return UI.card(T('ডকুমেন্ট', 'Documents'),
+      (miss.length ? `<p class="err" role="alert">${T('আবশ্যক ডকুমেন্ট বাকি: ', 'Required documents missing: ')}${miss.join(', ')}</p>` : `<p class="soft">${T('আবশ্যক ডকুমেন্ট জমা আছে।', 'Required documents are submitted.')}</p>`) +
+      (docs.length ? UI.tbl([T('ডকুমেন্ট', 'Document'), T('ফাইল', 'File'), T('অবস্থা', 'Status')], docs.map(d => [esc(d.label), d.url ? `<a href="${d.url}" target="_blank" rel="noopener">${ic('file')} ${esc(d.name)}</a>` : `${ic('file')} ${esc(d.name)}`, d.st === 'ok' ? UI.chip(T('যাচাইকৃত', 'Verified'), 'ok') : UI.chip(T('যাচাই অপেক্ষায়', 'Pending review'), 'warn')])) : '') +
+      `<form data-pf="tdocs" class="fgrid prof-f">
+        <div class="fld"><label>${T('এনআইডি কার্ডের কপি *', 'NID card copy *')}</label><input type="file" name="nid" accept=".jpg,.jpeg,.png,.webp,.pdf"></div>
+        <div class="fld"><label>${T('ভার্সিটি আইডি কার্ড *', 'University ID card *')}</label><input type="file" name="uni" accept=".jpg,.jpeg,.png,.webp,.pdf"></div>
+        <div class="fld"><label>${T('অতিরিক্ত ডকুমেন্ট (সার্টিফিকেট, মার্কশিট ইত্যাদি)', 'Additional documents (certificates, marksheets etc.)')}</label><input type="file" name="extra" multiple accept=".jpg,.jpeg,.png,.webp,.pdf"><small class="hint">${T('JPG, PNG, WebP বা PDF; প্রতিটি সর্বোচ্চ ৫ এমবি', 'JPG, PNG, WebP or PDF; up to 5 MB each')}</small></div>
+        <div class="fld"><small class="err" id="td-err" role="alert"></small><button class="btn btn-p">${T('ডকুমেন্ট জমা দিন', 'Submit documents')}</button></div></form>`);
+  };
+  PX.FORMS.tdocs = (f, d) => {
+    const er = f.querySelector('#td-err'), bad = m => { er.textContent = m; };
+    const pick = [['nid', T('এনআইডি কপি', 'NID copy'), 1], ['uni', T('ভার্সিটি আইডি কার্ড', 'University ID card'), 1], ['extra', T('অতিরিক্ত ডকুমেন্ট', 'Additional document'), 0]];
+    const add = [];
+    for (const [k, label, one] of pick) for (const fl of Array.from(f.elements[k].files)) {
+      if (!DOC_OK.test(fl.name)) return bad(T('শুধু JPG, PNG, WebP বা PDF দিন: ', 'Only JPG, PNG, WebP or PDF: ') + fl.name);
+      if (fl.size > DOC_MB * 1048576) return bad(T('ফাইল ৫ এমবির মধ্যে হতে হবে: ', 'File must be under 5 MB: ') + fl.name);
+      add.push({ k, label, name: fl.name, url: URL.createObjectURL(fl), st: 'pending', one });
+    }
+    if (!add.length) return bad(T('অন্তত একটি ফাইল বেছে নিন', 'Choose at least one file'));
+    const docs = tdocs();
+    add.forEach(a => { if (a.one) { const i = docs.findIndex(x => x.k === a.k); if (i > -1) docs.splice(i, 1); } docs.push({ k: a.k, label: a.label, name: a.name, url: a.url, st: a.st }); });
+    PX.toast(T('ডকুমেন্ট জমা হয়েছে, অ্যাডমিন যাচাই করবে', 'Uploaded; admin will verify')); PX.refresh();
+  };
+  const steps = () => UI.card(T('টিচার হওয়ার ধাপ', 'Onboarding steps'), `<ol class="steps">${[T('আবেদন ও ডকুমেন্ট জমা', 'Apply with documents'), T('অ্যাডমিন যাচাই ও অনুমোদন', 'Admin review & approval'), T('কোর্স তৈরি ও অনুমোদন', 'Create & approve courses'), T('কোর্স লাইভ ও ক্লাস শুরু', 'Go live')].map(x => `<li>${UI.chip('✓', 'ok')} ${x}</li>`).join('')}</ol>`);
+  PX.sec.t.profile = () => { const t = TEACH('t01'), r = rec('t01', { name: t.n.bn, phone: t.phone, email: 'teacher@chaatro.com', district: '', inst: L(t.inst) }); return head(r, 't', r.inst + ' · ID ' + t.pid).replace(T('আমার প্রোফাইল', 'My profile'), T('পার্সোনাল প্রোফাইল', 'Personal profile')) + form('t01', 't', {}, T('বর্তমান প্রতিষ্ঠান / বিশ্ববিদ্যালয়', 'Current institution / university')) + docCard() + steps(); };
+  PX.sec.t.webprofile = () => { const t = TEACH('t01'); return UI.card(T('ওয়েব প্রোফাইল', 'Web profile'), `<div class="prof">${CH.avatar(t, 72)}<div><h3>${esc(L(t.n))}</h3><p>${T('এই অংশের তথ্য ওয়েবসাইটে স্টুডেন্টদের কাছে দেখা যায়। নাম, ছবি, প্রতিষ্ঠান, অভিজ্ঞতা ও অর্জন এখান থেকে সম্পাদনা করুন।', 'Everything here is shown to students on the website: name, photo, institution, experience and achievements.')}</p></div></div>`) + pubForm(t); };
   /* অ্যাডমিন */
   PX.sec.a.profile = () => { const r = rec('admin', { name: 'Sobuj K Mandal', phone: '', email: 'admin@chaatro.com', district: '', inst: 'Chaatro.com' }); return head(r, 'a', T('অ্যাডমিন', 'Administrator')) + form('admin', 'a', {}, T('বর্তমান প্রতিষ্ঠান', 'Current institution')); };
+  const navT = PX.nav.t; PX.nav.t = () => { const l = navT(), i = l.findIndex(x => x.k === 'profile'); if (i > -1) { l[i] = Object.assign({}, l[i], { l: T('পার্সোনাল প্রোফাইল', 'Personal profile') }); l.splice(i + 1, 0, { k: 'webprofile', l: T('ওয়েব প্রোফাইল', 'Web profile'), i: 'globe' }); } return l; };
   const navA = PX.nav.a; PX.nav.a = () => navA().concat([{ k: 'profile', l: T('আমার প্রোফাইল', 'My profile'), i: 'user', also: [], badge: '' }]);
 })();
