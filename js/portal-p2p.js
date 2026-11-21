@@ -67,10 +67,25 @@
   };
   A.p2pclose = a => { const p = DB.p2p.find(x => x.id === a.dataset.id); if (p) { p.status = 'withdrawn'; PX.toast(T('রিকোয়েস্ট প্রত্যাহার হয়েছে', 'Request withdrawn')); } PX.refresh(); };
   A.p2pacc = a => { const p = DB.p2p.find(x => x.id === a.dataset.id), b = p && p.bids.find(x => x.tid === a.dataset.tid); if (!b) return; p.bids.forEach(x => { x.st = x === b ? 'accepted' : 'declined'; }); p.tid = b.tid; p.price = b.price; p.status = 'accepted'; PX.toast(T('টিচার বাছাই হয়েছে। এখন পেমেন্ট করুন', 'Teacher chosen. Now pay')); PX.refresh(); };
+  const epsOn = () => !!(window.PGW && PGW.epsOn());
   A.p2ppay = a => {
-    const p = DB.p2p.find(x => x.id === a.dataset.id), t = TEACH(p.tid);
-    PX.modal(T('P2P পেমেন্ট', 'P2P payment'), `<dl class="sum"><div><dt>${T('টিচার', 'Teacher')}</dt><dd>${esc(L(t.n))}</dd></div><div><dt>${T('ক্লাস', 'Classes')}</dt><dd>${n(p.classes)}</dd></div><div class="tot"><dt>${T('মোট', 'Total')}</dt><dd>${mny(p.price)}</dd></div></dl>
+    const p = DB.p2p.find(x => x.id === a.dataset.id), t = TEACH(p.tid), on = epsOn(), ge = (window.PGW && PGW.get().eps) || {};
+    const sum = `<dl class="sum"><div><dt>${T('টিচার', 'Teacher')}</dt><dd>${esc(L(t.n))}</dd></div><div><dt>${T('ক্লাস', 'Classes')}</dt><dd>${n(p.classes)}</dd></div><div class="tot"><dt>${T('মোট', 'Total')}</dt><dd>${mny(p.price)}</dd></div></dl>`;
+    if (on) { PX.modal(T('P2P পেমেন্ট', 'P2P payment'), sum + `<form data-pf="p2peps" data-id="${p.id}" class="fgrid"><div class="fld"><div class="paybox"><label class="po"><input type="radio" checked disabled><span>${esc(T(ge.bn || 'অনলাইন পেমেন্ট (EPS)', ge.en || 'Online payment (EPS)'))} <em>${T('বিকাশ, নগদ, কার্ড ও ব্যাংকিং', 'bKash, Nagad, cards & banking')}</em></span></label></div><small class="hint">${T('পেমেন্ট সম্পন্ন হলেই টিচারের সঙ্গে P2P ক্লাসে যুক্ত হবেন।', 'You join the P2P class as soon as payment is complete.')}</small><p class="err" id="eps-p2p-err" style="color:#c0392b"></p><button class="btn btn-p">${T('পেমেন্ট করুন', 'Pay now')} ${mny(p.price)}</button></div></form>`); return; }
+    PX.modal(T('P2P পেমেন্ট', 'P2P payment'), sum + `
       <form data-pf="p2ppaid" data-id="${p.id}" class="fgrid">${UI.fi({ name: 'ch', label: T('পেমেন্ট চ্যানেল', 'Payment channel'), opts: [['bkash', 'bKash'], ['nagad', 'Nagad'], ['cash', T('ক্যাশ (অফিসে)', 'Cash (office)')]] })}<div class="fld"><small class="hint">${T('ডেমোতে আসল পেমেন্ট হয় না।', 'No real payment in the demo.')}</small><button class="btn btn-p">${T('পেমেন্ট নিশ্চিত', 'Confirm payment')} ${mny(p.price)}</button></div></form>`);
+  };
+  F.p2peps = async f => {
+    const p = DB.p2p.find(x => x.id === f.dataset.id); if (!p || p.status !== 'accepted') return;
+    const er = f.querySelector('#eps-p2p-err'), btn = f.querySelector('button'), me = ME(), lbl = btn.innerHTML, oid = 'P2P-' + p.no;
+    er.textContent = ''; btn.disabled = true; btn.textContent = T('EPS-এ নেওয়া হচ্ছে…', 'Redirecting to EPS…');
+    try {
+      const r = await fetch('/api/eps/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: p.price, orderId: oid, name: me.name, phone: me.phone, email: me.email || '', product: 'P2P #' + p.no }) });
+      const j = await r.json().catch(() => ({}));
+      if (!j.ok) throw new Error(j.code === 'NOT_CONFIGURED' ? T('অনলাইন পেমেন্ট এখনও চালু হয়নি। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।', 'Online payment is not set up yet. Please contact support.') : (j.error || 'Payment could not start'));
+      try { localStorage.setItem('chaatro_eps_pending', JSON.stringify({ kind: 'p2p', txn: j.txn, pid: p.id, amount: p.price, oid, snap: JSON.parse(JSON.stringify(p)), name: me.name, phone: me.phone, at: Date.now() })); } catch (x) {}
+      location.href = j.redirectUrl;
+    } catch (x) { er.textContent = x.message; btn.disabled = false; btn.innerHTML = lbl; }
   };
   F.p2ppaid = (f, d) => { const p = DB.p2p.find(x => x.id === f.dataset.id); p.status = 'paid'; p.paidAt = TODAY; p.ch = d.ch; PX.closeModal(); PX.toast(T('পেমেন্ট সম্পন্ন — P2P ক্লাস শুরু', 'Payment done — P2P classes begin')); PX.refresh(); };
   A.p2pdone = a => { const p = DB.p2p.find(x => x.id === a.dataset.id); if (p) p.status = 'done'; PX.toast(T('সমাধান সম্পন্ন', 'Marked as solved')); PX.refresh(); };
@@ -119,4 +134,13 @@
   const navT = PX.nav.t; PX.nav.t = () => { const l = navT(), i = l.findIndex(x => x.k === 'students'), c = tOpen().length; l.splice(i + 1, 0, { k: 'p2p', l: T('P2P সমস্যা সমাধান', 'P2P problem solving'), i: 'chat', badge: c ? n(c) : '' }); return l; };
   const navA = PX.nav.a; PX.nav.a = () => { const l = navA(); if (!DB.levels[PX.S.level].perms.students) return l; const i = l.findIndex(x => x.k === 'students'); l.splice(i + 1, 0, { k: 'p2p', l: T('P2P সমস্যা সমাধান', 'P2P problem solving'), i: 'chat', also: [], badge: '' }); return l; };
   const homeT = PX.sec.t.home; PX.sec.t.home = (...a) => { const c = tOpen().length, h = homeT(...a); return c ? `<div class="alert info">${ic('chat')}<div><b>${T(`${n(c)}টি নতুন P2P সমস্যা আপনার বিষয়ে পোস্ট হয়েছে`, `${c} new P2P problem(s) posted in your subjects`)}</b><p><a href="#t-p2p">${T('দেখুন ও আবেদন করুন', 'View and apply')}</a></p></div></div>` + h : h; };
+  /* সফল EPS P2P পেমেন্ট (লোকাল রেকর্ড) ডেমো ডেটায় প্রয়োগ */
+  try {
+    (JSON.parse(localStorage.getItem('chaatro_eps_paid_p2p') || '[]') || []).forEach(r => {
+      if (!r.snap || !r.snap.tid) return;
+      let p = DB.p2p.find(x => x.id === r.pid);
+      if (!p) { p = {}; DB.p2p.unshift(p); }
+      Object.assign(p, r.snap, { status: 'paid', paidAt: r.date, ch: 'EPS', txn: r.txn });
+    });
+  } catch (e) {}
 })();

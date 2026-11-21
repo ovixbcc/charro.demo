@@ -885,6 +885,12 @@
         show('check', lang === 'bn' ? 'পেমেন্ট সফল হয়েছে' : 'Payment successful', (lang === 'bn' ? 'আপনার সাবস্ক্রিপশন পরিশোধ হয়েছে, ক্লাস চালু থাকবে। লেনদেন আইডি: ' : 'Your subscription is paid and classes stay active. Transaction ID: ') + txn, `<div class="btns"><a class="btn btn-p" href="#s-pay">${lang === 'bn' ? 'পেমেন্ট ইতিহাস দেখুন' : 'View payment history'}</a></div>`);
         return;
       }
+      if (pend && pend.txn === txn && pend.kind === 'p2p') {
+        if (d.amount != null && Math.abs(d.amount - pend.amount) > 0.5) { show('close', lang === 'bn' ? 'পরিমাণ মেলেনি' : 'Amount mismatch', (lang === 'bn' ? 'সাপোর্টে যোগাযোগ করুন। লেনদেন আইডি: ' : 'Please contact support. Transaction ID: ') + txn); return; }
+        if (!pend.done) { try { const l = JSON.parse(localStorage.getItem('chaatro_eps_paid_p2p') || '[]'); if (!l.some(x => x.txn === txn)) l.push({ txn, pid: pend.pid, amount: pend.amount, snap: pend.snap, date: new Date().toISOString().slice(0, 10) }); localStorage.setItem('chaatro_eps_paid_p2p', JSON.stringify(l)); pend.done = true; localStorage.setItem(PEND, JSON.stringify(pend)); } catch (e) {} }
+        show('check', lang === 'bn' ? 'পেমেন্ট সফল হয়েছে' : 'Payment successful', (lang === 'bn' ? 'আপনি এখন টিচারের সঙ্গে P2P ক্লাসে যুক্ত। লেনদেন আইডি: ' : 'You are now enrolled in the P2P class. Transaction ID: ') + txn, `<div class="btns"><a class="btn btn-p" href="#s-p2p">${lang === 'bn' ? 'আমার P2P দেখুন' : 'View my P2P'}</a></div>`);
+        return;
+      }
       const c = pend && pend.txn === txn ? byId(COURSES, pend.cid) : null;
       if (pend && pend.txn === txn && !pend.done && c) {
         if (d.amount != null && Math.abs(d.amount - pend.amount) > 0.5) { show('close', lang === 'bn' ? 'পরিমাণ মেলেনি' : 'Amount mismatch', (lang === 'bn' ? 'সাপোর্টে যোগাযোগ করুন। লেনদেন আইডি: ' : 'Please contact support. Transaction ID: ') + txn); return; }
