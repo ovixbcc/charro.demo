@@ -153,7 +153,7 @@
   UI.kpi = (label, val, sub = '', tone = '') => `<div class="kpi ${tone}"><small>${label}</small><b>${val}</b>${sub ? `<span>${sub}</span>` : ''}</div>`;
   UI.chip = (txt, kind = '') => `<span class="pchip ${kind}">${txt}</span>`;
   UI.empty = m => `<p class="pempty">${m}</p>`;
-  UI.tbl = (heads, rows) => `<div class="tbl-w"><table class="ptbl"><thead><tr>${heads.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${heads.length}">${UI.empty(T('কিছু নেই', 'Nothing here'))}</td></tr>`}</tbody></table></div>`;
+  UI.tbl = (heads, rows) => { const ac = heads.length > 1 && heads[heads.length - 1] === '' ? heads.length - 1 : -1; return `<div class="tbl-w"><table class="ptbl"><thead><tr>${heads.map((h, k) => `<th${k === ac ? ' class="act"' : ''}>${h}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.map(r => `<tr>${r.map((c, k) => `<td${k === ac ? ' class="act"' : ''}>${c}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${heads.length}">${UI.empty(T('কিছু নেই', 'Nothing here'))}</td></tr>`}</tbody></table></div>`; };
   UI.tabs = (key, list, cur) => `<div class="ptabs" role="tablist">${list.map(x => `<button role="tab" aria-selected="${x[0] === cur}" data-pa="tab" data-k="${key}" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`;
   UI.btn = (txt, act, attrs = '', cls = 'btn-o btn-sm') => `<button class="btn ${cls}" data-pa="${act}" ${attrs}>${txt}</button>`;
   UI.fi = o => {
