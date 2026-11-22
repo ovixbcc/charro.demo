@@ -17,7 +17,7 @@
   setL('academic', { applications: 2, teachers: 2, courses: 2, students: 1, schedule: 2, support: 2, reviews: 2, content: 1 });
   setL('dev', { content: 2, pricing: 1, policies: 2, settings: 2 });
 
-  const PERM_OF = { home: null, profile: null, newcourse: 'courses', bundles: 'courses', referral: 'pricing', programs: 'courses', p2p: 'students' };
+  const PERM_OF = { home: null, profile: null, newcourse: 'courses', bundles: 'courses', referral: 'pricing', programs: 'courses', p2p: 'students', pedit: null };
   const permKey = sec => sec in PERM_OF ? PERM_OF[sec] : sec;
   const lvl = k => (k ? (DB.levels[PX.S.level].perms[k] || 0) : 2);
   const curSec = () => { const m = location.hash.match(/^#a-([a-z0-9]+)/); return m ? m[1] : null; };

@@ -293,3 +293,4 @@ fieldset { min-width: 0; }
 .ptbl td.act .btn{margin-left:.25rem}
 .ptbl code.idc{background:#F3EEFF;color:#6B35D9;padding:.1rem .45rem;border-radius:6px;font:700 .8rem var(--f-d,inherit)}
 .tbl-w .ptbl th.act,.tbl-w .ptbl td.act{position:sticky;right:0;background:#fff;box-shadow:-8px 0 8px -8px rgba(60,30,120,.18)}
+@media (max-width:600px){.pt-top{flex-wrap:wrap}.pt-top h1{min-width:6.5rem;overflow-wrap:normal;word-break:normal}}
