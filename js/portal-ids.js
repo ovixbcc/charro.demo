@@ -66,7 +66,7 @@
   const badge = id => `<span class="idt" title="ID">#${id}</span>`;
   const decorate = (html, role) => {
     const m = dict(role), keep = [];
-    html = html.replace(/<(option|textarea|script|style)[\s\S]*?<\/\1>/g, s => { keep.push(s); return `\u0000${keep.length - 1}\u0000`; });
+    html = html.replace(/<(option|textarea|script|style)[\s\S]*?<\/\1>|<b class="nm">[\s\S]*?<\/b>/g, s => { keep.push(s); return `\u0000${keep.length - 1}\u0000`; });
     html = html.replace(/>([^<>\u0000]+)</g, (all, txt) => { const k = txt.trim(); return m.has(k) ? `>${txt}${badge(m.get(k))}<` : all; });
     return html.replace(/\u0000(\d+)\u0000/g, (a, i) => keep[+i]);
   };
