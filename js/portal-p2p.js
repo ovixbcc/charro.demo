@@ -16,7 +16,7 @@
   const stuOf = sid => DB.crm.find(u => u.id === sid) || (sid === 'u1' ? ME() : { name: '—', sid: '', phone: '' });
   const SUBS = () => SUBJECTS.map(s => [s.id, L(s)]);
   const topicList = sub => (TOPICS[sub] || TOPICS.combined || []).map(x => [L(x.t), L(x.t)]);
-  const stChip = s => ({ open: UI.chip(T('খোলা — টিচারদের আবেদন চলছে', 'Open — teachers applying'), 'info'), accepted: UI.chip(T('টিচার বাছাই হয়েছে — পেমেন্ট বাকি', 'Teacher chosen — payment due'), 'warn'), paid: UI.chip(T('পেমেন্ট হয়েছে — ক্লাস চলছে', 'Paid — in progress'), 'ok'), done: UI.chip(T('সম্পন্ন', 'Completed'), 'ok'), closed: UI.chip(T('বন্ধ', 'Closed')) })[s] || '';
+  const stChip = s => ({ open: UI.chip(T('খোলা — টিচারদের আবেদন চলছে', 'Open — teachers applying'), 'info'), accepted: UI.chip(T('টিচার বাছাই হয়েছে — পেমেন্ট বাকি', 'Teacher chosen — payment due'), 'warn'), paid: UI.chip(T('পেমেন্ট হয়েছে — ক্লাস চলছে', 'Paid — in progress'), 'ok'), done: UI.chip(T('সম্পন্ন', 'Completed'), 'ok'), closed: UI.chip(T('বন্ধ', 'Closed')), withdrawn: UI.chip(T('প্রত্যাহার করা', 'Withdrawn')) })[s] || '';
   const subjName = id => L(SUBJECTS.find(s => s.id === id) || {});
   const progName = id => { const p = PROGRAMS.find(x => x.id === id); return p ? L(p.s) : ''; };
   const matches = (p, tid) => { const t = TEACH(tid); return (t.subs || []).includes(p.subject) || (p.cid && COURSE(p.cid) && COURSE(p.cid).teacher === tid); };
@@ -46,6 +46,7 @@
       ${p.status === 'open' ? `<h4 class="sub">${T('টিচারদের আবেদন', 'Teacher applications')} (${n(p.bids.length)})</h4>${bids || `<p class="soft">${T('এখনো কেউ আবেদন করেননি।', 'No applications yet.')}</p>`}<button class="btn btn-o btn-sm" data-pa="p2pclose" data-id="${p.id}">${T('রিকোয়েস্ট প্রত্যাহার', 'Withdraw request')}</button>` : ''}
       ${p.status === 'accepted' ? `<div class="alert warn">${ic('clock')}<div><b>${T('টিচার: ', 'Teacher: ')}${esc(L(tc.n))} · ${mny(p.price)}</b><p>${T('পেমেন্ট করলেই আপনার ও টিচারের ব্যক্তিগত P2P ক্লাস শুরু হবে।', 'Once you pay, your private P2P classes with this teacher begin.')}</p></div></div><button class="btn btn-p" data-pa="p2ppay" data-id="${p.id}">${T('পেমেন্ট করুন', 'Pay now')} ${mny(p.price)}</button>` : ''}
       ${p.status === 'paid' || p.status === 'done' ? `<div class="alert ok">${ic('check')}<div><b>${T('টিচার: ', 'Teacher: ')}<a href="#teacher-${tc.id}">${esc(L(tc.n))}</a> · ${mny(p.price)} ${T('পরিশোধিত', 'paid')} (${fd(p.paidAt)})</b><p>${T('টিচার আপনার সঙ্গে যোগাযোগ করে ক্লাসের সময় ঠিক করবেন। ফোন: ', 'The teacher will contact you to fix class times. Phone: ')}${esc(tc.phone || '')}</p></div></div>${p.status === 'paid' ? `<button class="btn btn-o btn-sm" data-pa="p2pdone" data-id="${p.id}">${T('সমাধান সম্পন্ন', 'Mark as solved')}</button>` : ''}` : ''}
+      ${p.tid && ['accepted', 'paid', 'done'].includes(p.status) && (p.status !== 'accepted' || schedOf(p).length) ? schedBlock(p, 's') : ''}
     </div>`;
   };
   PX.sec.s.p2p = () => {
@@ -90,6 +91,50 @@
   F.p2ppaid = (f, d) => { const p = DB.p2p.find(x => x.id === f.dataset.id); p.status = 'paid'; p.paidAt = TODAY; p.ch = d.ch; PX.closeModal(); PX.toast(T('পেমেন্ট সম্পন্ন — P2P ক্লাস শুরু', 'Payment done — P2P classes begin')); PX.refresh(); };
   A.p2pdone = a => { const p = DB.p2p.find(x => x.id === a.dataset.id); if (p) p.status = 'done'; PX.toast(T('সমাধান সম্পন্ন', 'Marked as solved')); PX.refresh(); };
 
+
+  /* ===== ক্লাস শিডিউল: টিচার/অ্যাডমিন প্রস্তাব করেন → স্টুডেন্ট গ্রহণ করেন ===== */
+  function canEdit() { return ['super', 'academic'].includes(PX.S.level); }
+  function schedOf(p) { return (p.sched = p.sched || []); }
+  const tm12 = t => { const [h, m] = (t || '00:00').split(':').map(Number); return `${((h + 11) % 12) + 1}:${String(m || 0).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
+  const sChip = s => ({ proposed: UI.chip(T('স্টুডেন্টের গ্রহণের অপেক্ষায়', 'Awaiting student'), 'warn'), accepted: UI.chip(T('নিশ্চিত', 'Confirmed'), 'ok'), declined: UI.chip(T('সময় বদলের অনুরোধ', 'Change requested'), 'bad'), done: UI.chip(T('সম্পন্ন', 'Done'), 'ok'), cancelled: UI.chip(T('বাতিল', 'Cancelled')) })[s.st] || '';
+  function schedBlock(p, who) {
+    const l = schedOf(p).slice().sort((a, b) => (a.at + a.time).localeCompare(b.at + b.time)), used = l.filter(x => x.st !== 'cancelled').length, ed = who === 'a' ? canEdit() : who === 't';
+    const canAdd = ed && used < p.classes && (who === 't' ? p.status === 'paid' : ['accepted', 'paid'].includes(p.status));
+    const d = (a, id, cls, txt, sid, extra = '') => `<button class="btn ${cls} btn-sm" data-pa="${a}" data-id="${id}" data-sid="${sid}" data-who="${who}" ${extra}>${txt}</button>`;
+    const btns = s => {
+      if (who === 's') return s.st === 'proposed' ? d('p2pschacc', p.id, 'btn-p', T('গ্রহণ করুন', 'Accept'), s.id) + d('p2pschno', p.id, 'btn-o', T('সময় বদলান', 'Ask to change'), s.id) : '';
+      if (!ed || s.st === 'cancelled' || s.st === 'done') return '';
+      return (s.st === 'accepted' && p.status === 'paid' ? d('p2pschdone', p.id, 'btn-p', T('সম্পন্ন', 'Mark done'), s.id) : '') + (who === 'a' && s.st !== 'accepted' ? d('p2pschacc', p.id, 'btn-o', T('স্টুডেন্টের পক্ষে গ্রহণ', 'Accept for student'), s.id) : '') + d('p2psch', p.id, 'btn-o', T('বদলান', 'Edit'), s.id) + d('p2pschdel', p.id, 'btn-o', T('বাতিল', 'Cancel'), s.id);
+    };
+    const rows = l.map(s => `<div class="sch ${s.st}"><div><b>${fd(s.at)} · ${tm12(s.time)}</b> <small>${n(s.dur)} ${T('মিনিট', 'min')}</small> ${sChip(s)}${s.note ? `<p class="soft">${esc(s.note)}</p>` : ''}${s.st === 'declined' && s.reason ? `<p class="soft">${T('স্টুডেন্টের কারণ', 'Student reason')}: ${esc(s.reason)}</p>` : ''}</div><div class="sch-a">${btns(s)}</div></div>`).join('');
+    return `<h4 class="sub">${T('ক্লাসের সময়সূচি', 'Class schedule')} · ${n(used)}/${n(p.classes)}</h4>${rows || `<p class="soft">${who === 's' ? T('টিচার সময় প্রস্তাব করলে এখানে দেখাবে, আপনি গ্রহণ করবেন।', 'Times proposed by your teacher will appear here for you to accept.') : T('এখনো কোনো ক্লাসের সময় দেওয়া হয়নি।', 'No class time set yet.')}</p>`}${canAdd ? `<button class="btn btn-o btn-sm" data-pa="p2psch" data-id="${p.id}" data-who="${who}">+ ${T('ক্লাসের সময় যোগ করুন', 'Add class time')}</button>` : ''}`;
+  }
+  const findS = a => { const p = DB.p2p.find(x => x.id === a.dataset.id); return [p, p && schedOf(p).find(x => x.id === a.dataset.sid)]; };
+  const denied = who => who === 'a' && !canEdit() ? (PX.toast(T('এই লেভেলে অনুমতি নেই', 'Not allowed at this level')), true) : false;
+  A.p2psch = a => {
+    const p = DB.p2p.find(x => x.id === a.dataset.id), s = a.dataset.sid ? schedOf(p).find(x => x.id === a.dataset.sid) : null, who = a.dataset.who; if (!p || denied(who)) return;
+    PX.modal(`${s ? T('সময় বদলান', 'Edit class time') : T('ক্লাসের সময় যোগ', 'Add class time')} — #P${p.no}`, `<form data-pf="p2psch" data-id="${p.id}" data-sid="${s ? s.id : ''}" data-who="${who}" class="fgrid">
+      ${UI.fi({ name: 'at', label: T('তারিখ', 'Date'), type: 'date', min: TODAY, val: s ? s.at : '', req: 1, half: 1 })}${UI.fi({ name: 'time', label: T('সময়', 'Time'), type: 'time', val: s ? s.time : '', req: 1, half: 1 })}
+      ${UI.fi({ name: 'dur', label: T('সময়কাল', 'Duration'), opts: [30, 45, 60, 90, 120].map(m => [m, m + ' ' + T('মিনিট', 'min')]), val: s ? s.dur : 60, half: 1 })}${UI.fi({ name: 'note', label: T('নোট / টপিক (ঐচ্ছিক)', 'Note / topic (optional)'), val: s ? s.note : '', half: 1 })}
+      <div class="fld"><small class="hint">${who === 's' ? '' : T('স্টুডেন্ট গ্রহণ করলে ক্লাসটি নিশ্চিত হবে।', 'The class is confirmed once the student accepts.')}</small><small class="err" id="sch-err" role="alert"></small><button class="btn btn-p">${T('সংরক্ষণ', 'Save')}</button></div></form>`);
+  };
+  F.p2psch = (f, d) => {
+    const p = DB.p2p.find(x => x.id === f.dataset.id), who = f.dataset.who, er = f.querySelector('#sch-err'); if (!p || denied(who)) return;
+    const l = schedOf(p), cur = f.dataset.sid ? l.find(x => x.id === f.dataset.sid) : null, bad = m => { er.textContent = m; };
+    if (!d.at || d.at < TODAY) return bad(T('আজ বা পরের তারিখ দিন', 'Pick today or a later date'));
+    if (!d.time) return bad(T('সময় দিন', 'Pick a time'));
+    if (l.some(x => x !== cur && x.st !== 'cancelled' && x.at === d.at && x.time === d.time)) return bad(T('এই সময়ে আগেই একটি ক্লাস আছে', 'A class already exists at this time'));
+    if (!cur && l.filter(x => x.st !== 'cancelled').length >= p.classes) return bad(T('সব ক্লাসের সময় ইতোমধ্যে দেওয়া হয়েছে', 'All classes are already scheduled'));
+    const o = { at: d.at, time: d.time, dur: +d.dur || 60, note: (d.note || '').trim(), st: 'proposed', reason: '', by: who };
+    if (cur) Object.assign(cur, o); else l.push(Object.assign({ id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) }, o));
+    PX.closeModal(); PX.toast(T('সময় প্রস্তাব করা হয়েছে — স্টুডেন্ট গ্রহণ করবেন', 'Time proposed — the student will accept')); PX.refresh();
+  };
+  A.p2pschacc = a => { const [p, s] = findS(a); if (!s || denied(a.dataset.who)) return; s.st = 'accepted'; s.reason = ''; PX.toast(T('ক্লাস নিশ্চিত হয়েছে', 'Class confirmed')); PX.refresh(); };
+  A.p2pschno = a => { const [p, s] = findS(a); if (!s) return; PX.modal(T('অন্য সময় চান', 'Ask for another time'), `<p class="soft">${fd(s.at)} · ${tm12(s.time)}</p><form data-pf="p2pschno" data-id="${p.id}" data-sid="${s.id}" class="fgrid">${UI.fi({ name: 'reason', label: T('কেন বদলাতে চান / কোন সময় সুবিধা', 'Why / which time suits you'), rows: 3, req: 1 })}<div class="fld"><button class="btn btn-p">${T('অনুরোধ পাঠান', 'Send request')}</button></div></form>`); };
+  F.p2pschno = (f, d) => { const p = DB.p2p.find(x => x.id === f.dataset.id), s = p && schedOf(p).find(x => x.id === f.dataset.sid); if (!s) return; s.st = 'declined'; s.reason = (d.reason || '').trim(); PX.closeModal(); PX.toast(T('টিচারকে জানানো হয়েছে', 'The teacher has been told')); PX.refresh(); };
+  A.p2pschdone = a => { const [p, s] = findS(a); if (!s || denied(a.dataset.who)) return; s.st = 'done'; PX.toast(T('ক্লাস সম্পন্ন', 'Class marked done')); PX.refresh(); };
+  A.p2pschdel = a => { const [p, s] = findS(a); if (!s || denied(a.dataset.who)) return; if (s.st === 'accepted') s.st = 'cancelled'; else p.sched = p.sched.filter(x => x !== s); PX.toast(T('ক্লাস বাতিল', 'Class cancelled')); PX.refresh(); };
+
   /* ===== টিচার ===== */
   const tOpen = () => DB.p2p.filter(p => p.status === 'open' && matches(p, TID) && !myBid(p, TID));
   const tBids = () => DB.p2p.filter(p => myBid(p, TID) && (p.status === 'open' || myBid(p, TID).st === 'declined' || (p.tid !== TID && p.status !== 'open')));
@@ -102,6 +147,7 @@
       ${mode === 'bids' && p.status === 'open' && b && b.st === 'pending' ? `<p>${T('আপনার অফার', 'Your offer')}: <b>${mny(b.price)}</b> — ${esc(b.msg || '')}</p><button class="btn btn-o btn-sm" data-pa="p2pbid" data-id="${p.id}">${T('অফার বদলান', 'Edit offer')}</button> <button class="btn btn-o btn-sm" data-pa="p2pwd" data-id="${p.id}">${T('প্রত্যাহার', 'Withdraw')}</button>` : ''}
       ${mode === 'bids' && b && b.st === 'declined' ? `<p class="soft">${T('আপনার অফার: ', 'Your offer: ')}${mny(b.price)}</p>` : ''}
       ${mode === 'active' ? `<p>${p.status === 'accepted' ? UI.chip(T('স্টুডেন্টের পেমেন্টের অপেক্ষায়', 'Waiting for student payment'), 'warn') : p.status === 'paid' ? UI.chip(T('পেমেন্ট হয়েছে — ক্লাস নিন', 'Paid — start classes'), 'ok') : UI.chip(T('সম্পন্ন', 'Completed'), 'ok')} ${T('মূল্য', 'Price')}: <b>${mny(p.price)}</b>${p.status !== 'accepted' ? ` · ${T('স্টুডেন্টের ফোন', 'Student phone')}: ${esc(s.phone || '')}` : ''}</p>` : ''}
+      ${mode === 'active' && ['paid', 'done'].includes(p.status) ? schedBlock(p, 't') : ''}
     </div>`; };
   PX.sec.t.p2p = () => {
     const k = PX.S.tab.p2pt || 'open', op = tOpen(), bd = tBids(), ac = tActive(), served = new Set(DB.p2p.filter(p => p.tid === TID && (p.status === 'paid' || p.status === 'done')).map(p => p.sid)).size;
@@ -126,11 +172,72 @@
   };
   A.p2pwd = a => { const p = DB.p2p.find(x => x.id === a.dataset.id); p.bids = p.bids.filter(b => b.tid !== TID); PX.toast(T('আবেদন প্রত্যাহার করা হয়েছে', 'Application withdrawn')); PX.refresh(); };
 
-  /* ===== অ্যাডমিন (দেখার জন্য) ===== */
-  PX.sec.a.p2p = () => UI.card(T('P2P সমস্যা সমাধান', 'P2P problem solving'), UI.tbl([T('আইডি', 'ID'), T('স্টুডেন্ট', 'Student'), T('বিষয় / টপিক', 'Subject / topics'), T('বাজেট', 'Budget'), T('আবেদন', 'Bids'), T('অবস্থা', 'Status'), T('টিচার', 'Teacher'), T('মূল্য', 'Price'), T('প্ল্যাটফর্ম ফি', 'Platform fee')], DB.p2p.map(p => { const s = stuOf(p.sid); return [`#P${p.no}`, `${esc(s.name)}`, `${esc(subjName(p.subject))}<small>${esc(p.topics.join(', '))}</small>`, mny(p.budget), n(p.bids.length), stChip(p.status), p.tid ? esc(L(TEACH(p.tid).n)) : '—', p.tid ? mny(p.price) : '—', p.tid && (p.status === 'paid' || p.status === 'done') ? mny(PX.feeFor(p.tid, null, p.price)) : '—']; })));
+  /* ===== অ্যাডমিন: দেখা, এডিট, টিচার অ্যাসাইন, শিডিউল (সুপার ও একাডেমিক অ্যাডমিন) ===== */
+  const ST = ['open', 'accepted', 'paid', 'done', 'withdrawn'];
+  const stName = s => ({ open: T('খোলা', 'Open'), accepted: T('টিচার বাছাই — পেমেন্ট বাকি', 'Teacher chosen — payment due'), paid: T('পেমেন্ট হয়েছে', 'Paid'), done: T('সম্পন্ন', 'Completed'), withdrawn: T('প্রত্যাহার', 'Withdrawn') })[s];
+  const schedCnt = p => { const l = schedOf(p).filter(x => x.st !== 'cancelled'); return `${l.filter(x => x.st === 'accepted' || x.st === 'done').length}/${l.length}/${p.classes}`; };
+  const assign = (p, tid, price, msg) => {
+    const b = p.bids.find(x => x.tid === tid);
+    p.bids.forEach(x => { x.st = x.tid === tid ? 'accepted' : 'declined'; });
+    if (b) { b.price = price; } else p.bids.push({ tid, price, msg: msg || 'Assigned by admin', at: TODAY, st: 'accepted', admin: 1 });
+    p.tid = tid; p.price = price; if (p.status === 'open') p.status = 'accepted';
+  };
+  const adminList = () => {
+    const k = PX.S.tab.p2pa || 'all', all = DB.p2p, l = k === 'all' ? all : all.filter(p => p.status === k), cnt = s => all.filter(p => p.status === s).length;
+    const pendSch = all.reduce((a, p) => a + schedOf(p).filter(x => x.st === 'proposed' || x.st === 'declined').length, 0);
+    return `<div class="kpis">${UI.kpi(T('মোট পোস্ট', 'Total posts'), n(all.length))}${UI.kpi(T('খোলা', 'Open'), n(cnt('open')), '', cnt('open') ? 'warn' : '')}${UI.kpi(T('পেমেন্ট বাকি', 'Payment due'), n(cnt('accepted')), '', cnt('accepted') ? 'warn' : '')}${UI.kpi(T('সক্রিয় (পেইড)', 'Active (paid)'), n(cnt('paid')), '', 'ok')}${UI.kpi(T('শিডিউল অপেক্ষায়/বদলের অনুরোধ', 'Schedules pending / change asked'), n(pendSch), '', pendSch ? 'warn' : '')}</div>` +
+      UI.tabs('p2pa', [['all', T('সব', 'All') + ' (' + all.length + ')']].concat(ST.map(s => [s, stName(s).split(' —')[0] + ' (' + cnt(s) + ')'])), k) +
+      UI.card(T('P2P সমস্যা সমাধান', 'P2P problem solving'), UI.tbl([T('আইডি', 'ID'), T('স্টুডেন্ট আইডি', 'Student ID'), T('স্টুডেন্ট', 'Student'), T('বিষয়', 'Subject'), T('টপিক', 'Topics'), T('বাজেট', 'Budget'), T('আবেদন', 'Bids'), T('অবস্থা', 'Status'), T('টিচার আইডি', 'Teacher ID'), T('টিচার', 'Teacher'), T('মূল্য', 'Price'), T('প্ল্যাটফর্ম ফি', 'Platform fee'), T('ক্লাস (নিশ্চিত/দেওয়া/মোট)', 'Classes (confirmed/set/total)'), ''],
+        l.map(p => { const s = stuOf(p.sid), t = p.tid ? TEACH(p.tid) : null; return [PX.idc ? PX.idc('P' + p.no) : '#P' + p.no, PX.idc ? PX.idc(s.sid || '—') : esc(s.sid || ''), `<b class="nm">${esc(s.name)}</b>`, esc(subjName(p.subject)), esc(p.topics.join(', ')), mny(p.budget), n(p.bids.length), stChip(p.status), t && PX.idc ? PX.idc(t.pid) : '—', t ? `<b class="nm">${esc(L(t.n))}</b>` : '—', t ? mny(p.price) : '—', t && (p.status === 'paid' || p.status === 'done') ? mny(PX.feeFor(p.tid, null, p.price)) : '—', t ? schedCnt(p) : '—', `<a class="btn btn-p btn-sm" href="#a-p2p-${p.id}">${T('খুলুন', 'Open')}</a>`]; })));
+  };
+  const adminDetail = id => {
+    const p = DB.p2p.find(x => x.id === id); if (!p) return UI.card('', UI.empty(T('পোস্ট পাওয়া যায়নি', 'Post not found')));
+    const s = stuOf(p.sid), ed = canEdit(), tc = p.tid ? TEACH(p.tid) : null, back = `<a class="btn btn-o btn-sm" href="#a-p2p">← ${T('তালিকায় ফিরুন', 'Back to list')}</a>`;
+    const kv = UI.tbl([T('বিষয়', 'Field'), T('তথ্য', 'Detail')], [[T('স্টুডেন্ট', 'Student'), `<b class="nm">${esc(s.name)}</b> ${PX.idc ? PX.idc(s.sid || '') : ''} · ${esc(s.phone || '')}`], [T('পোস্টের তারিখ', 'Posted'), fd(p.date)], [T('অবস্থা', 'Status'), stChip(p.status)], [T('টিচার', 'Teacher'), tc ? `<b class="nm">${esc(L(tc.n))}</b> ${PX.idc ? PX.idc(tc.pid) : ''} · ${esc(tc.phone || '')}` : '—'], [T('মূল্য', 'Price'), tc ? mny(p.price) : '—'], [T('পেমেন্ট', 'Payment'), p.paidAt ? `${fd(p.paidAt)} · ${esc(p.ch || '')}${p.txn ? ' · ' + esc(p.txn) : ''}` : '—']]);
+    const tOpts = [['', T('— টিচার বেছে নিন —', '— choose teacher —')]].concat(TEACHERS.slice().sort((a, b) => (matches(p, b.id) ? 1 : 0) - (matches(p, a.id) ? 1 : 0)).map(t => [t.id, `${L(t.n)} · #${t.pid}${matches(p, t.id) ? ' ★' : ''}`]));
+    const editF = `<form data-pf="p2padm" data-id="${p.id}" class="fgrid">
+      ${UI.fi({ name: 'program', label: T('কোর্স টাইপ', 'Course type'), half: 1, opts: [['', T('যেকোনো', 'Any')]].concat(PROGRAMS.filter(x => !x.hidden).map(x => [x.id, L(x.s)])), val: p.program })}${UI.fi({ name: 'subject', label: T('বিষয়', 'Subject'), half: 1, req: 1, opts: SUBS(), val: p.subject }).replace('name="subject"', 'name="subject" data-pc="p2psub"')}
+      <div id="p2p-topics" class="fld full">${UI.checks('topics', topicList(p.subject).concat(p.topics.filter(x => !topicList(p.subject).some(y => y[0] === x)).map(x => [x, x])), p.topics, T('টপিক', 'Topics'))}</div>
+      ${UI.fi({ name: 'problem', label: T('সমস্যা', 'Problem'), rows: 4, req: 1, val: p.problem })}
+      ${UI.fi({ name: 'classes', label: T('ক্লাস সংখ্যা', 'Classes'), type: 'number', min: 1, val: p.classes, half: 1, req: 1 })}${UI.fi({ name: 'budget', label: T('বাজেট (৳)', 'Budget (৳)'), type: 'number', min: 100, val: p.budget, half: 1, req: 1 })}
+      ${UI.fi({ name: 'pref', label: T('পছন্দের সময়', 'Preferred time'), val: p.pref, half: 1 })}${UI.fi({ name: 'status', label: T('অবস্থা', 'Status'), half: 1, opts: ST.map(x => [x, stName(x)]), val: p.status })}
+      <div class="fld"><small class="err" id="pa-err" role="alert"></small><button class="btn btn-p">${T('পরিবর্তন সংরক্ষণ', 'Save changes')}</button></div></form>`;
+    const bids = p.bids.map(b => { const t = TEACH(b.tid); return `<div class="bid ${b.st === 'accepted' ? 'on' : ''}"><div class="bid-h"><span><b>${esc(L(t.n))}</b><small>#${t.pid} · ★ ${t.rating}${b.admin ? ' · ' + T('অ্যাডমিন অ্যাসাইন', 'admin assigned') : ''}</small></span><em>${mny(b.price)}</em></div><p>${esc(b.msg || '')}</p>${b.st === 'accepted' ? UI.chip(T('বাছাই করা', 'Chosen'), 'ok') : ed && ['open', 'accepted'].includes(p.status) ? `<button class="btn btn-p btn-sm" data-pa="p2padmpick" data-id="${p.id}" data-tid="${b.tid}">${T('এঁকে অ্যাসাইন করুন', 'Assign this teacher')}</button>` : UI.chip(b.st === 'declined' ? T('বাদ', 'Not chosen') : T('অপেক্ষমাণ', 'Pending'))}</div>`; }).join('');
+    const asg = `<form data-pf="p2passign" data-id="${p.id}" class="fgrid">${UI.fi({ name: 'tid', label: T('টিচার', 'Teacher'), opts: tOpts, val: p.tid, req: 1, half: 1 })}${UI.fi({ name: 'price', label: T('মোট মূল্য (৳)', 'Total price (৳)'), type: 'number', min: 100, val: p.price || p.budget, req: 1, half: 1 })}
+      <div class="fld"><small class="hint">${p.status === 'paid' || p.status === 'done' ? T('সতর্কতা: পেমেন্ট হয়ে গেছে — টিচার বদলালে আয়ের হিসাব নতুন টিচারের নামে যাবে।', 'Warning: already paid — changing the teacher moves the earnings to the new teacher.') : T('অ্যাসাইনের পর স্টুডেন্ট EPS-এ পেমেন্ট করলে P2P ক্লাস শুরু হবে।', 'After assigning, the student pays via EPS and the P2P classes begin.')}</small><small class="err" id="as-err" role="alert"></small><button class="btn btn-p">${p.tid ? T('টিচার বদলান', 'Change teacher') : T('টিচার অ্যাসাইন', 'Assign teacher')}</button>${p.status === 'accepted' ? ` <button type="button" class="btn btn-o" data-pa="p2padmun" data-id="${p.id}">${T('অ্যাসাইন বাতিল (আবার খোলা)', 'Unassign (reopen)')}</button>` : ''}</div></form>`;
+    return UI.card(`#P${p.no} · ${esc(subjName(p.subject))}`, kv, back) +
+      (ed ? UI.card(T('পোস্ট এডিট', 'Edit post'), editF) + UI.card(T('টিচার অ্যাসাইন / বদল', 'Assign / change teacher'), asg) : `<div class="alert info">${ic('shield')}<div>${T('এডিটের অনুমতি শুধু সুপার ও একাডেমিক অ্যাডমিনের।', 'Only Super and Academic admins can edit.')}</div></div>`) +
+      UI.card(`${T('টিচারদের আবেদন', 'Teacher applications')} (${n(p.bids.length)})`, bids || `<p class="soft">${T('কোনো আবেদন নেই।', 'No applications.')}</p>`) +
+      UI.card(T('ক্লাসের সময়সূচি', 'Class schedule'), p.tid ? schedBlock(p, 'a') : `<p class="soft">${T('আগে টিচার অ্যাসাইন করুন।', 'Assign a teacher first.')}</p>`) +
+      (ed && p.status !== 'withdrawn' && p.status !== 'done' ? `<div class="btns"><button class="btn btn-o" data-pa="p2padmclose" data-id="${p.id}">${T('পোস্ট প্রত্যাহার/বন্ধ করুন', 'Withdraw / close this post')}</button></div>` : '');
+  };
+  PX.sec.a.p2p = id => id ? adminDetail(id) : adminList();
+  F.p2padm = (f, d) => {
+    if (!canEdit()) return; const p = DB.p2p.find(x => x.id === f.dataset.id), er = f.querySelector('#pa-err'), bad = m => { er.textContent = m; }, cl = Math.round(+d.classes), bg = Math.round(+d.budget);
+    if (!(d.problem || '').trim()) return bad(T('সমস্যাটি লিখুন', 'Describe the problem'));
+    if (!(d.topics || []).length) return bad(T('অন্তত একটি টপিক বেছে নিন', 'Pick at least one topic'));
+    if (!(cl >= 1 && cl <= 30)) return bad(T('ক্লাস ১–৩০ এর মধ্যে', 'Classes must be 1–30'));
+    if (cl < schedOf(p).filter(x => x.st !== 'cancelled').length) return bad(T('ইতোমধ্যে এর চেয়ে বেশি ক্লাসের সময় দেওয়া আছে', 'More classes are already scheduled than this'));
+    if (!(bg >= 100)) return bad(T('বাজেট কমপক্ষে ১০০ ৳', 'Budget must be at least ৳100'));
+    if (d.status !== 'open' && d.status !== 'withdrawn' && !p.tid) return bad(T('এই অবস্থার জন্য আগে টিচার অ্যাসাইন করুন', 'Assign a teacher before using this status'));
+    if (d.status === 'open' && p.tid) return bad(T('আবার খোলা করতে “অ্যাসাইন বাতিল” ব্যবহার করুন', 'Use “Unassign” to reopen'));
+    Object.assign(p, { program: d.program || '', subject: d.subject, topics: d.topics.slice(), problem: d.problem.trim(), classes: cl, budget: bg, pref: (d.pref || '').trim() });
+    if (d.status === 'paid' && !p.paidAt) { p.paidAt = TODAY; p.ch = 'Admin'; }
+    p.status = d.status; PX.toast(T('পোস্ট হালনাগাদ হয়েছে', 'Post updated')); PX.refresh();
+  };
+  F.p2passign = (f, d) => {
+    if (!canEdit()) return; const p = DB.p2p.find(x => x.id === f.dataset.id), er = f.querySelector('#as-err'), pr = Math.round(+d.price);
+    if (!d.tid) { er.textContent = T('টিচার বেছে নিন', 'Choose a teacher'); return; }
+    if (!(pr >= 100)) { er.textContent = T('মূল্য কমপক্ষে ১০০ ৳', 'Price must be at least ৳100'); return; }
+    if (p.status === 'withdrawn' || p.status === 'done') { er.textContent = T('এই অবস্থায় অ্যাসাইন করা যায় না', 'Cannot assign in this status'); return; }
+    assign(p, d.tid, pr); PX.toast(T('টিচার অ্যাসাইন হয়েছে', 'Teacher assigned')); PX.refresh();
+  };
+  A.p2padmpick = a => { if (!canEdit()) return; const p = DB.p2p.find(x => x.id === a.dataset.id), b = p.bids.find(x => x.tid === a.dataset.tid); if (!b) return; assign(p, b.tid, b.price); PX.toast(T('টিচার অ্যাসাইন হয়েছে', 'Teacher assigned')); PX.refresh(); };
+  A.p2padmun = a => { if (!canEdit()) return; const p = DB.p2p.find(x => x.id === a.dataset.id); if (!p || p.status !== 'accepted') return; p.bids = p.bids.filter(b => !b.admin); p.bids.forEach(b => { b.st = 'pending'; }); p.tid = ''; p.price = 0; p.status = 'open'; PX.toast(T('পোস্ট আবার খোলা হয়েছে', 'Post reopened')); PX.refresh(); };
+  A.p2padmclose = a => { if (!canEdit()) return; const p = DB.p2p.find(x => x.id === a.dataset.id); if (p) { p.status = 'withdrawn'; PX.toast(T('পোস্ট বন্ধ করা হয়েছে', 'Post closed')); } PX.refresh(); };
 
   /* নেভ + হোম */
-  const navS = PX.nav.s; PX.nav.s = () => { const l = navS(), i = l.findIndex(x => x.k === 'explore'), op = mine().filter(p => p.status === 'open').reduce((a, p) => a + p.bids.length, 0); l.splice(i + 1, 0, { k: 'p2p', l: T('P2P সমস্যা সমাধান', 'P2P problem solving'), i: 'chat', badge: op ? n(op) : '' }); return l; };
+  const navS = PX.nav.s; PX.nav.s = () => { const l = navS(), i = l.findIndex(x => x.k === 'explore'), op = mine().filter(p => p.status === 'open').reduce((a, p) => a + p.bids.length, 0) + mine().reduce((a, p) => a + schedOf(p).filter(x => x.st === 'proposed').length, 0); l.splice(i + 1, 0, { k: 'p2p', l: T('P2P সমস্যা সমাধান', 'P2P problem solving'), i: 'chat', badge: op ? n(op) : '' }); return l; };
   const navT = PX.nav.t; PX.nav.t = () => { const l = navT(), i = l.findIndex(x => x.k === 'students'), c = tOpen().length; l.splice(i + 1, 0, { k: 'p2p', l: T('P2P সমস্যা সমাধান', 'P2P problem solving'), i: 'chat', badge: c ? n(c) : '' }); return l; };
   const navA = PX.nav.a; PX.nav.a = () => { const l = navA(); if (!DB.levels[PX.S.level].perms.students) return l; const i = l.findIndex(x => x.k === 'students'); l.splice(i + 1, 0, { k: 'p2p', l: T('P2P সমস্যা সমাধান', 'P2P problem solving'), i: 'chat', also: [], badge: '' }); return l; };
   const homeT = PX.sec.t.home; PX.sec.t.home = (...a) => { const c = tOpen().length, h = homeT(...a); return c ? `<div class="alert info">${ic('chat')}<div><b>${T(`${n(c)}টি নতুন P2P সমস্যা আপনার বিষয়ে পোস্ট হয়েছে`, `${c} new P2P problem(s) posted in your subjects`)}</b><p><a href="#t-p2p">${T('দেখুন ও আবেদন করুন', 'View and apply')}</a></p></div></div>` + h : h; };
