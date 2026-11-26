@@ -294,3 +294,5 @@ fieldset { min-width: 0; }
 .ptbl code.idc{background:#F3EEFF;color:#6B35D9;padding:.1rem .45rem;border-radius:6px;font:700 .8rem var(--f-d,inherit)}
 .tbl-w .ptbl th.act,.tbl-w .ptbl td.act{position:sticky;right:0;background:#fff;box-shadow:-8px 0 8px -8px rgba(60,30,120,.18)}
 @media (max-width:600px){.pt-top{flex-wrap:wrap}.pt-top h1{min-width:6.5rem;overflow-wrap:normal;word-break:normal}}
+
+.sch{display:flex;gap:.6rem;justify-content:space-between;align-items:center;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:12px;padding:.6rem .8rem;margin:.4rem 0}.sch.proposed{border-color:#F2C46B}.sch.accepted{border-color:#9ED9B5}.sch.declined{border-color:#E9A0A0}.sch-a{display:flex;gap:.3rem;flex-wrap:wrap}
