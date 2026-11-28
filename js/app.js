@@ -209,6 +209,11 @@
   const siteBar = () => { const b = SITE.data.bar, tx = (b.text && (b.text[lang] || b.text.bn || b.text.en)) || ''; return b.on && tx ? `<div class="site-bar" style="background:${esc(b.bg || '#8C52FF')}">${b.link ? `<a href="${esc(b.link)}">${esc(tx)}</a>` : `<span>${esc(tx)}</span>`}</div>` : ''; };
   let menuOpen = false;
 
+  /* logged-in (Supabase) user: name + Log out instead of "Log in" */
+  const authUser = () => (window.CHAUTH && CHAUTH.user) || null;
+  const authNav = act => { const u = authUser(); return u ? `<a class="btn btn-o btn-sm" href="#s-home" title="${esc(u.email)}">${esc((u.name || u.email || '').split(' ')[0])}</a><button class="btn btn-o btn-sm" type="button" data-act="logout">${lang === 'bn' ? 'লগআউট' : 'Log out'}</button>` : `<a class="btn btn-o btn-sm" href="#login"${act('login')}>${t('login')}</a>`; };
+  /* checkout: prefill name/email for logged-in users (never overwrites what the user already typed) */
+  function prefillAuth() { const u = authUser(); if (!u) return; [['en_name', u.name], ['en_email', u.email]].forEach(([n, v]) => { $$(`#app [name="${n}"], #modal [name="${n}"]`).forEach(el => { if (v && !el.value) el.value = v; }); }); }
   function header(r) {
     const act = n => (r.name === n || (n === 'courses' && r.name === 'course') || (n === 'teachers' && r.name === 'teacher') || (n === 'blog' && r.name === 'post')) ? ' aria-current="page"' : '';
     return `${siteBar()}<div class="wrap hd-in">
@@ -216,7 +221,7 @@
       <nav class="nav ${menuOpen ? 'open' : ''}" id="nav" aria-label="main">
         ${navOn('home') ? `<a href="#home"${act('home')}>${t('nav_home')}</a>` : ''}${navOn('courses') ? `<a href="#courses"${act('courses')}>${t('nav_courses')}</a>` : ''}${navOn('teachers') ? `<a href="#teachers"${act('teachers')}>${t('nav_teachers')}</a>` : ''}${navOn('how') ? `<a href="#how-it-works"${act('how-it-works')}>${t('nav_how')}</a>` : ''}${navOn('blog') ? `<a href="#blog"${act('blog')}>${t('nav_blog')}</a>` : ''}${navOn('contact') ? `<a href="#contact"${act('contact')}>${t('nav_contact')}</a>` : ''}
         <div class="nav-end">
-          <a class="btn btn-o btn-sm" href="#login"${act('login')}>${t('login')}</a>
+          ${authNav(act)}
           ${navOn('become') ? `<a class="btn btn-p btn-sm becomet" href="#become-teacher"${act('become-teacher')}>${ic('award')}${t('nav_become')}</a>` : ''}
         </div>
       </nav>
@@ -600,7 +605,7 @@
     const m = document.createElement('div'); m.className = 'modal'; m.id = 'modal';
     m.innerHTML = `<div class="m-bg" data-act="close"></div><div class="m-box ${cls}" role="dialog" aria-modal="true" tabindex="-1">${html}</div>`;
     document.body.appendChild(m); document.body.classList.add('noscroll');
-    const box = $('.m-box', m); box.focus();
+    const box = $('.m-box', m); box.focus(); prefillAuth();
   }
   function closeModal() { const m = $('#modal'); if (m) m.remove(); document.body.classList.remove('noscroll'); }
 
@@ -861,12 +866,15 @@
   /* ---------- EPS অনলাইন পেমেন্ট ---------- */
   const epsOn = () => !!(window.PGW && PGW.epsOn());
   const PEND = 'chaatro_eps_pending';
+  /* logged-in: send the Supabase access token (the server verifies it and sets orders.user_id); guests send none */
+  async function epsHeaders() { const h = { 'Content-Type': 'application/json' }, tk = window.CHAUTH ? await CHAUTH.token() : null; if (tk) h.Authorization = 'Bearer ' + tk; return h; }
+  window.CHEPS = { headers: epsHeaders };
   async function startEps(f) {
     const c = byId(COURSES, CO.id), k = calc(c, CO), btn = f.querySelector('button[type=submit]'), er = $('#e-pay'), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
     const nm = fv(f, 'en_name'), ph = fv(f, 'en_phone'), em = fv(f, 'en_email');
     er.textContent = ''; btn.disabled = true; const lbl = btn.innerHTML; btn.textContent = lang === 'bn' ? 'EPS-এ নেওয়া হচ্ছে…' : 'Redirecting to EPS…';
     try {
-      const r = await fetch('/api/eps/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: k.now, orderId: oid, name: nm, phone: ph, email: em, product: L(c.title) }) });
+      const r = await fetch('/api/eps/init', { method: 'POST', headers: await epsHeaders(), body: JSON.stringify({ kind: 'course', cid: c.id, fmt: CO.fmt, plan: k.opt.key, code: couponFor(c, CO.code) ? CO.code : '', orderId: oid, name: nm, phone: ph, email: em, product: L(c.title) }) });
       const d = await r.json().catch(() => ({}));
       if (!d.ok) throw new Error(d.code === 'NOT_CONFIGURED' ? (lang === 'bn' ? 'অনলাইন পেমেন্ট এখনও সম্পূর্ণ চালু হয়নি। অনুগ্রহ করে ক্যাশ পেমেন্ট বেছে নিন।' : 'Online payment is not fully set up yet. Please choose cash payment.') : (d.error || 'Payment could not start'));
       try { localStorage.setItem(PEND, JSON.stringify({ txn: d.txn, cid: c.id, fmt: CO.fmt, pref: CO.pref || '', amount: k.now, oid, name: nm, phone: ph, email: em, at: Date.now() })); } catch (e) {}
@@ -1044,6 +1052,7 @@
     window.scrollTo(0, 0);
   }
 
+  function viewAuthCb() { return pagehead(lang === 'bn' ? 'লগইন হচ্ছে…' : 'Signing you in…', '', '') + sec('', '', `<div class="bt-form done-w"><div class="done"><h3>${lang === 'bn' ? 'অনুগ্রহ করে অপেক্ষা করুন…' : 'Please wait…'}</h3></div></div>`); }
   function view404() {
     return `<section class="sec"><div class="wrap center"><h1>${t('nf_t')}</h1><p class="mute">${t('nf_d')}</p><a class="btn btn-p" href="#home">${t('back_home')}</a></div></section>`;
   }
@@ -1051,6 +1060,7 @@
   /* ---------- router / render ---------- */
   function route() {
     const h = (location.hash || '#home').slice(1) || 'home';
+    if (/^(access_token|refresh_token|error|error_description|error_code|code|type|provider_token)=/.test(h)) return { name: 'authcb' };
     if (h === 'portal') return { name: 'portal', role: null };
     const pm = h.match(/^([stai])-([a-z0-9]+)(?:-(.+))?$/);
     if (pm) return { name: 'portal', role: pm[1], sec: pm[2], arg: pm[3] };
@@ -1085,11 +1095,12 @@
   function render(keep) {
     stopSlides();
     const r = route();
+    if ((r.name === 'login' || r.name === 'signup') && authUser()) { location.replace('#s-home'); return; }
     const snap = keep && r.name !== 'portal' ? snapshot() : null;
     const V = {
       home: viewHome, blog: viewBlog, post: () => viewPost(r.id), checkout: () => viewCheckout(r.id), epsres: () => viewEpsRes(r.id), bundles: viewBundles, bundle: () => viewBundle(r.id), bpay: () => viewBundlePay(r.id), courses: viewCourses, course: () => viewCourse(r.id), teachers: viewTeachers, teacher: () => viewTeacher(r.id),
       'become-teacher': viewBecome, 'institution-onboard': viewInstOnboard, 'how-it-works': viewHow, about: viewAbout, faq: viewFaq, contact: viewContact,
-      login: () => viewAuth('login'), signup: () => viewAuth('signup'), policy: () => viewPolicy(r.id),
+      login: () => viewAuth('login'), signup: () => viewAuth('signup'), authcb: viewAuthCb, policy: () => viewPolicy(r.id),
     };
     const fn = V[r.name] || view404;
     if (r.name === 'portal') {
@@ -1121,6 +1132,7 @@
     if (r.name === 'teachers') teachersGrid();
     if (r.name === 'home') startSlides();
     if (snap) restore(snap);
+    prefillAuth();
     if (!keep) window.scrollTo(0, 0);
   }
 
@@ -1165,6 +1177,7 @@
     const act = a.dataset.act;
     if (act === 'lang') { lang = lang === 'bn' ? 'en' : 'bn'; try { localStorage.setItem('chaatro-lang', lang); } catch (x) { /* ignore */ } closeModal(); render(true); }
     else if (act === 'scr') { const tr = a.parentElement.querySelector('.scr-t'); tr.scrollBy({ left: +a.dataset.dir * Math.max(240, tr.clientWidth * .85), behavior: 'smooth' }); }
+    else if (act === 'logout') { Promise.resolve(window.CHAUTH && CHAUTH.signOut()).then(() => { if (route().name === 'portal') location.hash = '#home'; else render(true); }); }
     else if (act === 'menu') { menuOpen = !menuOpen; $('#hd').innerHTML = header(route()); }
     else if (act === 'reset') { F = Object.assign({}, F0); const keepScroll = window.scrollY; render(true); window.scrollTo(0, keepScroll); }
     else if (act === 'next') { showSlide(slide + 1); stopSlides(); }
@@ -1275,6 +1288,7 @@
 
   window.CH = { SLIDES: SLIDES_ALL, ytId, player, lang: () => lang, num, money, esc, L, fdate, byId, ic, avatar, rate, PCOLOR, planOptions, planLabel, firstOf, cyc, couponFor, rerender: () => render(true), t };
   window.addEventListener('hashchange', () => { menuOpen = false; closeModal(); render(false); });
+  window.addEventListener('chauth', () => { const r = route(); if (r.name === 'login' || r.name === 'signup') { if (authUser()) location.replace('#s-home'); return; } if (r.name === 'portal') render(true); else if (r.name !== 'authcb') { $('#hd').innerHTML = header(r); prefillAuth(); } });
   document.addEventListener('DOMContentLoaded', () => render(false));
   if (document.readyState !== 'loading') render(false);
 })();

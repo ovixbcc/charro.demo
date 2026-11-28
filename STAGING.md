@@ -1,16 +1,13 @@
-# Staging ও লাইভ
+# Staging test steps (auth + EPS identity)
 
-- `main` ব্রাঞ্চ = লাইভ (chaatro.com)। এটা ছোঁয়া হবে না যতক্ষণ না পরীক্ষা শেষ।
-- `staging` ব্রাঞ্চ = টেস্ট কপি। পুশ করলে Vercel একই প্রজেক্টে আলাদা Preview ঠিকানা বানায়
-  (Vercel → Deployments → ব্রাঞ্চ `staging` → Visit)। লাইভ ডোমেইন বদলাতে হয় না।
-- স্টেজিংয়ে নিচে কমলা "STAGING" ব্যানার দেখায়; chaatro.com-এ দেখায় না।
-- Vercel → Settings → Environment Variables-এ `EPS_*` কী দুই জায়গায় আলাদা দিন:
-  Production = লাইভ কী (`EPS_SANDBOX=false`), Preview = স্যান্ডবক্স কী (`EPS_SANDBOX=true`)।
+Branch: `staging` only (staging.chaatro.com). Production (`main`) is untouched. No env vars or SQL changes.
 
-## লাইভে নেওয়ার নিয়ম
-```
-git checkout staging   # এখানে কাজ ও পরীক্ষা
-git push
-# ঠিক থাকলে:
-git checkout main && git merge staging && git push
-```
+1. Google login: open staging.chaatro.com -> Log in -> "Continue with Google". After Google you land on `/#s-home` (student portal) with your real name/email. Failed sign-in shows a red message on the login page.
+2. Refresh the page: still logged in. Header shows your first name + "Log out". Going to Home does not log you out. Opening `#login` while logged in redirects to the portal.
+3. Log out (header button or portal sidebar): calls Supabase signOut; refresh -> "Log in" again.
+4. Roles: a Google user is student-only. `#t-home`, `#a-home`, `#i-home` show "No access". Demo logins (admin/teacher/student/institution) still work while logged out.
+5. Logged-in sandbox payment: checkout prefills name/email; request carries `Authorization: Bearer <token>`; the server verifies it and stores `orders.user_id`. Check in Supabase: `select order_id, user_id, amount from orders order by created_at desc limit 5;`
+6. Guest sandbox payment: log out, pay -> order saved with `user_id` NULL.
+7. Prices are computed on the server (`api/_price.js` from `js/data.js`); the browser `amount` is ignored for course/subscription/bundle. P2P amounts are only range-checked (no catalog yet) and are flagged "[price not verified]".
+
+Known limits: portal data (courses, payments) is still in-memory demo data; bundle checkout is still cash-only (server pricing for bundles exists but the page does not call EPS yet).

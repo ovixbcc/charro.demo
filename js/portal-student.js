@@ -199,7 +199,7 @@
     const er = f.querySelector('#eps-sub-err'), btn = f.querySelector('button'), me = ME(), lbl = btn.innerHTML, oid = 'SUB-' + String(100000 + Math.floor(Math.random() * 899999));
     er.textContent = ''; btn.disabled = true; btn.textContent = T('EPS-এ নেওয়া হচ্ছে…', 'Redirecting to EPS…');
     try {
-      const r = await fetch('/api/eps/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: e.per, orderId: oid, name: me.name, phone: me.phone, email: me.email || '', product: CH.L(COURSE(cid).title) + ' (subscription)' }) });
+      const r = await fetch('/api/eps/init', { method: 'POST', headers: await (window.CHEPS ? CHEPS.headers() : { 'Content-Type': 'application/json' }), body: JSON.stringify({ kind: 'sub', cid, fmt: e.fmt, plan: e.plan, orderId: oid, name: me.name, phone: me.phone, email: me.email || '', product: CH.L(COURSE(cid).title) + ' (subscription)' }) });
       const j = await r.json().catch(() => ({}));
       if (!j.ok) throw new Error(j.code === 'NOT_CONFIGURED' ? T('অনলাইন পেমেন্ট এখনও সম্পূর্ণ চালু হয়নি। ক্যাশ পেমেন্ট বেছে নিন।', 'Online payment is not set up yet. Please choose cash.') : (j.error || 'Payment could not start'));
       try { localStorage.setItem('chaatro_eps_pending', JSON.stringify({ kind: 'sub', txn: j.txn, cid, amount: e.per, oid, name: me.name, phone: me.phone, email: me.email || '', at: Date.now() })); } catch (x) {}
