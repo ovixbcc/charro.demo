@@ -368,6 +368,8 @@
         <div class="cc-price"><div><small>${t('bd_price')}</small>${prc(k.total, k.price)}</div></div>
         <a class="btn btn-p btn-block" href="#bundle-${b.id}">${t('details')}${ic('arrow')}</a></div></article>`;
   }
+  /* shown wherever the catalog is empty: no sample courses, teachers or reviews exist */
+  const soonSec = () => sec('sec-soft', '', `<div class="bt-form done-w"><div class="done"><span class="done-i">${ic('clock')}</span><h3>${t('soon_t')}</h3><p>${t('soon_d')}</p><div class="btns"><a class="btn btn-p" href="#become-teacher">${t('nav_become')}</a> <a class="btn btn-o" href="#how-it-works">${t('tb3')}</a></div></div></div>`);
   function viewBundles() {
     const l = BUNDLES.filter(b => b.active && bundleCourses(b).length > 1);
     return pagehead(t('bd_t'), t('bd_d'), `<span>/</span><span>${t('bd_t')}</span>`) + sec('', '', l.length ? `<div class="grid grid-c">${l.map(bundleCard).join('')}</div>` : `<p class="mute">${t('bd_none')}</p>`);
@@ -399,7 +401,7 @@
         <h3 class="fs-t">${t('ck_pay')}</h3>
         <fieldset class="co-g pays"><label class="opt on"><input type="radio" name="bpay" value="cash" checked><span><b>${t('ck_cash')}</b><small>${t('ck_cash_d')}</small></span></label></fieldset>
         <p class="paynote ok">${ic('check')}${t('ck_cash_note')}</p>
-        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button><p class="mute sm center">${t('ck_demo')}</p></form>
+        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button></form>
         <aside class="checkout"><h3>${t('ck_summary')}</h3><div class="ck-c" style="--cc:${progColor(k.cs[0].program)}"><span class="ck-code">${t('bd_tag')}</span><span><b>${esc(L(b.title))}</b><small>${num(k.cs.length)} ${t('bd_n')}</small></span></div>
           <ul class="ck-l">${k.cs.map(c => `<li><span>${esc(L(c.title))}</span><b>${money(pricingFor(c)[c.formats[0]].fullD)}</b></li>`).join('')}</ul>
           <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s class="pr-old">${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')}</dt><dd class="pr-off">− ${money(k.save)}</dd></div>${k.cut ? `<div class="ok"><dt>${t('sum_cp')}</dt><dd class="pr-off">− ${money(k.cut)}</dd></div>` : ''}<div class="tot"><dt>${t('sum_total')}</dt><dd class="pr-new">${money(k.final)}</dd></div></dl>${cpn}
@@ -409,7 +411,8 @@
   function viewHome() {
     const feat = liveCourses().filter(c => c.featured);
     const ftch = TEACHERS.filter(x => ['t01', 't02', 't08'].includes(x.id));
-    const avg = (COURSES.reduce((s, c) => s + c.rating, 0) / COURSES.length).toFixed(1);
+    const none = !COURSES.length;
+    const avg = COURSES.length ? (COURSES.reduce((s, c) => s + c.rating, 0) / COURSES.length).toFixed(1) : '0';
     const stu = COURSES.reduce((s, c) => s + c.enrolled, 0);
     return `
     <section class="banner"><div class="wrap">
@@ -424,22 +427,23 @@
       </div>
       <div class="thin">
         <a href="#become-teacher" class="tb">${ic('award')}<span>${t('tb1')}</span></a>
-        <button class="tb" data-act="coupon-note">${ic('plus')}<span>${t('tb2')}</span></button>
         <a href="#how-it-works" class="tb">${ic('video')}<span>${t('tb3')}</span></a>
       </div>
     </div></section>
 
-    ${sec('sec-soft', sechead(t('prog_t'), t('prog_d')), scroller(PROGRAMS.filter(p => !p.hidden).map(p => {
+    ${none ? soonSec() : ''}
+
+    ${none ? '' : sec('sec-soft', sechead(t('prog_t'), t('prog_d')), scroller(PROGRAMS.filter(p => !p.hidden).map(p => {
       const n = liveCourses().filter(c => c.program === p.id).length;
       return `<button class="scr-i pcard" data-pick="program" data-val="${p.id}" data-go="1">${p.thumb ? `<img class="pc-thumb" src="${p.thumb}" alt="">` : progArt(p.id)}<span class="pc-shade"></span><span class="pc-code">${esc(p.code)}</span><span class="pc-t">${esc(L(p))}</span><span class="pc-d">${esc(L(p.d))}</span><span class="pc-n">${num(n)} ${t('courses_n')}${ic('arrow')}</span></button>`;
     }).join(''), 'programs'))}
 
-    ${sec('sec-filter', sechead(t('home_find_t'), t('home_find_d')), `${filterBar(true)}<div class="grid grid-c" id="results"></div>
+    ${none ? '' : sec('sec-filter', sechead(t('home_find_t'), t('home_find_d')), `${filterBar(true)}<div class="grid grid-c" id="results"></div>
       <div class="more"><a class="btn btn-o" href="#courses">${t('see_all_courses')}${ic('arrow')}</a></div>`)}
 
-    ${sec('sec-soft', sechead(t('brt_t'), t('brt_d'), `<a class="btn btn-o" href="#teachers">${t('all_teachers')}${ic('arrow')}</a>`), scroller(TEACHERS.map(x => `<div class="scr-i scr-t1">${teacherCard(x)}</div>`).join(''), 'teachers'))}
+    ${none ? '' : sec('sec-soft', sechead(t('brt_t'), t('brt_d'), `<a class="btn btn-o" href="#teachers">${t('all_teachers')}${ic('arrow')}</a>`), scroller(TEACHERS.map(x => `<div class="scr-i scr-t1">${teacherCard(x)}</div>`).join(''), 'teachers'))}
 
-    ${sec('', sechead(t('subj_t'), t('subj_d')), scroller(SUBJECTS.map(s => {
+    ${none ? '' : sec('', sechead(t('subj_t'), t('subj_d')), scroller(SUBJECTS.map(s => {
       const n = COURSES.filter(c => c.subject === s.id).length;
       return `<button class="scr-i scard sc-img" data-pick="subject" data-val="${s.id}" data-go="1">${subjArt(s.id)}<span class="sc-body"><b>${esc(L(s))}</b><small>${num(n)} ${t('courses_n')}</small></span></button>`;
     }).join(''), 'subjects'))}
@@ -451,13 +455,13 @@
       <div class="fmt-c fmt-hi"><span class="fmt-n">${num('1 : 7')}</span><h3>${t('group_fmt')}</h3><p>${t('fmt_grp_d')}</p><ul><li>${ic('check')}${t('fmt_grp_1')}</li><li>${ic('check')}${t('fmt_grp_2')}</li><li>${ic('check')}${t('fmt_grp_3')}</li></ul></div>
     </div>`)}
 
-    ${sec('', sechead(t('stats_t')), `<div class="stats">
+    ${none ? '' : sec('', sechead(t('stats_t')), `<div class="stats">
       <div><b>${num(COURSES.length)}</b><span>${t('st_courses')}</span></div>
       <div><b>${num(TEACHERS.length)}</b><span>${t('st_teachers')}</span></div>
       <div><b>${num(stu)}+</b><span>${t('st_students')}</span></div>
       <div><b>${num(avg)}</b><span>${t('st_rating')}</span></div></div>`)}
 
-    ${sec('sec-soft', sechead(t('rev_t'), t('rev_d')), scroller(REVIEWS.map(r => `<div class="scr-i scr-r">${reviewCard(r)}</div>`).join(''), 'reviews'))}
+    ${!REVIEWS.length ? '' : sec('sec-soft', sechead(t('rev_t'), t('rev_d')), scroller(REVIEWS.map(r => `<div class="scr-i scr-r">${reviewCard(r)}</div>`).join(''), 'reviews'))}
 
     ${sec('', sechead(t('blog_t'), t('blog_home_d'), `<a class="btn btn-o" href="#blog">${t('all_posts')}${ic('arrow')}</a>`), `<div class="grid grid-b">${BLOG.slice(0, 3).map(blogCard).join('')}</div>`)}
 
@@ -473,7 +477,7 @@
 
   function viewCourses() {
     return pagehead(t('nav_courses'), t('courses_d'), `<span>/</span><span>${t('nav_courses')}</span>`) +
-      sec('sec-filter', '', `${filterBar()}<div class="grid grid-c" id="results"></div>`);
+      (!COURSES.length ? soonSec() : sec('sec-filter', '', `${filterBar()}<div class="grid grid-c" id="results"></div>`));
   }
 
   /* ---------- course detail ---------- */
@@ -519,7 +523,7 @@
       ${st.fmt === 'one' ? `<div class="coupon"><label for="pref">${t('pref_time')}</label><input id="pref" data-co="pref" type="text" value="${esc(st.pref || '')}" placeholder="${t('pref_ph')}" autocomplete="off"><small class="hint">${t('pref_hint')}</small></div>` : `<p class="co-note">${ic('users')}${grpNote(st.fmt)}</p>`}
       <fieldset class="co-g"><legend>${t('co_plan')}</legend>${planOptions(c, st.fmt).map(planOpt).join('')}</fieldset>
       <div class="coupon"><label for="cpn">${t('co_coupon')}</label>
-        <div class="cp-row"><input id="cpn" type="text" value="${esc(st.input || '')}" placeholder="CHAATRO10" autocomplete="off" autocapitalize="characters"><button class="btn btn-o" data-act="apply">${t('apply')}</button></div>
+        <div class="cp-row"><input id="cpn" type="text" value="${esc(st.input || '')}" placeholder="" autocomplete="off" autocapitalize="characters"><button class="btn btn-o" data-act="apply">${t('apply')}</button></div>
         <small class="${cp ? 'okm' : st.err ? 'err' : 'hint'}" role="status">${cp ? '✓ ' + esc(L(cp)) : st.err ? t('cp_bad') : t('cp_hint')}</small></div>
       <dl class="sum">
         ${k.actual > k.disc ? `<div><dt>${lang === 'bn' ? 'আসল দাম' : 'Actual price'}</dt><dd><s class="pr-old">${money(k.actual)}</s></dd></div><div class="ok"><dt>${lang === 'bn' ? 'ছাড়' : 'Discount'}</dt><dd class="pr-off">− ${money(k.actual - k.disc)}</dd></div>` : ''}
@@ -639,11 +643,11 @@
   }
   function viewTeachers() {
     return pagehead(t('nav_teachers'), t('teachers_d'), `<span>/</span><span>${t('nav_teachers')}</span>`) +
-      sec('sec-filter', '', `<div class="fb"><div class="fb-top"><label class="srch" for="t-q">${ic('search')}<input id="t-q" data-tf="q" type="search" value="${esc(TF.q)}" placeholder="${t('t_ph')}" autocomplete="off"></label></div>
+      (!TEACHERS.length ? soonSec() : sec('sec-filter', '', `<div class="fb"><div class="fb-top"><label class="srch" for="t-q">${ic('search')}<input id="t-q" data-tf="q" type="search" value="${esc(TF.q)}" placeholder="${t('t_ph')}" autocomplete="off"></label></div>
       <div class="fb-row">
         ${sel('t-inst', t('t_inst'), [['all', t('all')]].concat(INSTITUTIONS.map(i => [i.id, L(i)])), TF.inst).replace('data-f="t-inst"', 'data-tf="inst"')}
         ${sel('t-subj', t('f_subject'), [['all', t('all')]].concat(SUBJECTS.map(s => [s.id, L(s)])), TF.subject).replace('data-f="t-subj"', 'data-tf="subject"')}
-      </div></div><div class="rhead" aria-live="polite"><b id="tcount"></b></div><div class="grid grid-t" id="tresults"></div>`);
+      </div></div><div class="rhead" aria-live="polite"><b id="tcount"></b></div><div class="grid grid-t" id="tresults"></div>`));
   }
 
   function viewTeacher(id) {
@@ -942,7 +946,6 @@
         <div id="pay-note" aria-live="polite">${payNote()}</div>
         <small class="err" id="e-pay" role="alert"></small>
         <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button>
-        <p class="mute sm center">${t('ck_demo')}</p>
       </form>
       <aside class="checkout"><h3>${t('ck_summary')}</h3>
         <div class="ck-c" style="--cc:${progColor(c.program)}"><span class="ck-code">${esc(byId(PROGRAMS, c.program).code)}</span><span><b>${esc(L(c.title))}</b><small>${avatar(tc, 20)} ${esc(L(tc.n))}</small></span></div>

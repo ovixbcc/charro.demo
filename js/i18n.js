@@ -15,7 +15,7 @@ add('login', 'লগইন', 'Log in');
 add('signup', 'সাইন আপ', 'Sign up');
 add('lang_label', 'ভাষা পরিবর্তন করুন', 'Change language');
 add('menu', 'মেনু', 'Menu');
-add('ft_about', 'দেশের নামকরা বিশ্ববিদ্যালয়ের টিচারদের কাছে সারা বাংলাদেশের শিক্ষার্থীরা লাইভ ক্লাসে শিখছে, জেলা-উপজেলা থেকে ইউনিয়ন পর্যন্ত।', 'Students across Bangladesh learn live from teachers of the country’s leading universities, from districts to unions.');
+add('ft_about', 'সারা বাংলাদেশের শিক্ষার্থীদের জন্য লাইভ অনলাইন ক্লাস, জেলা-উপজেলা থেকে ইউনিয়ন পর্যন্ত।', 'Live online classes for students across Bangladesh, from districts to unions.');
 add('ft_programs', 'প্রোগ্রাম', 'Programs');
 add('ft_company', 'ছাত্র.com', 'Chaatro.com');
 add('ft_policy', 'নীতিমালা', 'Policies');
@@ -104,19 +104,18 @@ add('banner_label', 'প্রধান ব্যানার', 'Main banner');
 add('prev', 'আগেরটি', 'Previous');
 add('next', 'পরেরটি', 'Next');
 add('s1_e', 'ছাত্র.com', 'Chaatro.com');
-add('s1_t', 'দেশসেরা ভার্সিটির টিচারদের কাছে, ঘরে বসে', 'Learn from top university teachers, from home');
-add('s1_d', 'বুয়েট, ঢাকা বিশ্ববিদ্যালয়, ঢাকা মেডিকেল ও অন্যান্য সরকারি বিশ্ববিদ্যালয়ের টিচারদের সঙ্গে লাইভ ক্লাস, সারা দেশ থেকে।', 'Live classes with teachers from BUET, Dhaka University, Dhaka Medical and other public universities, from anywhere in the country.');
+add('s1_t', 'ঘরে বসে লাইভ ক্লাসে শিখুন', 'Learn in live classes, from home');
+add('s1_d', '১-টু-১ ও গ্রুপ ক্লাসে সারা দেশ থেকে লাইভ শেখার প্ল্যাটফর্ম।', 'A platform for live 1-to-1 and group classes, from anywhere in the country.');
 add('s1_c', 'কোর্স খুঁজুন', 'Find a course');
 add('s2_e', 'ক্র্যাশ কোর্স', 'Crash courses');
 add('s2_t', 'সপ্তাহে ১–২ দিন মডেল টেস্ট, ভর্তি পরীক্ষার আগে শেষ প্রস্তুতি', '1–2 model tests a week, last-mile admission prep');
-add('s2_d', 'ঢাবি ক, খ, গ, ঘ ইউনিট, BUP ও বুয়েটের জন্য আলাদা ব্যাচ।', 'Separate batches for DU Units Ka, Kha, Ga, Gha, BUP and BUET.');
+add('s2_d', 'ঢাবি ক, খ, গ, ঘ ইউনিট, BUP ও বুয়েটের ভর্তি পরীক্ষার জন্য ক্র্যাশ কোর্স আসছে।', 'Crash courses for the DU Units Ka, Kha, Ga, Gha, BUP and BUET admission tests are coming.');
 add('s2_c', 'ক্র্যাশ কোর্স দেখুন', 'See crash courses');
 add('s3_e', 'ক্যাডেট কলেজ ভর্তি', 'Cadet College admission');
 add('s3_t', 'বাংলা, ইংরেজি, গণিত, সাধারণ জ্ঞান, আলাদা বা চারটি একসঙ্গে', 'Bangla, English, Math, GK: single subjects or all four together');
 add('s3_d', '১-টু-১ অথবা গ্রুপ অফ ৭, আপনার বাজেট অনুযায়ী।', 'In 1-to-1 or Group of 7, to fit your budget.');
 add('s3_c', 'ক্যাডেট কোর্স দেখুন', 'See cadet courses');
 add('tb1', 'টিচার হতে চান? আজই আবেদন করুন', 'Want to teach? Apply today');
-add('tb2', 'কুপন CHAATRO10 দিলে ১০% ছাড়', 'Use coupon CHAATRO10 for 10% off');
 add('tb3', 'ক্লাস কীভাবে হয়, দেখে নিন', 'See how classes work');
 add('home_find_t', 'আপনার কোর্সটি খুঁজে নিন', 'Find your course');
 add('home_find_d', 'প্রোগ্রাম, বিষয়, ক্লাসের ধরন, টিচার ও বাজেট দিয়ে ছেঁকে নিন।', 'Filter by program, subject, class type, teacher and budget.');
@@ -124,13 +123,13 @@ add('see_all_courses', 'আরও কোর্স ব্রাউজ করু�
 add('prog_t', 'প্রোগ্রাম অনুযায়ী দেখুন', 'Browse by program');
 add('prog_d', 'কোন পরীক্ষার প্রস্তুতি নিচ্ছেন, সেটি বেছে নিন।', 'Pick the exam you are preparing for.');
 add('brt_t', 'টিচার অনুযায়ী দেখুন', 'Browse by teacher');
-add('brt_d', 'দেশের সেরা বিশ্ববিদ্যালয়ের টিচারদের বেছে নিন।', 'Pick from top-university teachers.');
+add('brt_d', 'আপনার পছন্দের টিচার বেছে নিন।', 'Choose your teacher.');
 add('subj_t', 'বিষয় অনুযায়ী দেখুন', 'Browse by subject');
 add('subj_d', 'একটি বিষয় আলাদা করে অথবা সব বিষয় একসঙ্গে।', 'One subject on its own, or all together.');
 add('feat_t', 'ফিচার্ড কোর্স', 'Featured courses');
 add('feat_d', 'শিক্ষার্থীদের সবচেয়ে পছন্দের কোর্সগুলো।', 'The courses students like most.');
 add('teach_t', 'আমাদের টিচার', 'Our teachers');
-add('teach_d', 'যাচাই করা টিচার, নিজের ভার্সিটির পরিচয়সহ।', 'Verified teachers, with their university shown.');
+add('teach_d', 'টিচারদের পরিচিতি ও যাচাই ব্যাজ।', 'Teacher profiles and verification badges.');
 add('all_teachers', 'সব টিচার', 'All teachers');
 add('fmt_t', '১-টু-১ নাকি গ্রুপ?', '1-to-1 or group?');
 add('fmt_d', 'দুটোতেই লাইভ ক্লাস, পার্থক্য মনোযোগ আর খরচে।', 'Both are live; they differ in attention and cost.');
@@ -218,7 +217,7 @@ add('order_d', 'এটি ডেমো অর্ডার। ব্যাকএ�
 add('order_id', 'অর্ডার নম্বর', 'Order number');
 
 /* teachers */
-add('teachers_d', 'নামকরা বিশ্ববিদ্যালয়ের শিক্ষার্থী ও শিক্ষক, যাচাই করা ব্যাজসহ।', 'Students and faculty of leading universities, with verification badges.');
+add('teachers_d', 'টিচারদের পরিচিতি ও যাচাই ব্যাজ।', 'Teacher profiles and verification badges.');
 add('t_ph', 'টিচারের নাম বা বিভাগ লিখুন', 'Search by teacher name or department');
 add('t_inst', 'প্রতিষ্ঠান', 'Institution');
 add('teachers_found', 'জন টিচার', 'teachers');
@@ -369,13 +368,13 @@ add('cmp_rec_v', 'দুটোতেই লাইভ ক্লাস, রেক�
 /* about */
 add('ab_d', 'ছাত্র.com কেন, কাদের জন্য, কীভাবে।', 'Why Chaatro.com exists, who it is for, and how it works.');
 add('ab_t1', 'আমরা কী করি', 'What we do');
-add('ab_p1', 'ছাত্র.com একটি অনলাইন লার্নিং প্ল্যাটফর্ম। ভালো শিক্ষক পাওয়া কঠিন, বিশেষ করে জেলা, উপজেলা, থানা ও ইউনিয়ন পর্যায়ে। আমরা দেশের নামকরা বিশ্ববিদ্যালয়ের শিক্ষার্থী ও শিক্ষকদের সঙ্গে সারা দেশের শিক্ষার্থীদের লাইভ ক্লাসে যুক্ত করি।', 'Chaatro.com is an online learning platform. Good teachers are hard to find, especially at district, upazila, thana and union level. We connect students across the country with students and faculty of leading universities in live classes.');
+add('ab_p1', 'ছাত্র.com একটি অনলাইন লার্নিং প্ল্যাটফর্ম। ভালো শিক্ষক পাওয়া কঠিন, বিশেষ করে জেলা, উপজেলা, থানা ও ইউনিয়ন পর্যায়ে। আমরা অনুমোদিত টিচারদের সঙ্গে সারা দেশের শিক্ষার্থীদের লাইভ ক্লাসে যুক্ত করি।', 'Chaatro.com is an online learning platform. Good teachers are hard to find, especially at district, upazila, thana and union level. We connect students across the country with approved teachers in live classes.');
 add('ab_t2', 'দুই ধরনের ক্লাস', 'Two kinds of class');
 add('ab_p2', '১-টু-১ ক্লাসে পুরো মনোযোগ, গ্রুপ ক্লাসে কম খরচ ও সহপাঠীদের সঙ্গে সুস্থ প্রতিযোগিতা। শুরুতে গ্রুপ ব্যাচে সাতজন শিক্ষার্থী থাকে।', '1-to-1 gives full attention; group classes cost less and add healthy competition with classmates. A group batch starts with seven students.');
 add('ab_k1', 'কোথায়', 'Where');
 add('ab_v1', 'সারা বাংলাদেশ', 'All of Bangladesh');
 add('ab_k2', 'টিচার', 'Teachers');
-add('ab_v2', 'বুয়েট, ঢাবি, ঢাকা মেডিকেল, জাবি, BUP ও অন্যান্য', 'BUET, DU, Dhaka Medical, JU, BUP and more');
+add('ab_v2', 'অ্যাডমিন অনুমোদিত টিচার', 'Admin-approved teachers');
 add('ab_k3', 'ক্লাসের ধরন', 'Class types');
 add('ab_v3', '১-টু-১ ও গ্রুপ অফ ৭', '1-to-1 and Group of 7');
 add('ab_k4', 'ক্লাস', 'Classes');
@@ -508,8 +507,10 @@ add('ck_next', 'এরপর কী হবে', 'What happens next');
 add('ck_n1', 'টিম ফোন করে টাকা জমার নির্দেশনা দেবে', 'The team calls you with payment instructions');
 add('ck_n2', 'পেমেন্ট নিশ্চিত হলে কোর্স আপনার ড্যাশবোর্ডে যুক্ত হবে', 'Once payment is confirmed the course appears on your dashboard');
 add('ck_n3', 'ব্যাচ চ্যাটে যোগ দিয়ে ক্লাসের জয়েন লিংক পাবেন', 'Join the batch chat and get the class join link');
-add('ck_demo', 'ডেমো: অর্ডারটি এখনও কোথাও সংরক্ষিত হয় না। ব্যাকএন্ড যুক্ত হলে আসল অর্ডার তৈরি হবে।', 'Demo: the order is not stored anywhere yet. Real orders start once the backend is connected.');
 add('ck_secure', 'কোর্স ফি', 'Course fee');
-add('ft_short', 'দেশসেরা ভার্সিটির টিচারদের লাইভ ক্লাস, সারা বাংলাদেশে।', 'Live classes with top university teachers, across Bangladesh.');
+add('ft_short', 'সারা বাংলাদেশে লাইভ ক্লাস।', 'Live classes across Bangladesh.');
 add('ft_prog_l', 'প্রোগ্রাম', 'Programs');
 
+
+add('soon_t', 'কোর্স শিগগিরই আসছে', 'Courses coming soon');
+add('soon_d', 'আমরা টিচার ও কোর্স যুক্ত করছি। কিছুদিন পর আবার দেখুন।', 'We are adding teachers and courses. Please check back soon.');
