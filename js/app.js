@@ -389,6 +389,8 @@
   function viewBundlePay(id) {
     const b = byId(BUNDLES, id); if (!b || !b.active) return view404();
     const k = bdFinal(b); if (k.cs.length < 2) return view404();
+    if (!BCO.pay) BCO.pay = epsOn() ? 'online' : 'cash';
+    const bopt = (v, ti, de) => `<label class="opt ${BCO.pay === v ? 'on' : ''}"><input type="radio" name="bpay" value="${v}" ${BCO.pay === v ? 'checked' : ''}><span><b>${ti}</b><small>${de}</small></span></label>`;
     const cpn = `<div class="coupon"><label for="bcpn">${t('co_coupon')}</label><div class="cp-row"><input id="bcpn" type="text" value="${esc(BCO.id === b.id ? BCO.input : '')}" placeholder="BUNDLE10" autocomplete="off" autocapitalize="characters"><button type="button" class="btn btn-o" data-act="bapply" data-id="${b.id}">${t('apply')}</button></div>
           <small class="${k.cp ? 'okm' : BCO.id === b.id && BCO.err ? 'err' : 'hint'}" role="status">${k.cp ? '✓ ' + esc(L(k.cp)) : BCO.id === b.id && BCO.err ? t('cp_bad') : t('cp_hint')}</small></div>`;
     return pagehead(t('ck_t'), t('ck_d'), `<span>/</span><a href="#bundle-${b.id}">${esc(L(b.title))}</a><span>/</span><span>${t('ck_t')}</span>`) +
@@ -397,9 +399,13 @@
         <div class="row">${fld({ name: 'en_name', label: t('f_name'), req: true, auto: 'name' })}${fld({ name: 'en_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}</div>
         <div class="row">${fld({ name: 'en_email', label: t('f_email'), type: 'email', auto: 'email' })}${fld({ name: 'en_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' })}</div>
         <h3 class="fs-t">${t('ck_pay')}</h3>
-        <fieldset class="co-g pays"><label class="opt on"><input type="radio" name="bpay" value="cash" checked><span><b>${t('ck_cash')}</b><small>${t('ck_cash_d')}</small></span></label></fieldset>
-        <p class="paynote ok">${ic('check')}${t('ck_cash_note')}</p>
-        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button><p class="mute sm center">${t('ck_demo')}</p></form>
+        <fieldset class="co-g pays"><legend class="sr">${t('ck_pay')}</legend>
+          ${epsOn() ? bopt('online', PGW.get().eps[lang] || 'EPS', lang === 'bn' ? 'নিরাপদ EPS পেজে গিয়ে পেমেন্ট করুন' : 'Pay on the secure EPS page') : ''}
+          ${bopt('cash', t('ck_cash'), t('ck_cash_d'))}
+        </fieldset>
+        <div id="pay-note" aria-live="polite">${bpayNote()}</div>
+        <small class="err" id="e-pay" role="alert"></small>
+        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button><p class="mute sm center" id="bpay-demo"${BCO.pay === 'online' ? ' hidden' : ''}>${t('ck_demo')}</p></form>
         <aside class="checkout"><h3>${t('ck_summary')}</h3><div class="ck-c" style="--cc:${progColor(k.cs[0].program)}"><span class="ck-code">${t('bd_tag')}</span><span><b>${esc(L(b.title))}</b><small>${num(k.cs.length)} ${t('bd_n')}</small></span></div>
           <ul class="ck-l">${k.cs.map(c => `<li><span>${esc(L(c.title))}</span><b>${money(pricingFor(c)[c.formats[0]].fullD)}</b></li>`).join('')}</ul>
           <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s class="pr-old">${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')}</dt><dd class="pr-off">− ${money(k.save)}</dd></div>${k.cut ? `<div class="ok"><dt>${t('sum_cp')}</dt><dd class="pr-off">− ${money(k.cut)}</dd></div>` : ''}<div class="tot"><dt>${t('sum_total')}</dt><dd class="pr-new">${money(k.final)}</dd></div></dl>${cpn}
@@ -485,7 +491,7 @@
   }
   /* দাম: মূল দাম লাল কাটা, আসল (ছাড়ের পর) দাম সি-গ্রিন, সঙ্গে ছাড়ের অঙ্ক */
   const prc = (a, d) => `<span class="pr"><b class="pr-new">${money(d)}</b>${a > d ? ` <s class="pr-old">${money(a)}</s> <em class="pr-off">− ${money(a - d)}</em>` : ''}</span>`;
-  const BCO = { id: '', code: '', input: '', err: false };
+  const BCO = { id: '', code: '', input: '', err: false, pay: '' };
   const bcouponFor = (b, code) => { const cp = COUPONS[code]; return cp && cp.active !== false && (cp.scope === 'bundles' || cp.scope === 'b:' + b.id) ? cp : null; };
   const bdFinal = b => { const k = bundleCalc(b), cp = BCO.id === b.id ? bcouponFor(b, BCO.code) : null, cut = cp ? (cp.type === 'pct' ? Math.round(k.price * cp.v / 100) : Math.min(cp.v, k.price)) : 0; return Object.assign({}, k, { cp, cut, final: k.price - cut }); };
   const cyc = (c, o) => (o.m === 0 ? 1 : Math.max(1, Math.ceil(c.months / o.m)));
@@ -885,6 +891,26 @@
       location.href = d.redirectUrl;
     } catch (e) { er.textContent = e.message; btn.disabled = false; btn.innerHTML = lbl; }
   }
+  function bpayNote() {
+    if (payClosed()) return `<p class="paynote bad">${ic('close')}${closedMsg()}</p>`;
+    if (BCO.pay === 'online' && epsOn()) return `<p class="paynote ok">${ic('check')}${lang === 'bn' ? 'পেমেন্ট সম্পন্ন করতে আপনাকে EPS-এর নিরাপদ পেজে নিয়ে যাওয়া হবে। কোর্সগুলো “আমার কোর্স”-এ দেখতে পেমেন্টের আগে Google দিয়ে লগইন করুন।' : 'You will be taken to the secure EPS page to complete the payment. To see the courses in “My courses”, log in with Google before you pay.'}</p>`;
+    return `<p class="paynote ok">${ic('check')}${t('ck_cash_note')}</p>`;
+  }
+  async function startBundleEps(f) {
+    const b = byId(BUNDLES, f.dataset.id), k = bdFinal(b), btn = f.querySelector('button[type=submit]'), er = $('#e-pay'), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
+    const nm = fv(f, 'en_name'), ph = fv(f, 'en_phone'), em = fv(f, 'en_email');
+    er.textContent = ''; btn.disabled = true; const lbl = btn.innerHTML; btn.textContent = lang === 'bn' ? 'EPS-এ নেওয়া হচ্ছে…' : 'Redirecting to EPS…';
+    try {
+      const h = await epsHeaders(), member = !!h.Authorization;
+      /* the page shows a logged-in user but there is no session token: do not silently pay as a guest */
+      if (!member && authUser()) throw new Error(lang === 'bn' ? 'আপনার লগইন সেশন শেষ হয়েছে। অনুগ্রহ করে আবার লগইন করুন।' : 'Your login session has expired. Please log in again.');
+      const r = await fetch('/api/eps/init', { method: 'POST', headers: h, body: JSON.stringify({ kind: 'bundle', bid: b.id, code: k.cp ? BCO.code : '', orderId: oid, name: nm, phone: ph, email: em, product: L(b.title) }) });
+      const d = await r.json().catch(() => ({}));
+      if (!d.ok) throw new Error(d.code === 'NOT_CONFIGURED' ? (lang === 'bn' ? 'অনলাইন পেমেন্ট এখনও সম্পূর্ণ চালু হয়নি। অনুগ্রহ করে ক্যাশ পেমেন্ট বেছে নিন।' : 'Online payment is not fully set up yet. Please choose cash payment.') : (d.error || 'Payment could not start'));
+      try { localStorage.setItem(PEND, JSON.stringify({ kind: 'bundle', txn: d.txn, bid: b.id, member, amount: k.final, oid, name: nm, phone: ph, email: em, at: Date.now() })); } catch (e) {}
+      location.href = d.redirectUrl;
+    } catch (e) { er.textContent = e.message; btn.disabled = false; btn.innerHTML = lbl; }
+  }
   function viewEpsRes(txn) {
     setTimeout(() => finishEps(txn), 0);
     return pagehead(lang === 'bn' ? 'পেমেন্টের ফলাফল' : 'Payment result', '', '') + sec('', '', `<div class="bt-form done-w" id="eps-res"><div class="done"><h3>${lang === 'bn' ? 'পেমেন্ট যাচাই করা হচ্ছে…' : 'Verifying your payment…'}</h3></div></div>`);
@@ -905,9 +931,16 @@
         return;
       }
       if (pend && pend.txn === txn && pend.kind === 'p2p') {
+        show('check', lang === 'bn' ? 'পেমেন্ট সফল হয়েছে' : 'Payment successful', (lang === 'bn' ? 'P2P সেবা এখন বন্ধ আছে। সাপোর্টে যোগাযোগ করুন। লেনদেন আইডি: ' : 'P2P is closed at the moment. Please contact support. Transaction ID: ') + txn);
+        return;
+      }
+      if (pend && pend.txn === txn && pend.kind === 'bundle') {
         if (d.amount != null && Math.abs(d.amount - pend.amount) > 0.5) { show('close', lang === 'bn' ? 'পরিমাণ মেলেনি' : 'Amount mismatch', (lang === 'bn' ? 'সাপোর্টে যোগাযোগ করুন। লেনদেন আইডি: ' : 'Please contact support. Transaction ID: ') + txn); return; }
-        if (!pend.done) { try { const l = JSON.parse(localStorage.getItem('chaatro_eps_paid_p2p') || '[]'); if (!l.some(x => x.txn === txn)) l.push({ txn, pid: pend.pid, amount: pend.amount, snap: pend.snap, date: new Date().toISOString().slice(0, 10) }); localStorage.setItem('chaatro_eps_paid_p2p', JSON.stringify(l)); pend.done = true; localStorage.setItem(PEND, JSON.stringify(pend)); } catch (e) {} }
-        show('check', lang === 'bn' ? 'পেমেন্ট সফল হয়েছে' : 'Payment successful', (lang === 'bn' ? 'আপনি এখন টিচারের সঙ্গে P2P ক্লাসে যুক্ত। লেনদেন আইডি: ' : 'You are now enrolled in the P2P class. Transaction ID: ') + txn, `<div class="btns"><a class="btn btn-p" href="#s-p2p">${lang === 'bn' ? 'আমার P2P দেখুন' : 'View my P2P'}</a></div>`);
+        const b = byId(BUNDLES, pend.bid);
+        if (b) LASTRC = { heading: t('rc_title'), no: pend.oid, date: new Date().toISOString().slice(0, 10), lines: [[t('f_name'), pend.name], [t('f_phone'), pend.phone], [t('f_email'), pend.email]].filter(x => x[1]).concat([[t('bd_tag'), L(b.title)]], bundleCourses(b).map(x => [t('nav_courses'), L(x.title)]), [[t('rc_method'), 'EPS'], ['EPS Transaction ID', txn]]), amount: money(pend.amount), status: lang === 'bn' ? 'পরিশোধিত' : 'Paid', note: t('rc_note') };
+        const msg = pend.member ? (lang === 'bn' ? 'ধন্যবাদ! বান্ডেলের কোর্সগুলো “আমার কোর্স”-এ যুক্ত হয়েছে। লেনদেন আইডি: ' : 'Thank you! The bundle courses are now in “My courses”. Transaction ID: ') : (lang === 'bn' ? 'ধন্যবাদ! আপনি লগইন ছাড়া পেমেন্ট করেছেন, তাই কোর্সগুলো “আমার কোর্স”-এ নিজে থেকে দেখাবে না। লেনদেন আইডি রেখে সাপোর্টে যোগাযোগ করুন: ' : 'Thank you! You paid without logging in, so the courses will not appear in “My courses” automatically. Keep this transaction ID and contact support: ');
+        const btns = (pend.member ? `<a class="btn btn-p" href="#s-courses">${lang === 'bn' ? 'আমার কোর্স দেখুন' : 'View my courses'}</a> ` : '') + (b ? `<button type="button" class="btn btn-o" data-act="receipt">${ic('download')} ${t('rc_btn')}</button>` : '');
+        show('check', lang === 'bn' ? 'পেমেন্ট সফল হয়েছে' : 'Payment successful', msg + txn, `<div class="btns">${btns}</div>`);
         return;
       }
       const c = pend && pend.txn === txn ? byId(COURSES, pend.cid) : null;
@@ -1211,6 +1244,10 @@
       CO.pay = e.target.value; $$('.pays .opt').forEach(o => o.classList.toggle('on', o.contains(e.target)));
       const pn = $('#pay-note'); if (pn) pn.innerHTML = payNote(); const ep = $('#e-pay'); if (ep) ep.textContent = ''; return;
     }
+    if (e.target.name === 'bpay' && e.target.type === 'radio') {
+      BCO.pay = e.target.value; $$('.pays .opt').forEach(o => o.classList.toggle('on', o.contains(e.target)));
+      const pn = $('#pay-note'); if (pn) pn.innerHTML = bpayNote(); const ep = $('#e-pay'); if (ep) ep.textContent = ''; const dm = $('#bpay-demo'); if (dm) dm.hidden = BCO.pay === 'online'; return;
+    }
     if (e.target.type === 'radio' && e.target.closest('.m-box')) { $$('.m-box .opt').forEach(o => o.classList.toggle('on', o.contains(e.target) && e.target.checked)); }
   };
   document.addEventListener('input', onFilter);
@@ -1230,6 +1267,7 @@
     if (dest) { location.hash = dest; return; }
     if ((kind === 'checkout' || kind === 'enroll' || kind === 'bcheckout') && payClosed()) { const e = $('#e-pay') || $('.m-box .err'); if (e) e.textContent = closedMsg(); else alert(closedMsg()); return; }
     if (kind === 'bcheckout') {
+      if (BCO.pay === 'online' && epsOn()) { startBundleEps(f); return; }
       const b = byId(BUNDLES, f.dataset.id), k0 = bdFinal(b), k = Object.assign({}, k0, { price: k0.final }), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
       mkRc(f, oid, [[t('bd_tag'), L(b.title)]].concat(k.cs.map(x => [t('nav_courses'), L(x.title)])), money(k.price));
       $('#ck-wrap').innerHTML = `<div class="bt-form done-w"><div class="done"><span class="done-i">${ic('check')}</span><h3>${t('ck_done_t')}</h3><p>${t('ck_done_d')}</p>

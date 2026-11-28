@@ -40,9 +40,8 @@ const price = b => {
     return { amount: k.price - (ok ? cut(cp, k.price) : 0), bundle: bd };
   }
   if (kind === 'p2p') {
-    /* P2P-র দাম টিচারের সঙ্গে ঠিক হয় এবং এখনো শুধু ব্রাউজারে থাকে (ডাটাবেসে নেই), তাই সার্ভার যাচাই করতে পারে না — শুধু সীমা বসানো হয়। */
-    const a = Math.round(Number(b.amount) * 100) / 100; if (!(a >= 100 && a <= 100000)) throw bad('Invalid amount');
-    return { amount: a, unverified: true };
+    /* P2P অনলাইন পেমেন্ট আপাতত বন্ধ: দাম সার্ভারে যাচাই করার ব্যবস্থা না হওয়া পর্যন্ত কোনো P2P পেমেন্ট শুরু হবে না। */
+    throw bad('P2P online payment is temporarily closed.', 'P2P_CLOSED');
   }
   throw bad('Unknown order type');
 };

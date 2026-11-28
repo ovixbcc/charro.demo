@@ -32,6 +32,18 @@
   let synced = '', syncing = false, tries = 0, loaded = false;
   setTimeout(() => { if (!loaded) { loaded = true; if (PX.refresh && /^#s-/.test(location.hash)) PX.refresh(); } }, 6000);   /* never hang on the loading card */
   const addMonths = (d, m) => { const x = new Date(d + 'T00:00:00Z'); x.setUTCMonth(x.getUTCMonth() + m); return x.toISOString().slice(0, 10); };
+  /* a paid bundle order (orders.cid = bundle id) enrols the student in every course of that bundle, paid in full */
+  const addBundle = (D, r) => {
+    const b = BUNDLES.find(x => x.id === r.cid); if (!b) return;
+    const cs = b.courses.map(id => COURSES.find(c => c.id === id)).filter(Boolean); if (!cs.length) return;
+    const date = String(r.created_at || '').slice(0, 10) || new Date().toISOString().slice(0, 10);
+    cs.forEach(c => {
+      let e = D.enr.find(x => x.cid === c.id);
+      if (!e) { e = { id: 'e' + (D.enr.length + 1), cid: c.id, fmt: c.formats[0], paid: 0 }; D.enr.push(e); }
+      Object.assign(e, { plan: 'full', m: 0, per: 0, cycles: 1, nextDue: null, state: 'active' }); e.paid++;
+    });
+    D.pays.unshift({ id: 'p' + D.nextPid++, sid: 'u1', cid: cs[0].id, bundle: b.id, title: b.title, amount: Number(r.amount), ch: 'EPS', status: 'confirmed', date, note: 'EPS ' + r.txn, txn: r.txn });
+  };
   const sync = async () => {
     const D = PX.DB; if (!A.user || A.provisional || !D || syncing) return; syncing = true;
     try {
@@ -39,6 +51,7 @@
       if (key === synced) return; synced = key;
       D.enr.length = 0; for (let i = D.pays.length - 1; i >= 0; i--) if (D.pays[i].sid === 'u1') D.pays.splice(i, 1);
       rows.forEach(r => {
+        if (r.kind === 'bundle') { addBundle(D, r); return; }
         const cid = r.cid; if (!cid || !(r.kind === 'course' || r.kind === 'sub') || !COURSES.some(c => c.id === cid)) return;
         const date = String(r.created_at || '').slice(0, 10) || new Date().toISOString().slice(0, 10);
         let e = D.enr.find(x => x.cid === cid);
