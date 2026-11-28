@@ -1,11 +1,13 @@
 /* Real (Supabase) session -> student portal identity.
-   Rules: a Google user is a STUDENT only. Teacher / admin / institution portals are never opened from
-   client-side data for a real-session user; those stay demo logins until server-side roles exist. */
+   Rules: the portal a real user may open is decided by the role the SERVER reports (CHAUTH.role from /api/me). A student never opens
+   teacher/admin/institution portals and vice versa. Teacher/admin/institution portals still hold only sample data in the code,
+   so for now they open as an empty 'being connected' page (no sample data is ever shown to a real user). */
 (function () {
   'use strict';
   const A = window.CHAUTH; if (!A || !window.PX) return;
   const T = (b, e) => (window.CH && CH.lang() === 'bn' ? b : e);
   const me = () => (PX.DB && PX.DB.me) || null;
+  const esc0 = x => String(x == null ? '' : x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   let demo = null;
 
   const apply = () => {
@@ -63,10 +65,15 @@
   const view = PX.view;
   PX.view = function (role, sec, arg) {
     apply();
-    if (A.user && role === 's' && !loaded) return `<div class="card" style="max-width:560px;margin:48px auto;padding:24px;text-align:center">${T('আপনার কোর্স লোড হচ্ছে…', 'Loading your courses…')}</div>`;
-    if (A.user && role && role !== 's') {
-      return `<div class="card" style="max-width:560px;margin:48px auto;padding:24px"><h3>${T('এই পোর্টালে প্রবেশাধিকার নেই', 'No access to this portal')}</h3><p>${T('আপনি Google অ্যাকাউন্ট দিয়ে লগইন করেছেন — এটি শুধু শিক্ষার্থী পোর্টালের জন্য।', 'You are signed in with Google — this account can only use the student portal.')}</p><p><a class="btn btn-p" href="#s-home">${T('শিক্ষার্থী পোর্টাল', 'Student portal')}</a></p></div>`;
+    if (A.user && role && !A.roleLoaded) return `<div class="card" style="max-width:560px;margin:48px auto;padding:24px;text-align:center">${T('লোড হচ্ছে…', 'Loading…')}</div>`;
+    const own = A.user ? A.letter() : null, NAME = { s: T('শিক্ষার্থী', 'Student'), t: T('টিচার', 'Teacher'), a: T('অ্যাডমিন', 'Admin'), i: T('ইনস্টিটিউশন', 'Institution') };
+    if (A.user && role && role !== own) {
+      return `<div class="card" style="max-width:560px;margin:48px auto;padding:24px"><h3>${T('এই পোর্টালে প্রবেশাধিকার নেই', 'No access to this portal')}</h3><p>${T('আপনার অ্যাকাউন্ট এই পোর্টালের জন্য অনুমোদিত নয়।', 'Your account is not allowed to use this portal.')}</p><p><a class="btn btn-p" href="#${own}-home">${NAME[own]} ${T('পোর্টাল', 'portal')}</a></p></div>`;
     }
+    if (A.user && role && own !== 's') {
+      return `<div class="card" style="max-width:640px;margin:48px auto;padding:24px"><h3>${NAME[own]} ${T('পোর্টাল', 'portal')}${A.level ? ' · ' + esc0(A.level) : ''}</h3><p>${T('আপনি লগইন করেছেন: ', 'Signed in as: ')}<b>${esc0(A.user.email || A.user.name)}</b></p><p>${T('এই পোর্টালের টুলগুলো ধাপে ধাপে লাইভ ডেটাবেসের সাথে যুক্ত হচ্ছে। এখনও কোনো ডেটা দেখানো হচ্ছে না।', 'The tools in this portal are being connected to the live database step by step. No data is shown yet.')}</p></div>`;
+    }
+    if (A.user && role === 's' && !loaded) return `<div class="card" style="max-width:560px;margin:48px auto;padding:24px;text-align:center">${T('আপনার কোর্স লোড হচ্ছে…', 'Loading your courses…')}</div>`;
     let h = view.apply(this, arguments);
     if (A.user && role === 's' && PX.DB.enr.length && ['home', 'schedule', 'notices', 'attendance', 'messages'].includes(sec || 'home')) {
       const note = `<div class="alert warn"><div><b>${T('ক্লাসের সময়সূচি এখনও প্রকাশিত হয়নি', 'Your class schedule is not published yet')}</b><p>${T('টিচার ক্লাস, নোটিশ ও কুইজ প্রকাশ করলে এখানে দেখা যাবে।', 'Classes, notices and quizzes will appear here once your teacher publishes them.')}</p></div></div>`;

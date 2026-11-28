@@ -211,7 +211,9 @@
 
   /* logged-in (Supabase) user: name + Log out instead of "Log in" */
   const authUser = () => (window.CHAUTH && CHAUTH.user) || null;
-  const authNav = act => { const u = authUser(); return u ? `<a class="btn btn-o btn-sm" href="#s-home" title="${esc(u.email)}">${esc((u.name || u.email || '').split(' ')[0])}</a><button class="btn btn-o btn-sm" type="button" data-act="logout">${lang === 'bn' ? 'লগআউট' : 'Log out'}</button>` : `<a class="btn btn-o btn-sm" href="#login"${act('login')}>${t('login')}</a>`; };
+  const homeHash = () => (window.CHAUTH && CHAUTH.home ? CHAUTH.home() : '#s-home');
+  const roleReady = () => !window.CHAUTH || !CHAUTH.user || CHAUTH.roleLoaded;
+  const authNav = act => { const u = authUser(); return u ? `<a class="btn btn-o btn-sm" href="${homeHash()}" title="${esc(u.email)}">${esc((u.name || u.email || '').split(' ')[0])}</a><button class="btn btn-o btn-sm" type="button" data-act="logout">${lang === 'bn' ? 'লগআউট' : 'Log out'}</button>` : `<a class="btn btn-o btn-sm" href="#login"${act('login')}>${t('login')}</a>`; };
   /* checkout: prefill name/email for logged-in users (never overwrites what the user already typed) */
   function prefillAuth() { const u = authUser(); if (!u) return; [['en_name', u.name], ['en_email', u.email]].forEach(([n, v]) => { $$(`#app [name="${n}"], #modal [name="${n}"]`).forEach(el => { if (v && !el.value) el.value = v; }); }); }
   function header(r) {
@@ -1116,9 +1118,9 @@
   function render(keep) {
     stopSlides();
     const r = route();
-    if ((r.name === 'login' || r.name === 'signup') && authUser()) { location.replace('#s-home'); return; }
+    if ((r.name === 'login' || r.name === 'signup') && authUser() && roleReady()) { location.replace(homeHash()); return; }
     /* portals need a real Supabase login; teacher/admin/institution roles do not exist server-side yet (PX.view blocks them) */
-    if (r.name === 'portal') { if (!authUser()) { if (window.CHAUTH && !CHAUTH.settled) { $('#app').innerHTML = `<section class="sec"><div class="wrap" style="padding:80px 0;text-align:center">${lang === 'bn' ? 'লোড হচ্ছে…' : 'Loading…'}</div></section>`; return; } location.replace('#login'); return; } if (!r.role) { location.replace('#s-home'); return; } }
+    if (r.name === 'portal') { if (!authUser()) { if (window.CHAUTH && !CHAUTH.settled) { $('#app').innerHTML = `<section class="sec"><div class="wrap" style="padding:80px 0;text-align:center">${lang === 'bn' ? 'লোড হচ্ছে…' : 'Loading…'}</div></section>`; return; } location.replace('#login'); return; } if (!roleReady()) { $('#app').innerHTML = `<section class="sec"><div class="wrap" style="padding:80px 0;text-align:center">${lang === 'bn' ? 'লোড হচ্ছে…' : 'Loading…'}</div></section>`; return; } if (!r.role) { location.replace(homeHash()); return; } }
     const snap = keep && r.name !== 'portal' ? snapshot() : null;
     const V = {
       home: viewHome, blog: viewBlog, post: () => viewPost(r.id), checkout: () => viewCheckout(r.id), epsres: () => viewEpsRes(r.id), bundles: viewBundles, bundle: () => viewBundle(r.id), bpay: () => viewBundlePay(r.id), courses: viewCourses, course: () => viewCourse(r.id), teachers: viewTeachers, teacher: () => viewTeacher(r.id),
@@ -1312,7 +1314,7 @@
 
   window.CH = { SLIDES: SLIDES_ALL, ytId, player, lang: () => lang, num, money, esc, L, fdate, byId, ic, avatar, rate, PCOLOR, planOptions, planLabel, firstOf, cyc, couponFor, rerender: () => render(true), t };
   window.addEventListener('hashchange', () => { menuOpen = false; closeModal(); render(false); });
-  window.addEventListener('chauth', () => { const r = route(); if (r.name === 'login' || r.name === 'signup') { if (authUser()) location.replace('#s-home'); return; } if (r.name === 'portal') render(true); else if (r.name !== 'authcb') { $('#hd').innerHTML = header(r); prefillAuth(); } });
+  window.addEventListener('chauth', () => { const r = route(); if (r.name === 'login' || r.name === 'signup') { if (authUser() && roleReady()) location.replace(homeHash()); return; } if (r.name === 'portal') render(true); else if (r.name !== 'authcb') { $('#hd').innerHTML = header(r); prefillAuth(); } });
   document.addEventListener('DOMContentLoaded', () => render(false));
   if (document.readyState !== 'loading') render(false);
 })();

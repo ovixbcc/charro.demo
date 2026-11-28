@@ -1,9 +1,12 @@
 /* Supabase login (Google) + session. Only the display identity lives in the browser.
-   Roles/permissions never come from client-side data: a Google user is a student-portal user only. */
+   Roles/permissions never come from client-side data: the role is read from the server (/api/me -> profiles.role). The browser only uses it to choose which portal to show; every protected API re-checks it. */
 (function () {
   'use strict';
   const HINT = 'chaatro_auth_hint';            // display-only (name/email) so the header does not flash "Log in" on reload
-  const A = window.CHAUTH = { user: null, provisional: false, error: '', ready: null, callback: false, settled: false };
+  const A = window.CHAUTH = { user: null, provisional: false, error: '', ready: null, callback: false, settled: false, role: null, level: null, roleLoaded: false, roleError: false };
+  const RL = { student: 's', teacher: 't', admin: 'a', institution: 'i' };
+  A.letter = () => (A.roleLoaded ? RL[A.role] || 's' : null);   /* portal letter of the signed-in user (null until the role is known) */
+  A.home = () => '#' + (A.letter() || 's') + '-home';
   const bn = () => { try { return window.CH && CH.lang() === 'bn'; } catch (e) { return false; } };
   const tx = (b, e) => (bn() ? b : e);
   const emit = () => { try { window.dispatchEvent(new CustomEvent('chauth')); } catch (e) {} };
@@ -18,7 +21,7 @@
 
   const mapUser = u => (u ? { id: u.id, email: u.email || '', name: (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || (u.email || '').split('@')[0] || '', avatar: (u.user_metadata && (u.user_metadata.avatar_url || u.user_metadata.picture)) || '' } : null);
   const setUser = u => {
-    const m = mapUser(u); A.user = m; A.provisional = false;
+    const m = mapUser(u); if (!m || !A.user || A.user.id !== m.id) { A.role = null; A.level = null; A.roleLoaded = false; A.roleError = false; A._rid = ''; } A.user = m; A.provisional = false;
     try { if (m) localStorage.setItem(HINT, JSON.stringify({ id: m.id, name: m.name, email: m.email })); else localStorage.removeItem(HINT); } catch (e) {}
     emit();
   };
@@ -32,6 +35,24 @@
     el.append(t, x); clearTimeout(A._t); A._t = setTimeout(() => el.remove(), 9000);
   };
 
+  /* ask the server for the signed-in user's role (least privilege: any failure means 'student') */
+  A.loadRole = async () => {
+    const u = A.user; if (!u || A.provisional) return;
+    if (A._rid === u.id) return A._rp;
+    A._rid = u.id;
+    return (A._rp = (async () => {
+      let role = 'student', level = null, err = false;
+      try {
+        const tk = await A.token();
+        const r = tk ? await fetch('/api/me', { headers: { Authorization: 'Bearer ' + tk }, cache: 'no-store' }) : null;
+        const j = r && r.ok ? await r.json() : null;
+        if (j && j.ok) { role = j.role; level = j.level || null; } else err = true;
+      } catch (e) { err = true; }
+      if (!A.user || A.user.id !== u.id) return;
+      A.role = role; A.level = level; A.roleError = err; A.roleLoaded = true; emit();
+    })());
+  };
+
   let client = null, loading = null;
   const load = () => loading || (loading = (async () => {
     try {
@@ -39,7 +60,7 @@
       if (!window.supabase) await new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
       client = window.supabase.createClient(c.url, c.anonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' } });
       window.SB = client;
-      client.auth.onAuthStateChange((ev, s) => { if (ev === 'SIGNED_OUT') setUser(null); else if (s && s.user) setUser(s.user); });
+      client.auth.onAuthStateChange((ev, s) => { if (ev === 'SIGNED_OUT') setUser(null); else if (s && s.user) { setUser(s.user); setTimeout(A.loadRole, 0); } });
       return client;
     } catch (e) { return null; }
   })());
@@ -51,8 +72,9 @@
     let s = null, err = '';
     try { const r = await sb.auth.getSession(); s = r.data && r.data.session; err = r.error ? r.error.message : ''; } catch (e) { err = String(e.message || e); }
     A.settled = true; setUser(s ? s.user : null);
+    if (s && s.user) await A.loadRole();
     if (A.callback) {
-      if (s && s.user) { location.replace(location.pathname + location.search.replace(/[?&](code|error[^&]*)=[^&]*/g, '') + '#s-home'); }
+      if (s && s.user) { location.replace(location.pathname + location.search.replace(/[?&](code|error[^&]*)=[^&]*/g, '') + A.home()); }
       else { A.notify(tx('Google লগইন সফল হয়নি: ', 'Google sign-in failed: ') + (A.cbError || err || tx('আবার চেষ্টা করুন।', 'please try again.')), true); location.replace(location.pathname + '#login'); }
     }
     return s ? A.user : null;

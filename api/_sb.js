@@ -42,4 +42,13 @@ const signUpload = async (bucket, path) => {
     return base + '/storage/v1' + (j.url.startsWith('/') ? j.url : '/' + j.url);
   } catch (e) { console.error('Supabase sign error', String(e.message || e)); return null; }
 };
-module.exports = { on, insertOrder, updateOrder, verifyUser, insertRow, signUpload, ev };
+/* GET helper (service key): returns parsed JSON, or null when not configured / on error. */
+const rest = async path => {
+  if (!on()) return null;
+  try {
+    const r = await fetch(ev('SUPABASE_URL').replace(/\/$/, '') + '/rest/v1/' + path, { headers: { apikey: skey(), Authorization: 'Bearer ' + skey() } });
+    if (!r.ok) { console.error('Supabase GET', path, r.status, (await r.text()).slice(0, 200)); return null; }
+    return await r.json();
+  } catch (e) { console.error('Supabase GET error', String(e.message || e)); return null; }
+};
+module.exports = { rest, on, insertOrder, updateOrder, verifyUser, insertRow, signUpload, ev };
