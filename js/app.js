@@ -400,9 +400,8 @@
         <div class="row">${fld({ name: 'en_name', label: t('f_name'), req: true, auto: 'name' })}${fld({ name: 'en_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}</div>
         <div class="row">${fld({ name: 'en_email', label: t('f_email'), type: 'email', auto: 'email' })}${fld({ name: 'en_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' })}</div>
         <h3 class="fs-t">${t('ck_pay')}</h3>
-        <fieldset class="co-g pays"><label class="opt on"><input type="radio" name="bpay" value="cash" checked><span><b>${t('ck_cash')}</b><small>${t('ck_cash_d')}</small></span></label></fieldset>
-        <p class="paynote ok">${ic('check')}${t('ck_cash_note')}</p>
-        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button></form>
+        <p class="paynote bad">${ic('close')}${lang === 'bn' ? 'বান্ডেলের অনলাইন পেমেন্ট এখনও চালু হয়নি। ক্যাশ পেমেন্ট বন্ধ আছে। অনুগ্রহ করে আলাদা আলাদা কোর্স কিনুন।' : 'Online payment for bundles is not open yet, and cash payment is closed. Please buy the courses individually.'}</p>
+        <button class="btn btn-p btn-lg btn-block" type="button" disabled>${lang === 'bn' ? 'এখনও চালু হয়নি' : 'Not available yet'}</button></form>
         <aside class="checkout"><h3>${t('ck_summary')}</h3><div class="ck-c" style="--cc:${progColor(k.cs[0].program)}"><span class="ck-code">${t('bd_tag')}</span><span><b>${esc(L(b.title))}</b><small>${num(k.cs.length)} ${t('bd_n')}</small></span></div>
           <ul class="ck-l">${k.cs.map(c => `<li><span>${esc(L(c.title))}</span><b>${money(pricingFor(c)[c.formats[0]].fullD)}</b></li>`).join('')}</ul>
           <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s class="pr-old">${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')}</dt><dd class="pr-off">− ${money(k.save)}</dd></div>${k.cut ? `<div class="ok"><dt>${t('sum_cp')}</dt><dd class="pr-off">− ${money(k.cut)}</dd></div>` : ''}<div class="tot"><dt>${t('sum_total')}</dt><dd class="pr-new">${money(k.final)}</dd></div></dl>${cpn}
@@ -596,7 +595,7 @@
       </div>
       <aside class="cd-side"><div class="checkout" id="checkout">${checkoutCard(c)}</div></aside>
     </div>
-    <div class="mbar"><div><small>${planLabel(k.opt)}</small><b id="mbar-p">${money(k.now)}</b></div><button class="btn btn-p" data-act="scroll-co">${t(c.formats[0] === 'one' ? 'enroll_one' : 'enroll_grp')}</button></div>`;
+    <div class="mbar"><div><small>${planLabel(k.opt)}</small><b id="mbar-p">${money(k.now)}</b></div><button class="btn btn-p" data-act="enroll">${t(c.formats[0] === 'one' ? 'enroll_one' : 'enroll_grp')}</button></div>`;
   }
 
   function refreshCheckout() {
@@ -889,7 +888,7 @@
   function payNote() {
     if (payClosed()) return `<p class="paynote bad">${ic('close')}${closedMsg()}</p>`;
     if (CO.pay === 'online' && epsOn()) return `<p class="paynote ok">${ic('check')}${lang === 'bn' ? 'পেমেন্ট সম্পন্ন করতে আপনাকে EPS-এর নিরাপদ পেজে নিয়ে যাওয়া হবে।' : 'You will be taken to the secure EPS page to complete the payment.'}</p>`;
-    return CO.pay === 'cash' ? `<p class="paynote ok">${ic('check')}${t('ck_cash_note')}</p>` : `<p class="paynote bad">${ic('close')}${t('ck_online_err')}</p>`;
+    return `<p class="paynote bad">${ic('close')}${t('ck_online_err')}</p>`;
   }
 
   /* ---------- EPS অনলাইন পেমেন্ট ---------- */
@@ -953,7 +952,7 @@
   function viewCheckout(id) {
     const c = byId(COURSES, id); if (!c || !progOn(c.program)) return view404();
     if (!CO || CO.id !== c.id) CO = { id: c.id, fmt: c.formats[0], plan: 'x', code: '', input: '', err: false };
-    if (!CO.pay) CO.pay = epsOn() ? 'online' : 'cash';
+    CO.pay = 'online'; /* online only: cash payment is closed */
     const k = calc(c, CO), tc = byId(TEACHERS, c.teacher);
     const pay = (v, ti, de, on, soon) => `<label class="opt ${CO.pay === v ? 'on' : ''}"><input type="radio" name="pay" value="${v}" ${CO.pay === v ? 'checked' : ''}><span><b>${ti}</b><small>${de}</small></span>${soon ? `<em class="soon">${t('ck_soon')}</em>` : ''}</label>`;
     return pagehead(t('ck_t'), t('ck_d'), `<span>/</span><a href="#course-${c.id}">${esc(L(c.title))}</a><span>/</span><span>${t('ck_t')}</span>`) +
@@ -963,13 +962,11 @@
         <div class="row">${fld({ name: 'en_name', label: t('f_name'), req: true, auto: 'name' })}${fld({ name: 'en_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}</div>
         <div class="row">${fld({ name: 'en_email', label: t('f_email'), type: 'email', auto: 'email' })}${fld({ name: 'en_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' })}</div>
         <h3 class="fs-t">${t('ck_pay')}</h3>
-        <fieldset class="co-g pays"><legend class="sr">${t('ck_pay')}</legend>
-          ${epsOn() ? pay('online', PGW.get().eps[lang] || 'EPS', lang === 'bn' ? 'নিরাপদ EPS পেজে গিয়ে পেমেন্ট করুন' : 'Pay on the secure EPS page', true, false) : pay('online', t('ck_online'), t('ck_online_d'), false, true)}
-          ${pay('cash', t('ck_cash'), t('ck_cash_d'), true, false)}
-        </fieldset>
+        <div class="pay-one"><b>${lang === 'bn' ? 'অনলাইন পেমেন্ট (EPS)' : 'Online payment (EPS)'}</b><span>${lang === 'bn' ? 'EPS-এর নিরাপদ পেজে Visa, Mastercard, bKash, Nagad ও অন্যান্য মাধ্যমে পেমেন্ট করুন।' : 'Pay on the secure EPS page with Visa, Mastercard, bKash, Nagad and more.'}</span>
+          <ul class="pay-chips" aria-label="${lang === 'bn' ? 'পেমেন্ট মাধ্যম' : 'Payment methods'}"><li>EPS</li><li>Visa</li><li>Mastercard</li><li>bKash</li><li>Nagad</li></ul></div>
         <div id="pay-note" aria-live="polite">${payNote()}</div>
         <small class="err" id="e-pay" role="alert"></small>
-        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button>
+        <button class="pay-btn" type="submit" aria-label="${lang === 'bn' ? 'পেমেন্টের জন্য এগিয়ে যান (EPS)' : 'Continue to pay with EPS'}"><picture><source srcset="img/pay-btn.webp" type="image/webp"><img src="img/pay-btn.png" alt="" width="1400" height="252"></picture></button>
       </form>
       <aside class="checkout"><h3>${t('ck_summary')}</h3>
         <div class="ck-c" style="--cc:${progColor(c.program)}"><span class="ck-code">${esc(byId(PROGRAMS, c.program).code)}</span><span><b>${esc(L(c.title))}</b><small>${avatar(tc, 20)} ${esc(L(tc.n))}</small></span></div>
@@ -1275,7 +1272,7 @@
     }
     if (kind === 'checkout') {
       if (CO.pay === 'online' && epsOn()) { startEps(f); return; }
-      if (CO.pay !== 'cash') { $('#e-pay').textContent = t('ck_online_err'); $('#pay-note').scrollIntoView({ block: 'center' }); return; }
+      $('#e-pay').textContent = t('ck_online_err'); $('#pay-note').scrollIntoView({ block: 'center' }); return; /* cash checkout is closed */
       const c = byId(COURSES, CO.id), k = calc(c, CO), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
       mkRc(f, oid, [[t('nav_courses'), L(c.title)], [t('rc_teacher'), L(byId(TEACHERS, c.teacher).n)]], money(k.now));
       $('#ck-wrap').innerHTML = `<div class="bt-form done-w"><div class="done"><span class="done-i">${ic('check')}</span><h3>${t('ck_done_t')}</h3><p>${t('ck_done_d')}</p>
