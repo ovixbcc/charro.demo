@@ -398,12 +398,12 @@
         <div class="row">${fld({ name: 'en_name', label: t('f_name'), req: true, auto: 'name' })}${fld({ name: 'en_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}</div>
         <div class="row">${fld({ name: 'en_email', label: t('f_email'), type: 'email', auto: 'email' })}${fld({ name: 'en_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' })}</div>
         <h3 class="fs-t">${t('ck_pay')}</h3>
-        <fieldset class="co-g pays"><legend class="sr">${t('ck_pay')}</legend>
-          ${epsOn() ? `<label class="opt on"><input type="radio" name="bpay" value="online" checked><span><b>${PGW.get().eps[lang] || 'EPS'}</b><small>${lang === 'bn' ? 'নিরাপদ EPS পেজে গিয়ে পেমেন্ট করুন' : 'Pay on the secure EPS page'}</small></span></label>` : `<label class="opt"><input type="radio" name="bpay" value="online" disabled><span><b>${t('ck_online')}</b><small>${t('ck_online_d')}</small></span><em class="soon">${t('ck_soon')}</em></label>`}
-        </fieldset>
+        <div class="pay-one"><b>${lang === 'bn' ? 'অনলাইন পেমেন্ট (EPS)' : 'Online payment (EPS)'}</b><span>${lang === 'bn' ? 'EPS-এর নিরাপদ পেজে Visa, Mastercard, bKash, Nagad ও অন্যান্য মাধ্যমে পেমেন্ট করুন।' : 'Pay on the secure EPS page with Visa, Mastercard, bKash, Nagad and more.'}</span>
+          <ul class="pay-chips" aria-label="${lang === 'bn' ? 'পেমেন্ট মাধ্যম' : 'Payment methods'}"><li>EPS</li><li>Visa</li><li>Mastercard</li><li>bKash</li><li>Nagad</li></ul></div>
         <div id="pay-note" aria-live="polite">${bpayNote()}</div>
         <small class="err" id="e-pay" role="alert"></small>
-        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button></form>
+        <button class="pay-btn" type="submit" aria-label="${lang === 'bn' ? 'পেমেন্টের জন্য এগিয়ে যান (EPS)' : 'Continue to pay with EPS'}"><picture><source srcset="img/pay-btn.webp" type="image/webp"><img src="img/pay-btn.png" alt="" width="1400" height="252"></picture></button>
+      </form>
         <aside class="checkout"><h3>${t('ck_summary')}</h3><div class="ck-c" style="--cc:${progColor(k.cs[0].program)}"><span class="ck-code">${t('bd_tag')}</span><span><b>${esc(L(b.title))}</b><small>${num(k.cs.length)} ${t('bd_n')}</small></span></div>
           <ul class="ck-l">${k.cs.map(c => `<li><span>${esc(L(c.title))}</span><b>${money(pricingFor(c)[c.formats[0]].fullD)}</b></li>`).join('')}</ul>
           <dl class="sum"><div><dt>${t('bd_sep')}</dt><dd><s class="pr-old">${money(k.total)}</s></dd></div><div class="ok"><dt>${t('bd_disc')}</dt><dd class="pr-off">− ${money(k.save)}</dd></div>${k.cut ? `<div class="ok"><dt>${t('sum_cp')}</dt><dd class="pr-off">− ${money(k.cut)}</dd></div>` : ''}<div class="tot"><dt>${t('sum_total')}</dt><dd class="pr-new">${money(k.final)}</dd></div></dl>${cpn}
@@ -595,7 +595,7 @@
       </div>
       <aside class="cd-side"><div class="checkout" id="checkout">${checkoutCard(c)}</div></aside>
     </div>
-    <div class="mbar"><div><small>${planLabel(k.opt)}</small><b id="mbar-p">${money(k.now)}</b></div><button class="btn btn-p" data-act="scroll-co">${t(c.formats[0] === 'one' ? 'enroll_one' : 'enroll_grp')}</button></div>`;
+    <div class="mbar"><div><small>${planLabel(k.opt)}</small><b id="mbar-p">${money(k.now)}</b></div><button class="btn btn-p" data-act="enroll">${t(c.formats[0] === 'one' ? 'enroll_one' : 'enroll_grp')}</button></div>`;
   }
 
   function refreshCheckout() {
@@ -958,7 +958,6 @@
     if (!CO || CO.id !== c.id) CO = { id: c.id, fmt: c.formats[0], plan: 'x', code: '', input: '', err: false };
     CO.pay = 'online'; /* online payment only; there is no cash option */
     const k = calc(c, CO), tc = byId(TEACHERS, c.teacher);
-    const pay = (v, ti, de, on, soon) => `<label class="opt ${CO.pay === v ? 'on' : ''}"><input type="radio" name="pay" value="${v}" ${CO.pay === v ? 'checked' : ''}><span><b>${ti}</b><small>${de}</small></span>${soon ? `<em class="soon">${t('ck_soon')}</em>` : ''}</label>`;
     return pagehead(t('ck_t'), t('ck_d'), `<span>/</span><a href="#course-${c.id}">${esc(L(c.title))}</a><span>/</span><span>${t('ck_t')}</span>`) +
       sec('', '', `<div class="ck-wrap" id="ck-wrap">
       <form class="bt-form" data-form="checkout" novalidate>
@@ -966,12 +965,11 @@
         <div class="row">${fld({ name: 'en_name', label: t('f_name'), req: true, auto: 'name' })}${fld({ name: 'en_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}</div>
         <div class="row">${fld({ name: 'en_email', label: t('f_email'), type: 'email', auto: 'email' })}${fld({ name: 'en_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' })}</div>
         <h3 class="fs-t">${t('ck_pay')}</h3>
-        <fieldset class="co-g pays"><legend class="sr">${t('ck_pay')}</legend>
-          ${epsOn() ? pay('online', PGW.get().eps[lang] || 'EPS', lang === 'bn' ? 'নিরাপদ EPS পেজে গিয়ে পেমেন্ট করুন' : 'Pay on the secure EPS page', true, false) : pay('online', t('ck_online'), t('ck_online_d'), false, true)}
-        </fieldset>
+        <div class="pay-one"><b>${lang === 'bn' ? 'অনলাইন পেমেন্ট (EPS)' : 'Online payment (EPS)'}</b><span>${lang === 'bn' ? 'EPS-এর নিরাপদ পেজে Visa, Mastercard, bKash, Nagad ও অন্যান্য মাধ্যমে পেমেন্ট করুন।' : 'Pay on the secure EPS page with Visa, Mastercard, bKash, Nagad and more.'}</span>
+          <ul class="pay-chips" aria-label="${lang === 'bn' ? 'পেমেন্ট মাধ্যম' : 'Payment methods'}"><li>EPS</li><li>Visa</li><li>Mastercard</li><li>bKash</li><li>Nagad</li></ul></div>
         <div id="pay-note" aria-live="polite">${payNote()}</div>
         <small class="err" id="e-pay" role="alert"></small>
-        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ck_place')}${ic('arrow')}</button>
+        <button class="pay-btn" type="submit" aria-label="${lang === 'bn' ? 'পেমেন্টের জন্য এগিয়ে যান (EPS)' : 'Continue to pay with EPS'}"><picture><source srcset="img/pay-btn.webp" type="image/webp"><img src="img/pay-btn.png" alt="" width="1400" height="252"></picture></button>
       </form>
       <aside class="checkout"><h3>${t('ck_summary')}</h3>
         <div class="ck-c" style="--cc:${progColor(c.program)}"><span class="ck-code">${esc(byId(PROGRAMS, c.program).code)}</span><span><b>${esc(L(c.title))}</b><small>${avatar(tc, 20)} ${esc(L(tc.n))}</small></span></div>
