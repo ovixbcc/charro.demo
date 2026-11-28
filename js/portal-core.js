@@ -20,38 +20,22 @@
     joined: '2026-10-' + String(3 + i * 2).padStart(2, '0'), courses: [], notes: [], blocked: false, ref: i % 3 === 0 ? 'TASNIM-7A2K' : '',
     guardian: { name: 'Guardian ' + nm.split(' ')[1], phone: '018' + String(10000000 + H(nm + 'g') % 89999999) },
   }));
-  crm[0].courses = ['c06', 'c04', 'c10'];
-  crm.slice(1).forEach((u, i) => { [COURSES[(i * 3 + 1) % COURSES.length].id, COURSES[(i * 5 + 3) % COURSES.length].id].forEach(c => { if (!u.courses.includes(c)) u.courses.push(c); }); });
-  COURSES.forEach((c, k) => { let cnt = crm.filter(u => u.courses.includes(c.id)).length; for (let j = 1; cnt < 3 && j < crm.length; j++) { const u = crm[(k + j) % crm.length]; if (!u.courses.includes(c.id)) { u.courses.push(c.id); cnt++; } } });
+  /* the catalog starts EMPTY (no sample courses); sample enrolments are only generated when courses exist */
+  if (COURSES.length) crm.slice(1).forEach((u, i) => { [COURSES[(i * 3 + 1) % COURSES.length].id, COURSES[(i * 5 + 3) % COURSES.length].id].forEach(c => { if (!u.courses.includes(c)) u.courses.push(c); }); });
+  if (COURSES.length) COURSES.forEach((c, k) => { let cnt = crm.filter(u => u.courses.includes(c.id)).length; for (let j = 1; cnt < 3 && j < crm.length; j++) { const u = crm[(k + j) % crm.length]; if (!u.courses.includes(c.id)) { u.courses.push(c.id); cnt++; } } });
 
   const pg = (cid, f = 'group') => pricingFor(COURSE(cid))[f];
   const PAYS = []; let pid = 1;
   crm.forEach(u => { if (u.id === 'u1') return; u.courses.forEach(cid => { const k = H(u.id + cid); PAYS.push({ id: 'p' + pid++, sid: u.id, cid, amount: pg(cid).perD, ch: ['cash', 'bkash', 'ssl'][k % 3], status: k % 9 === 0 ? 'pending' : 'confirmed', date: '2026-11-' + String(1 + k % 20).padStart(2, '0'), note: '' }); }); });
-  PAYS.push({ id: 'p' + pid++, sid: 'u1', cid: 'c06', amount: pg('c06').perD, ch: 'cash', status: 'confirmed', date: '2026-10-30', note: '' });
-  PAYS.push({ id: 'p' + pid++, sid: 'u1', cid: 'c04', amount: pg('c04').perD, ch: 'cash', status: 'confirmed', date: '2026-10-25', note: '' });
-  PAYS.push({ id: 'p' + pid++, sid: 'u1', cid: 'c10', amount: pg('c10').fullD, ch: 'cash', status: 'confirmed', date: '2026-11-02', note: '' });
 
   const DB = PX.DB = {
     me: crm[0], crm, pays: PAYS, nextPid: pid,
-    enr: [
-      { id: 'e1', cid: 'c06', fmt: 'group', plan: 'month', m: 1, per: pg('c06').perD, cycles: 2, paid: 1, nextDue: '2026-11-30', state: 'active' },
-      { id: 'e2', cid: 'c04', fmt: 'group', plan: 'month', m: 1, per: pg('c04').perD, cycles: 3, paid: 1, nextDue: '2026-11-20', state: 'overdue' },
-      { id: 'e3', cid: 'c10', fmt: 'group', plan: 'full', m: 0, per: pg('c10').fullD, cycles: 1, paid: 1, nextDue: null, state: 'active' },
-    ],
-    free: [
-      { id: 'f1', title: 'Cadet Admission Orientation', by: 't07', lessons: 6, hrs: 3, d: 'A starter course on the exam format, syllabus and a preparation routine.' },
-      { id: 'f2', title: 'English Grammar Basics', by: 't06', lessons: 8, hrs: 4, d: 'Tense, voice and narration with simple examples.' },
-      { id: 'f3', title: 'Mental Math & Tricks (Basic)', by: 't01', lessons: 5, hrs: 2, d: 'A few techniques for quick calculation.' },
-      { id: 'f4', title: 'Bangla Spelling: Easy Rules', by: 't02', lessons: 6, hrs: 3, d: 'The key rules of standard spelling.' },
-    ],
+    enr: [],
+    free: [],
     freeIn: [],
     sess: {}, blocked: [], att: {}, reviews: [], quizzes: [], scores: {}, extra: {}, recs: {}, files: {}, chats: {}, posts: [],
-    resched: [{ id: 'rq1', sid: 'c04-20261123', cid: 'c04', tid: 't01', curDate: '2026-11-23', curTime: '8:00 PM', newDate: '2026-11-25', newTime: '9:00 PM', alt2Date: '2026-11-26', alt2Time: '8:30 PM', reason: 'Teacher has an academic exam', status: 'pending', date: '2026-11-20' }],
-    announcements: [
-      { id: 'an1', title: 'New crash course batches start in December', body: 'New batches for DU Ka, Kha, Ga, Gha units, BUP and BUET start in the first two weeks of December.', aud: 'all', active: true, date: '2026-11-19' },
-      { id: 'an2', title: 'Monthly subscription reminder', body: 'Students on a monthly plan get a subscription reminder on the last day of each month. With dues pending, you cannot join the next class.', aud: 'student', active: true, date: '2026-11-18' },
-      { id: 'an3', title: 'Class schedule changes need admin approval', body: 'When a teacher sends a schedule change request it takes effect only after admin approval. If a class will not run, block it in advance.', aud: 'teacher', active: true, date: '2026-11-17' },
-    ],
+    resched: [],
+    announcements: [],
     policies: [
       { id: 'pl1', title: 'Payment Policy', aud: ['student'], body: 'The full course fee can be paid at once or on the teacher\'s plan (every 1, 3, 6 or 12 months). With dues on a monthly plan, access to the next class is blocked. (Draft)', date: '2026-11-14' },
       { id: 'pl2', title: 'Refund & Return Policy', aud: ['student'], body: 'Refund conditions and timelines will be published here once finalised. (Draft)', date: '2026-11-14' },
@@ -75,11 +59,7 @@
     banned: {}, payouts: [{ id: 'po1', tid: 't01', amount: 6000, date: '2026-11-10', note: 'October payout' }, { id: 'po2', tid: 't05', amount: 5000, date: '2026-11-10', note: 'October payout' }],
     settings: { share: 30, shareTid: {}, channels: { ssl: false, bkash: false, cash: true }, refS: { type: 'pct', v: 5 }, refT: { type: 'fixed', v: 500 }, reminderDay: 'last' },
     classTypes: CTYPES,
-    coupons: [
-      { code: 'CHAATRO10', type: 'pct', v: 10, scope: '', by: 'admin', active: true, uses: 14, limit: 200, expiry: '2026-12-31' },
-      { code: 'FIRST200', type: 'flat', v: 200, scope: '', by: 'admin', active: true, uses: 9, limit: 100, expiry: '2026-12-31' },
-      { code: 'TANVIR15', type: 'pct', v: 15, scope: 'c04', by: 't01', active: true, uses: 3, limit: 30, expiry: '2026-12-15' },
-    ],
+    coupons: [],
     refS: [{ name: 'Imran Khan', date: '2026-11-05', status: 'enrolled', bonus: 200 }, { name: 'Lamia Haque', date: '2026-11-11', status: 'enrolled', bonus: 200 }, { name: 'Sakib Hasan', date: '2026-11-16', status: 'joined', bonus: 0 }],
     refT: [{ name: 'Riyad Hasan', date: '2026-11-18', status: 'applied', bonus: 0 }, { name: 'Asif Iqbal', date: '2026-11-08', status: 'approved', bonus: 500 }],
     tickets: [

@@ -29,4 +29,17 @@ const verifyUser = async token => {
     return u && /^[0-9a-f-]{36}$/i.test(u.id || '') ? { id: u.id, email: u.email || '', name: (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || '' } : null;
   } catch (e) { return null; }
 };
-module.exports = { on, insertOrder, updateOrder, verifyUser, ev };
+/* Plain insert that reports success (true/false); null when Supabase is not configured. Used by /api/forms. */
+const insertRow = (table, row) => call('POST', table, row);
+/* Create a one-time signed upload URL in the private bucket (browser uploads the file directly; nothing large passes through Vercel). */
+const signUpload = async (bucket, path) => {
+  if (!on()) return null;
+  try {
+    const base = ev('SUPABASE_URL').replace(/\/$/, '');
+    const r = await fetch(base + '/storage/v1/object/upload/sign/' + bucket + '/' + path, { method: 'POST', headers: { apikey: skey(), Authorization: 'Bearer ' + skey(), 'Content-Type': 'application/json' }, body: '{}' });
+    if (!r.ok) { console.error('Supabase sign', r.status, (await r.text()).slice(0, 200)); return null; }
+    const j = await r.json(); if (!j || !j.url) return null;
+    return base + '/storage/v1' + (j.url.startsWith('/') ? j.url : '/' + j.url);
+  } catch (e) { console.error('Supabase sign error', String(e.message || e)); return null; }
+};
+module.exports = { on, insertOrder, updateOrder, verifyUser, insertRow, signUpload, ev };
