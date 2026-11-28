@@ -868,7 +868,7 @@
   const PEND = 'chaatro_eps_pending';
   /* logged-in: send the Supabase access token (the server verifies it and sets orders.user_id); guests send none */
   async function epsHeaders() { const h = { 'Content-Type': 'application/json' }, tk = window.CHAUTH ? await CHAUTH.token() : null; if (tk) h.Authorization = 'Bearer ' + tk; return h; }
-  window.CHEPS = { headers: epsHeaders };
+  window.CHEPS = { headers: epsHeaders, planM: (cid, fmt, plan) => { try { const c = byId(COURSES, cid), o = planOptions(c, fmt).find(x => x.key === plan); return o ? o.m : (plan === 'full' ? 0 : 1); } catch (e) { return plan === 'full' ? 0 : 1; } } };
   async function startEps(f) {
     const c = byId(COURSES, CO.id), k = calc(c, CO), btn = f.querySelector('button[type=submit]'), er = $('#e-pay'), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
     const nm = fv(f, 'en_name'), ph = fv(f, 'en_phone'), em = fv(f, 'en_email');
