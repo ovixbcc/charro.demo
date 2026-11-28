@@ -238,6 +238,7 @@
       <div class="ft-top"><a class="logo" href="#home" aria-label="${esc(sname())}"><img src="${BR().logoFooter || BR().logo || 'img/logo-footer.png'}" alt="${esc(sname())}" width="800" height="240"></a><p>${t('ft_short')}</p></div>
       <nav class="ft-links" aria-label="footer">${lk('about', 'nav_about')}${lk('how-it-works', 'nav_how')}${lk('blog', 'nav_blog')}${lk('faq', 'nav_faq')}${lk('become-teacher', 'nav_become')}<a href="#institution-onboard">${lang === 'bn' ? 'ইনস্টিটিউশন হিসেবে অনবোর্ড হন' : 'Onboard as an institution'}</a>${lk('contact', 'nav_contact')}</nav>
       <nav class="ft-pol" aria-label="policies">${lk('policy-payment', 'p_payment')}${lk('policy-refund', 'p_refund')}${lk('policy-cookie', 'p_cookie')}${lk('policy-terms', 'p_terms')}${lk('policy-privacy', 'p_privacy')}</nav>
+      <div class="ft-pay"><picture><source srcset="img/pay-eps.webp" type="image/webp"><img src="img/pay-eps.png" alt="${lang === 'bn' ? 'ভিসা, মাস্টারকার্ড, বিকাশ-সহ সব মাধ্যমে পেমেন্ট করুন — EPS দ্বারা যাচাইকৃত' : 'Pay with Visa, Mastercard, mobile wallets and more. Verified by EPS (Easy Payment System)'}" width="1600" height="284" loading="lazy"></picture></div>
       <div class="ft-bot"><span>${BR().copyright ? esc(BR().copyright) : `© ${num(2026)} ${esc(sname())} · ${t('ft_rights')}`}</span></div>
     </div>`;
   }

@@ -546,6 +546,15 @@ button { cursor: pointer; }
 .ft-pol a { font-size: .8rem; opacity: .75; }
 .ft-pol a:hover { opacity: 1; }
 .ft-bot { margin-top: 1.2rem; padding-top: .9rem; font-size: .78rem; opacity: .75; }
+/* payment methods banner: right side on desktop, just above the copyright line on mobile (white panel inside the dark footer) */
+.ft-pay { margin-top: 1.1rem; background: #fff; border-radius: 12px; padding: .5rem .7rem; }
+.ft-pay img { display: block; width: 100%; height: auto; }
+@media (min-width: 900px) {
+  .ft > .wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 2.5rem; align-items: start; }
+  .ft > .wrap > .ft-top, .ft > .wrap > .ft-links, .ft > .wrap > .ft-pol { grid-column: 1; }
+  .ft > .wrap > .ft-pay { grid-column: 2; grid-row: 1 / span 3; width: 440px; margin-top: 0; align-self: center; }
+  .ft > .wrap > .ft-bot { grid-column: 1 / -1; }
+}
 
 @media (max-width: 1020px) { .ck-wrap { grid-template-columns: 1fr; } .ck-wrap .checkout { position: static; order: -1; } }
 @media (max-width: 720px) {
