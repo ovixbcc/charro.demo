@@ -16,7 +16,6 @@ add('signup', 'সাইন আপ', 'Sign up');
 add('lang_label', 'ভাষা পরিবর্তন করুন', 'Change language');
 add('menu', 'মেনু', 'Menu');
 add('ft_about', 'দেশের নামকরা বিশ্ববিদ্যালয়ের টিচারদের কাছে সারা বাংলাদেশের শিক্ষার্থীরা লাইভ ক্লাসে শিখছে, জেলা-উপজেলা থেকে ইউনিয়ন পর্যন্ত।', 'Students across Bangladesh learn live from teachers of the country’s leading universities, from districts to unions.');
-add('ft_demo', 'এই ওয়েবসাইটের কোর্স, টিচার ও রিভিউ নমুনা ডেটা।', 'Courses, teachers and reviews on this site are sample data.');
 add('ft_programs', 'প্রোগ্রাম', 'Programs');
 add('ft_company', 'ছাত্র.com', 'Chaatro.com');
 add('ft_policy', 'নীতিমালা', 'Policies');
