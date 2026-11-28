@@ -734,7 +734,7 @@
     Array.from(files).forEach(f => {
       if (!c.ext.test(f.name)) msg = t('err_type') + ' (' + c.accept.replace(/\./g, '').replace(/,/g, ', ').toUpperCase() + ')';
       else if (f.size > c.max * 1048576) msg = t('err_size') + ' ' + num(c.max) + ' MB';
-      else { if (!c.multiple) UP[k] = []; if (UP[k].length < 6) UP[k].push({ name: f.name, size: f.size }); }
+      else { if (!c.multiple) UP[k] = []; if (UP[k].length < 6) UP[k].push({ name: f.name, size: f.size, file: f }); }
     });
     if (err) err.textContent = msg;
     const ul = $('#fl-' + k); if (ul) ul.innerHTML = fileList(k);
@@ -760,7 +760,7 @@
       <div class="bt-side"><h2>${t('bt_form_t')}</h2><p>${t('bt_form_d')}</p>
         <h4>${t('bt_need')}</h4><ul class="outs"><li>${ic('file')}${t('bt_n1')}</li><li>${ic('file')}${t('bt_n2')}</li><li>${ic('file')}${t('bt_n3')}</li><li>${ic('file')}${t('bt_n4')}</li></ul>
         <p class="mute sm">${t('bt_note')}</p></div>
-      <div class="bt-form" id="bt-form-wrap"><form data-form="teacher" novalidate>
+      <div class="bt-form" id="bt-form-wrap"><form data-form="teacher" novalidate>${HP}
         <h3 class="fs-t">${t('fs_personal')}</h3>
         <div class="row">${fld({ name: 'fullName', label: t('f_name'), req: true, half: true, auto: 'name' })}${fld({ name: 'phone', label: t('f_phone'), req: true, half: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}</div>
         <div class="row">${fld({ name: 'email', label: t('f_email'), req: true, half: true, type: 'email', auto: 'email' })}${selFld({ name: 'district', label: t('f_district'), req: true, half: true, opts: [['', t('choose')]].concat(DIST.map((d, i) => [d, lang === 'bn' ? d : DIST_EN[i]])) })}</div>
@@ -791,7 +791,27 @@
       </form></div></div>`)}`;
   }
 
-  function teacherSubmit(form) {
+  /* ---------- save public forms (/api/forms) ---------- */
+  const HP = '<input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">';
+  async function sendForm(type, data, files) {
+    const bn = lang === 'bn', fail = bn ? 'জমা হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন, না হলে support@chaatro.com-এ ইমেইল করুন।' : 'Not submitted. Please check your internet and try again, or email support@chaatro.com.';
+    try {
+      const h = { 'Content-Type': 'application/json' };
+      try { const tk = window.CHAUTH && CHAUTH.token ? await CHAUTH.token() : null; if (tk) h.Authorization = 'Bearer ' + tk; } catch (e) {}
+      const r = await fetch('/api/forms', { method: 'POST', headers: h, body: JSON.stringify({ type, data, files: files.map(f => ({ key: f.key, name: f.file.name, size: f.file.size })) }) });
+      const j = await r.json().catch(() => null);
+      if (!r.ok || !j || !j.ok) return { ok: false, msg: r.status === 400 ? (bn ? 'ফর্মের তথ্য ঠিক নেই। সব ঘর আবার দেখুন।' : 'Some details are not valid. Please check the form.') : fail };
+      let upFail = 0;
+      for (let i = 0; i < files.length; i++) {
+        const u = (j.uploads || []).find(x => x.key === files[i].key && !x._used); if (u) u._used = true;
+        if (!u || !u.url) { upFail++; continue; }
+        try { const fd = new FormData(); fd.append('cacheControl', '3600'); fd.append('', files[i].file); const pr = await fetch(u.url, { method: 'PUT', body: fd }); if (!pr.ok) upFail++; } catch (e) { upFail++; }
+      }
+      return { ok: true, ref: j.ref, upFail };
+    } catch (e) { return { ok: false, msg: fail }; }
+  }
+
+  async function teacherSubmit(form) {
     const v = n => (form.elements[n] ? form.elements[n].value.trim() : '');
     const errs = {};
     if (v('fullName').length < 3) errs.fullName = t('e_req');
@@ -808,9 +828,14 @@
     if (!form.elements.agree.checked) errs.agree = t('e_agree');
     showErrors(form, errs);
     if (Object.keys(errs).length) return;
-    const id = 'CHT-T-' + String(10000 + Math.floor(Math.random() * 89999));
+    const btn = form.querySelector('button[type=submit]'); btn.disabled = true;
+    const vals = n => $$('input[name=' + n + ']:checked', form).map(x => x.value);
+    const files = ['cv', 'idDoc', 'certs', 'photo'].reduce((a, k) => a.concat(UP[k].filter(f => f.file).map(f => ({ key: k, file: f.file }))), []);
+    const sent = await sendForm('teacher', { fullName: v('fullName'), phone: v('phone'), email: v('email'), district: v('district'), institution: v('institution'), dept: v('dept'), status: v('status'), year: v('year'), subjects: vals('subjects'), programs: vals('programs'), formats: vals('formats'), experience_years: v('exp'), video: v('video'), bio: v('bio'), referral: v('referral'), website: v('website') }, files);
+    if (!sent.ok) { btn.disabled = false; const e = $('#e-agree'); if (e) { e.textContent = sent.msg; e.scrollIntoView({ block: 'center' }); } return; }
+    const id = sent.ref;
     const subs = $$('input[name=subjects]:checked', form).map(x => L(byId(SUBJECTS, x.value))).join(', ');
-    $('#bt-form-wrap').innerHTML = `<div class="done"><span class="done-i">${ic('check')}</span><h3>${t('done_t')}</h3><p>${t('done_d')}</p>
+    $('#bt-form-wrap').innerHTML = `<div class="done"><span class="done-i">${ic('check')}</span><h3>${t('done_t')}</h3><p>${t('done_d')}</p>${sent.upFail ? `<p class="err">${lang === 'bn' ? 'আপনার আবেদন জমা হয়েছে, কিন্তু ' + num(sent.upFail) + 'টি ফাইল আপলোড হয়নি। অনুগ্রহ করে ' + id + ' উল্লেখ করে support@chaatro.com-এ ফাইলগুলো ইমেইল করুন।' : 'Your application is saved, but ' + sent.upFail + ' file(s) did not upload. Please email them to support@chaatro.com quoting ' + id + '.'}</p>` : ''}
       <dl class="sum"><div><dt>${t('app_id')}</dt><dd>${id}</dd></div><div><dt>${t('f_name')}</dt><dd>${esc(v('fullName'))}</dd></div><div><dt>${t('f_subjects')}</dt><dd>${esc(subs)}</dd></div>
       <div><dt>${t('docs_n')}</dt><dd>${num(UP.cv.length + UP.idDoc.length + UP.certs.length + UP.photo.length)}</dd></div><div class="now"><dt>${t('status')}</dt><dd>${t('pending_v')}</dd></div></dl>
       <ol class="steps steps-s"><li><span class="sn">${num(1)}</span><b>${t('bt_s2t')}</b></li><li><span class="sn">${num(2)}</span><b>${t('bt_s3t')}</b></li><li><span class="sn">${num(3)}</span><b>${t('bt_s4t')}</b></li></ol>
@@ -980,7 +1005,7 @@
 
   function viewContact() {
     return pagehead(t('nav_contact'), t('ct_d'), `<span>/</span><span>${t('nav_contact')}</span>`) +
-      sec('', '', `<div class="two"><div class="bt-form" id="ct-wrap"><form data-form="contact" novalidate>
+      sec('', '', `<div class="two"><div class="bt-form" id="ct-wrap"><form data-form="contact" novalidate>${HP}
         ${fld({ name: 'c_name', label: t('f_name'), req: true, auto: 'name' })}
         ${fld({ name: 'c_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}
         ${selFld({ name: 'c_topic', label: t('ct_topic'), opts: [['s', t('ct_t1')], ['t', t('ct_t2')], ['p', t('ct_t3')], ['o', t('ct_t4')]] })}
@@ -1018,7 +1043,7 @@
     const bn = lang === 'bn', x = (b, e) => bn ? b : e;
     const types = [['school', x('স্কুল', 'School')], ['college', x('কলেজ', 'College')], ['university', x('বিশ্ববিদ্যালয়', 'University')], ['coaching', x('কোচিং সেন্টার', 'Coaching centre')], ['madrasa', x('মাদ্রাসা', 'Madrasa')], ['other', x('অন্যান্য', 'Other')]];
     return pagehead(x('ইনস্টিটিউশন হিসেবে অনবোর্ড হন', 'Onboard as an institution'), x('আপনার স্কুল, কলেজ বা কোচিংয়ের স্টুডেন্টদের জন্য ছাত্র.com-এর কোর্স সাবস্ক্রিপশন নিন।', 'Give your students access to Chaatro.com courses through an institutional subscription.'), `<span>/</span><span>${x('ইনস্টিটিউশন', 'Institution')}</span>`) +
-      sec('', '', `<div class="two"><div class="bt-form" id="inst-wrap"><form data-form="institution" novalidate>
+      sec('', '', `<div class="two"><div class="bt-form" id="inst-wrap"><form data-form="institution" novalidate>${HP}
         ${fld({ name: 'i_name', label: x('ইনস্টিটিউশনের নাম', 'Institution name'), req: true })}
         ${selFld({ name: 'i_type', label: x('ধরন', 'Type'), opts: types, half: true })}${fld({ name: 'i_est', label: x('আনুমানিক স্টুডেন্ট সংখ্যা', 'Approx. number of students'), type: 'number', half: true })}
         ${fld({ name: 'i_address', label: x('ঠিকানা', 'Address'), req: true })}
@@ -1038,8 +1063,11 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('i_email'))) errs.i_email = t('e_email');
     showErrors(form, errs); if (Object.keys(errs).length) return;
     const btn = form.querySelector('button[type=submit]'); btn.disabled = true;
-    const logo = window.PX && PX.imgData ? await PX.imgData(form.elements.i_logo.files[0]) : '';
-    const rec = PX.instApply({ name: v('i_name'), type: v('i_type'), est: v('i_est'), address: v('i_address'), contact: v('i_contact'), desig: v('i_desig'), phone: v('i_phone'), email: v('i_email'), msg: v('i_msg'), logo });
+    const lf = form.elements.i_logo && form.elements.i_logo.files[0];
+    if (lf && (!/\.(jpe?g|png)$/i.test(lf.name) || lf.size > 5 * 1048576)) { btn.disabled = false; showErrors(form, {}); alert(bn ? 'লোগো PNG/JPG হতে হবে, সর্বোচ্চ ৫ MB।' : 'Logo must be PNG/JPG, max 5 MB.'); return; }
+    const sent = await sendForm('institution', { name: v('i_name'), type: v('i_type'), est: v('i_est'), address: v('i_address'), contact: v('i_contact'), desig: v('i_desig'), phone: v('i_phone'), email: v('i_email'), msg: v('i_msg'), website: v('website') }, lf ? [{ key: 'logo', file: lf }] : []);
+    if (!sent.ok) { btn.disabled = false; alert(sent.msg); return; }
+    const rec = { id: sent.ref, name: v('i_name') };
     $('#inst-wrap').innerHTML = `<div class="done"><span class="done-i">${ic('check')}</span><h3>${bn ? 'আবেদন জমা হয়েছে' : 'Application submitted'}</h3><p>${bn ? 'আমাদের টিম যাচাই করে আপনাদের সঙ্গে যোগাযোগ করবে।' : 'Our team will review it and contact you.'}</p>
       <dl class="sum"><div><dt>${bn ? 'আবেদন আইডি' : 'Application ID'}</dt><dd>${esc(rec.id)}</dd></div><div><dt>${bn ? 'ইনস্টিটিউশন' : 'Institution'}</dt><dd>${esc(rec.name)}</dd></div><div class="now"><dt>${t('status')}</dt><dd>${t('pending_v')}</dd></div></dl><a class="btn btn-o" href="#home">${t('back_home')}</a></div>`;
     window.scrollTo(0, 0);
@@ -1264,7 +1292,11 @@
         <dl class="sum"><div><dt>${t('order_id')}</dt><dd>${oid}</dd></div><div><dt>${t('nav_courses')}</dt><dd>${esc(L(c.title))}</dd></div><div class="now"><dt>${t('sum_now')}</dt><dd>${money(k.now)}</dd></div></dl>
         <div class="btns"><button type="button" class="btn btn-p" data-act="receipt">${ic('download')} ${t('rc_btn')}</button> <button class="btn btn-o" data-act="close">${t('close')}</button></div></div>`;
     } else if (kind === 'contact') {
-      $('#ct-wrap').innerHTML = `<div class="done"><span class="done-i">${ic('check')}</span><h3>${t('ct_done')}</h3><p>${t('ct_done_d')}</p></div>`;
+      const btn = f.querySelector('button[type=submit]'); btn.disabled = true;
+      sendForm('contact', { name: f.elements.c_name.value.trim(), phone: f.elements.c_phone.value.trim(), topic: f.elements.c_topic.value, message: f.elements.c_msg.value.trim(), website: f.elements.website ? f.elements.website.value : '' }, []).then(sent => {
+        if (!sent.ok) { btn.disabled = false; alert(sent.msg); return; }
+        $('#ct-wrap').innerHTML = `<div class="done"><span class="done-i">${ic('check')}</span><h3>${t('ct_done')}</h3><p>${t('ct_done_d')}</p></div>`;
+      });
     } else {
       location.hash = '#s-home';
     }
