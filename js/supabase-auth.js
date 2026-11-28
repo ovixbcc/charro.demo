@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   const HINT = 'chaatro_auth_hint';            // display-only (name/email) so the header does not flash "Log in" on reload
-  const A = window.CHAUTH = { user: null, provisional: false, error: '', ready: null, callback: false };
+  const A = window.CHAUTH = { user: null, provisional: false, error: '', ready: null, callback: false, settled: false };
   const bn = () => { try { return window.CH && CH.lang() === 'bn'; } catch (e) { return false; } };
   const tx = (b, e) => (bn() ? b : e);
   const emit = () => { try { window.dispatchEvent(new CustomEvent('chauth')); } catch (e) {} };
@@ -35,7 +35,7 @@
   let client = null, loading = null;
   const load = () => loading || (loading = (async () => {
     try {
-      const c = await (await fetch('/api/config', { cache: 'no-store' })).json(); if (!c.ok) return null;
+      const c = await (await fetch('/api/config', { cache: 'no-store' })).json(); window.CHCFG = c; if (!c.ok) return null;
       if (!window.supabase) await new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
       client = window.supabase.createClient(c.url, c.anonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' } });
       window.SB = client;
@@ -47,10 +47,10 @@
   /* read the session once at start-up (supabase-js parses the callback tokens first), then open the portal after a Google return */
   A.ready = (async () => {
     const sb = await load();
-    if (!sb) { if (A.provisional) { A.user = null; A.provisional = false; try { localStorage.removeItem(HINT); } catch (e) {} emit(); } if (A.callback) { A.notify(tx('Google লগইন এখন চালু নেই।', 'Google sign-in is not available right now.')); if (/access_token|error|code/.test(location.hash)) location.replace(location.pathname + '#login'); } return null; }
+    if (!sb) { A.settled = true; if (A.provisional) { A.user = null; A.provisional = false; try { localStorage.removeItem(HINT); } catch (e) {} emit(); } if (A.callback) { A.notify(tx('Google লগইন এখন চালু নেই।', 'Google sign-in is not available right now.')); if (/access_token|error|code/.test(location.hash)) location.replace(location.pathname + '#login'); } return null; }
     let s = null, err = '';
     try { const r = await sb.auth.getSession(); s = r.data && r.data.session; err = r.error ? r.error.message : ''; } catch (e) { err = String(e.message || e); }
-    setUser(s ? s.user : null);
+    A.settled = true; setUser(s ? s.user : null);
     if (A.callback) {
       if (s && s.user) { location.replace(location.pathname + location.search.replace(/[?&](code|error[^&]*)=[^&]*/g, '') + '#s-home'); }
       else { A.notify(tx('Google লগইন সফল হয়নি: ', 'Google sign-in failed: ') + (A.cbError || err || tx('আবার চেষ্টা করুন।', 'please try again.')), true); location.replace(location.pathname + '#login'); }
@@ -65,8 +65,11 @@
   A.orders = async () => {
     const sb = await load(); if (!sb || !A.user) return [];
     try {
-      let r = await sb.from('orders').select('txn,order_id,kind,cid,fmt,plan,amount,product,status,created_at').eq('status', 'SUCCESS').order('created_at', { ascending: true });
-      if (r.error) r = await sb.from('orders').select('txn,order_id,amount,product,status,created_at').eq('status', 'SUCCESS').order('created_at', { ascending: true });
+      const live = window.CHCFG && CHCFG.env === 'production';   /* on the live site a sandbox (test) order is never counted as paid */
+      const q = cols => { let x = sb.from('orders').select(cols).eq('status', 'SUCCESS'); if (live) x = x.eq('sandbox', false); return x.order('created_at', { ascending: true }); };
+      let r = await q('txn,order_id,kind,cid,fmt,plan,amount,product,status,sandbox,created_at');
+      if (r.error && live) return [];   /* fail closed on the live site */
+      if (r.error) r = await q('txn,order_id,amount,product,status,created_at');
       return r.error ? [] : (r.data || []);
     } catch (e) { return []; }
   };

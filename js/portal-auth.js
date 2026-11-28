@@ -29,7 +29,8 @@
   window.addEventListener('chauth', () => { apply(); });
 
   /* Build "My courses" + "Payment history" from the student's real PAID orders (Supabase orders table). */
-  let synced = '', syncing = false;
+  let synced = '', syncing = false, tries = 0, loaded = false;
+  setTimeout(() => { if (!loaded) { loaded = true; if (PX.refresh && /^#s-/.test(location.hash)) PX.refresh(); } }, 6000);   /* never hang on the loading card */
   const addMonths = (d, m) => { const x = new Date(d + 'T00:00:00Z'); x.setUTCMonth(x.getUTCMonth() + m); return x.toISOString().slice(0, 10); };
   const sync = async () => {
     const D = PX.DB; if (!A.user || A.provisional || !D || syncing) return; syncing = true;
@@ -45,19 +46,32 @@
         e.paid++; if (e.m > 0) e.nextDue = addMonths(e.nextDue || date, e.m);
         D.pays.unshift({ id: 'p' + D.nextPid++, sid: 'u1', cid, amount: Number(r.amount), ch: 'EPS', status: 'confirmed', date, note: 'EPS ' + r.txn, txn: r.txn });
       });
-      if (PX.S && PX.S.role === 's' && PX.refresh) PX.refresh();
-    } finally { syncing = false; }
+      if (/^#s-/.test(location.hash) && PX.refresh) PX.refresh();
+      if (!rows.length && tries < 3) { tries++; synced = ''; setTimeout(sync, tries * 2500); }   /* first query can run before the new session is attached: try again */
+    } finally { syncing = false; if (!loaded) { loaded = true; if (/^#s-/.test(location.hash) && PX.refresh) PX.refresh(); } }
   };
   window.addEventListener('chauth', () => { if (A.user) sync(); });
   if (A.ready) A.ready.then(() => { if (A.user) sync(); });
   window.addEventListener('hashchange', () => { if (A.user && /^#eps-return|^#s-/.test(location.hash)) sync(); });
 
+  /* Class schedule, attendance, notices, quizzes and chats are still sample data generated per course. A real student must not see them:
+     they stay empty until a teacher really publishes them. */
+  ['sessions', 'posts', 'quizzesOf'].forEach(k => { const f0 = PX[k]; if (typeof f0 === 'function') PX[k] = function () { return A.user ? [] : f0.apply(this, arguments); }; });
+  const chat0 = PX.chat; if (typeof chat0 === 'function') PX.chat = function () { return A.user ? [] : chat0.apply(this, arguments); };
+  const attOf0 = PX.attOf; if (typeof attOf0 === 'function') PX.attOf = function () { return A.user ? false : attOf0.apply(this, arguments); };
+
   const view = PX.view;
   PX.view = function (role, sec, arg) {
     apply();
+    if (A.user && role === 's' && !loaded) return `<div class="card" style="max-width:560px;margin:48px auto;padding:24px;text-align:center">${T('আপনার কোর্স লোড হচ্ছে…', 'Loading your courses…')}</div>`;
     if (A.user && role && role !== 's') {
       return `<div class="card" style="max-width:560px;margin:48px auto;padding:24px"><h3>${T('এই পোর্টালে প্রবেশাধিকার নেই', 'No access to this portal')}</h3><p>${T('আপনি Google অ্যাকাউন্ট দিয়ে লগইন করেছেন — এটি শুধু শিক্ষার্থী পোর্টালের জন্য।', 'You are signed in with Google — this account can only use the student portal.')}</p><p><a class="btn btn-p" href="#s-home">${T('শিক্ষার্থী পোর্টাল', 'Student portal')}</a></p></div>`;
     }
-    return view.apply(this, arguments);
+    let h = view.apply(this, arguments);
+    if (A.user && role === 's' && PX.DB.enr.length && ['home', 'schedule', 'notices', 'attendance', 'messages'].includes(sec || 'home')) {
+      const note = `<div class="alert warn"><div><b>${T('ক্লাসের সময়সূচি এখনও প্রকাশিত হয়নি', 'Your class schedule is not published yet')}</b><p>${T('টিচার ক্লাস, নোটিশ ও কুইজ প্রকাশ করলে এখানে দেখা যাবে।', 'Classes, notices and quizzes will appear here once your teacher publishes them.')}</p></div></div>`;
+      h = h.replace(/(<div class="pt-body"[^>]*>|<main[^>]*class="pt-main"[^>]*>)/, '$1' + note);
+    }
+    return h;
   };
 })();
