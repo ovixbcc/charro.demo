@@ -398,11 +398,10 @@
         <div class="row">${fld({ name: 'en_name', label: t('f_name'), req: true, auto: 'name' })}${fld({ name: 'en_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}</div>
         <div class="row">${fld({ name: 'en_email', label: t('f_email'), type: 'email', auto: 'email' })}${fld({ name: 'en_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' })}</div>
         <h3 class="fs-t">${t('ck_pay')}</h3>
-        <div class="pay-one"><b>${lang === 'bn' ? 'অনলাইন পেমেন্ট (EPS)' : 'Online payment (EPS)'}</b><span>${lang === 'bn' ? 'EPS-এর নিরাপদ পেজে Visa, Mastercard, bKash, Nagad ও অন্যান্য মাধ্যমে পেমেন্ট করুন।' : 'Pay on the secure EPS page with Visa, Mastercard, bKash, Nagad and more.'}</span>
-          <ul class="pay-chips" aria-label="${lang === 'bn' ? 'পেমেন্ট মাধ্যম' : 'Payment methods'}"><li>EPS</li><li>Visa</li><li>Mastercard</li><li>bKash</li><li>Nagad</li></ul></div>
-        <div id="pay-note" aria-live="polite">${bpayNote()}</div>
+        ${payBox()}
         <small class="err" id="e-pay" role="alert"></small>
-        <button class="pay-btn" type="submit" aria-label="${lang === 'bn' ? 'পেমেন্টের জন্য এগিয়ে যান (EPS)' : 'Continue to pay with EPS'}"><picture><source srcset="img/pay-btn.webp" type="image/webp"><img src="img/pay-btn.png" alt="" width="1400" height="252"></picture></button>
+        <button class="btn btn-p btn-lg btn-block" type="submit">${lang === 'bn' ? 'এখনই পেমেন্ট করুন' : 'Pay Now'}${ic('arrow')}</button>
+        <div id="pay-note" aria-live="polite">${bpayNote()}</div>
       </form>
         <aside class="checkout"><h3>${t('ck_summary')}</h3><div class="ck-c" style="--cc:${progColor(k.cs[0].program)}"><span class="ck-code">${t('bd_tag')}</span><span><b>${esc(L(b.title))}</b><small>${num(k.cs.length)} ${t('bd_n')}</small></span></div>
           <ul class="ck-l">${k.cs.map(c => `<li><span>${esc(L(c.title))}</span><b>${money(pricingFor(c)[c.formats[0]].fullD)}</b></li>`).join('')}</ul>
@@ -889,6 +888,10 @@
       location.href = d.redirectUrl;
     } catch (e) { er.textContent = e.message; btn.disabled = false; btn.innerHTML = lbl; }
   }
+  /* payment methods and the EPS image: information only, nothing to select */
+  const payBox = () => `<div class="pay-one"><b>${lang === 'bn' ? 'অনলাইন পেমেন্ট (EPS)' : 'Online payment (EPS)'}</b><span>${lang === 'bn' ? 'যেসব মাধ্যমে পেমেন্ট করতে পারবেন:' : 'You can pay with:'}</span>
+          <ul class="pay-chips" aria-label="${lang === 'bn' ? 'পেমেন্ট মাধ্যম' : 'Payment methods'}">${(lang === 'bn' ? ['ভিসা কার্ড', 'মাস্টারকার্ড', 'বিকাশ', 'নগদ', 'উপায়', 'রকেট'] : ['Visa', 'Mastercard', 'bKash', 'Nagad', 'Upay', 'Rocket']).map(x => `<li>${x}</li>`).join('')}</ul>
+          <picture><source srcset="img/pay-info.webp" type="image/webp"><img class="pay-img" src="img/pay-info.png" alt="${lang === 'bn' ? 'EPS ইজি পেমেন্ট সিস্টেম' : 'EPS Easy Payment System'}" width="998" height="231"></picture></div>`;
   function bpayNote() {
     if (payClosed()) return `<p class="paynote bad">${ic('close')}${closedMsg()}</p>`;
     if (epsOn()) return `<p class="paynote ok">${ic('check')}${lang === 'bn' ? 'পেমেন্ট সম্পন্ন করতে আপনাকে EPS-এর নিরাপদ পেজে নিয়ে যাওয়া হবে। কোর্সগুলো “আমার কোর্স”-এ দেখতে পেমেন্টের আগে Google দিয়ে লগইন করুন।' : 'You will be taken to the secure EPS page to complete the payment. To see the courses in “My courses”, log in with Google before you pay.'}</p>`;
@@ -965,11 +968,10 @@
         <div class="row">${fld({ name: 'en_name', label: t('f_name'), req: true, auto: 'name' })}${fld({ name: 'en_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}</div>
         <div class="row">${fld({ name: 'en_email', label: t('f_email'), type: 'email', auto: 'email' })}${fld({ name: 'en_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' })}</div>
         <h3 class="fs-t">${t('ck_pay')}</h3>
-        <div class="pay-one"><b>${lang === 'bn' ? 'অনলাইন পেমেন্ট (EPS)' : 'Online payment (EPS)'}</b><span>${lang === 'bn' ? 'EPS-এর নিরাপদ পেজে Visa, Mastercard, bKash, Nagad ও অন্যান্য মাধ্যমে পেমেন্ট করুন।' : 'Pay on the secure EPS page with Visa, Mastercard, bKash, Nagad and more.'}</span>
-          <ul class="pay-chips" aria-label="${lang === 'bn' ? 'পেমেন্ট মাধ্যম' : 'Payment methods'}"><li>EPS</li><li>Visa</li><li>Mastercard</li><li>bKash</li><li>Nagad</li></ul></div>
-        <div id="pay-note" aria-live="polite">${payNote()}</div>
+        ${payBox()}
         <small class="err" id="e-pay" role="alert"></small>
-        <button class="pay-btn" type="submit" aria-label="${lang === 'bn' ? 'পেমেন্টের জন্য এগিয়ে যান (EPS)' : 'Continue to pay with EPS'}"><picture><source srcset="img/pay-btn.webp" type="image/webp"><img src="img/pay-btn.png" alt="" width="1400" height="252"></picture></button>
+        <button class="btn btn-p btn-lg btn-block" type="submit">${lang === 'bn' ? 'এখনই পেমেন্ট করুন' : 'Pay Now'}${ic('arrow')}</button>
+        <div id="pay-note" aria-live="polite">${payNote()}</div>
       </form>
       <aside class="checkout"><h3>${t('ck_summary')}</h3>
         <div class="ck-c" style="--cc:${progColor(c.program)}"><span class="ck-code">${esc(byId(PROGRAMS, c.program).code)}</span><span><b>${esc(L(c.title))}</b><small>${avatar(tc, 20)} ${esc(L(tc.n))}</small></span></div>
