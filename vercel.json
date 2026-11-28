@@ -1,5 +1,6 @@
 {
   "cleanUrls": true,
+  "functions": { "api/eps/init.js": { "includeFiles": "js/data.js" } },
   "headers": [
     {
       "source": "/(.*)",
