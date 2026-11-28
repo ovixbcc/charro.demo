@@ -11,8 +11,19 @@
   const apply = () => {
     const m = me(); if (!m) return;
     if (!demo) demo = { name: m.name, email: m.email, phone: m.phone, district: m.district, sid: m.sid };
-    if (A.user) { m.name = A.user.name || A.user.email; m.email = A.user.email; m.phone = ''; m.district = ''; m.realId = A.user.id; }
+    if (A.user) { blank(); m.name = A.user.name || A.user.email; m.email = A.user.email; m.phone = ''; m.district = ''; m.realId = A.user.id; }
     else if (demo) { Object.assign(m, demo); delete m.realId; }
+  };
+  /* A real student starts with an EMPTY dashboard: no sample enrolments, payments, tickets, notices, referrals or chats. */
+  let blanked = false;
+  const blank = () => {
+    const D = PX.DB; if (blanked || !D) return; blanked = true;
+    ['enr', 'refS', 'free', 'freeIn', 'announcements', 'resched', 'posts', 'reviews'].forEach(k => { if (Array.isArray(D[k])) D[k].length = 0; });
+    for (let i = D.pays.length - 1; i >= 0; i--) if (D.pays[i].sid === 'u1') D.pays.splice(i, 1);
+    if (Array.isArray(D.tickets)) D.tickets = D.tickets.filter(t => t.uid !== 'u1');
+    if (Array.isArray(D.p2p)) for (let i = D.p2p.length - 1; i >= 0; i--) if (D.p2p[i].sid === 'u1') D.p2p.splice(i, 1);
+    D.dm = {}; PX.dm = tid => D.dm[tid] || (D.dm[tid] = []);
+    const m = D.me; Object.assign(m, { courses: [], notes: [], ref: '', level: '', sid: '', guardian: { name: '', phone: '' }, joined: new Date().toISOString().slice(0, 10) });
   };
   apply();
   window.addEventListener('chauth', () => { apply(); });

@@ -991,27 +991,15 @@
       <div class="auth-side"><h1>${su ? t('su_t') : t('li_t')}</h1><p>${su ? t('su_d') : t('li_d')}</p>
         <ul class="outs">${[1, 2, 3].map(i => `<li>${ic('check')}${t('au_p' + i)}</li>`).join('')}</ul></div>
       <div class="auth-card"><div class="seg" role="tablist"><a href="#login" role="tab" aria-selected="${!su}">${t('login')}</a><a href="#signup" role="tab" aria-selected="${su}">${t('signup')}</a></div>
-        <form data-form="${mode}" novalidate id="auth-form">
-          ${su ? fld({ name: 'a_name', label: t('f_name'), req: true, auto: 'name' }) : ''}
-          ${fld({ name: 'a_id', label: su ? t('f_phone') : t('f_phone_or'), req: true, auto: 'username', ph: su ? '01XXXXXXXXX' : '' })}
-          ${su ? selFld({ name: 'a_level', label: t('f_level'), opts: [['c6', t('lv6')], ['c7', t('lv7')], ['hsc', t('lvhsc')], ['adm', t('lvadm')]] }) : ''}
-          ${fld({ name: 'a_pass', label: t('f_pass'), req: true, type: 'password', auto: su ? 'new-password' : 'current-password' })}
-          ${su ? fld({ name: 'a_ref', label: t('f_ref'), ph: 'CHAATRO-XXXX' }) : ''}
-          <button class="btn btn-p btn-lg btn-block" type="submit">${su ? t('signup') : t('login')}</button>
-          <p class="mute sm center">— ${t('login')} / ${t('signup')} —</p>
-          <button class="btn btn-o btn-lg btn-block" type="button" data-google>Google</button>
+        <div class="auth-g">
+          <button class="btn btn-p btn-lg btn-block" type="button" data-google>${lang === 'bn' ? 'Google দিয়ে ' + (su ? 'সাইন আপ' : 'লগইন') + ' করুন' : (su ? 'Sign up' : 'Log in') + ' with Google'}</button>
+          <p class="mute sm center">${lang === 'bn' ? 'এখন শুধু Google অ্যাকাউন্ট দিয়ে লগইন করা যায়।' : 'Sign-in is currently available with your Google account only.'}</p>
           <p class="mute sm center">${su ? `${t('have_acc')} <a href="#login">${t('login')}</a>` : `${t('no_acc')} <a href="#signup">${t('signup')}</a>`}</p>
           <p class="mute sm center">${t('teacher_q')} <a href="#become-teacher">${t('nav_become')}</a></p>
-        </form>
-        ${su ? '' : `<div class="demo-p demo-c"><b>${t('demo_cred')}</b><small>${t('demo_cred_d')}</small><ul>${DEMO_USERS.map(u => `<li><span>${t(u.role)}</span><code>${u.id}</code><code>${u.pass}</code></li>`).join('')}</ul></div>`}<div class="demo-p"><b>${t('demo_portal')}</b><small>${t('dp_note')}</small><div><a class="btn btn-o btn-sm" href="#s-home">${t('dp_student')}</a><a class="btn btn-o btn-sm" href="#t-home">${t('dp_teacher')}</a><a class="btn btn-o btn-sm" href="#a-home">${t('dp_admin')}</a></div></div></div></div></section>`;
+        </div>
+      </div></div></section>`;
   }
 
-  const DEMO_USERS = [
-    { role: 'dp_student', id: '01700000001', pass: 'student123', to: '#s-home' },
-    { role: 'dp_teacher', id: '01700000002', pass: 'teacher123', to: '#t-home' },
-    { role: 'dp_admin', id: 'admin@chaatro.com', pass: 'admin123', to: '#a-home' },
-    { role: 'dp_inst', id: 'INST-1001', pass: 'inst1001', to: '#i-home' }
-  ];
   const POLS = { payment: ['p_payment', 3], refund: ['p_refund', 3], cookie: ['p_cookie', 3], terms: ['p_terms', 4], privacy: ['p_privacy', 3] };
   function viewPolicy(slug) {
     const p = POLS[slug]; if (!p) return view404();
@@ -1096,6 +1084,8 @@
     stopSlides();
     const r = route();
     if ((r.name === 'login' || r.name === 'signup') && authUser()) { location.replace('#s-home'); return; }
+    /* portals need a real Supabase login; teacher/admin/institution roles do not exist server-side yet (PX.view blocks them) */
+    if (r.name === 'portal') { if (!authUser()) { location.replace('#login'); return; } if (!r.role) { location.replace('#s-home'); return; } }
     const snap = keep && r.name !== 'portal' ? snapshot() : null;
     const V = {
       home: viewHome, blog: viewBlog, post: () => viewPost(r.id), checkout: () => viewCheckout(r.id), epsres: () => viewEpsRes(r.id), bundles: viewBundles, bundle: () => viewBundle(r.id), bpay: () => viewBundlePay(r.id), courses: viewCourses, course: () => viewCourse(r.id), teachers: viewTeachers, teacher: () => viewTeacher(r.id),
@@ -1231,11 +1221,7 @@
     $$('[required]', f).forEach(el => { if (!el.value.trim()) errs[el.name] = t('e_req'); });
     const ph = f.elements.en_phone || f.elements.c_phone; if (ph && ph.value && !/^(?:\+?88)?01[3-9]\d{8}$/.test(ph.value.replace(/[\s-]/g, ''))) errs[ph.name] = t('e_phone');
     let dest = null;
-    if (kind === 'login' && !Object.keys(errs).length) {
-      const u = f.elements.a_id.value.trim().toLowerCase(), p = f.elements.a_pass.value;
-      if (/^inst-/i.test(u)) { if (window.PX && PX.instLogin && PX.instLogin(u, p)) dest = '#i-home'; else errs.a_pass = t('e_login'); }
-      else { const hit = DEMO_USERS.find(x => x.id.toLowerCase() === u && x.pass === p); if (hit) dest = hit.to; else errs.a_pass = t('e_login'); }
-    }
+    if (kind === 'login' || kind === 'signup') return;
     showErrors(f, errs); if (Object.keys(errs).length) return;
     if (dest) { location.hash = dest; return; }
     if (kind === 'bcheckout') {

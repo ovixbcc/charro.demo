@@ -12,7 +12,7 @@
   /* ---------- ডেটা ---------- */
   const me0 = DB.me || {};
   const SEED = () => [
-    { id: 'INST-1001', status: 'active', name: 'Greenfield Model School (demo)', type: 'school', address: 'House 12, Road 4, Dhanmondi, Dhaka', contact: 'Mr. Rahim Uddin', desig: 'Headmaster', phone: '01711000001', email: 'head@greenfield.example', est: 400, msg: '', logo: '', pw: 'inst1001', seats: 50, cids: ['c04', 'c06', 'c10'], at: '2026-11-10', apprAt: '2026-11-12',
+    { id: 'INST-1001', status: 'active', name: 'Greenfield Model School (demo)', type: 'school', address: 'House 12, Road 4, Dhanmondi, Dhaka', contact: 'Mr. Rahim Uddin', desig: 'Headmaster', phone: '01711000001', email: 'head@greenfield.example', est: 400, msg: '', logo: '', pw: '', seats: 50, cids: ['c04', 'c06', 'c10'], at: '2026-11-10', apprAt: '2026-11-12',
       members: [{ id: 'm1', email: me0.email || 'student1@example.com', phone: me0.phone || '', sid: 'GF-0101', name: me0.name || '', cids: ['c04'], at: '2026-11-14' }, { id: 'm2', email: 'student2@example.com', phone: '', sid: 'GF-0102', name: '', cids: ['c04', 'c06'], at: '2026-11-14' }] },
     { id: 'INST-1002', status: 'pending', name: 'Sunrise Coaching Centre (demo)', type: 'coaching', address: 'Kazir Dewri, Chattogram', contact: 'Ms. Nasrin Akter', desig: 'Director', phone: '01811000002', email: 'info@sunrise.example', est: 150, msg: 'We want to give our admission-batch students access to your courses.', logo: '', pw: '', seats: 0, cids: [], at: '2026-11-20', apprAt: '', members: [] },
   ];
@@ -59,7 +59,7 @@
   const view0 = PX.view; PX.view = (r, s, a) => { PX.instSync(); return view0(r, s, a); };
 
   /* ---------- লগইন ---------- */
-  PX.instLogin = (id, pass) => { const i = byId(String(id).trim().toUpperCase()); if (!i || i.status !== 'active' || !i.pw || i.pw !== pass) return false; try { sessionStorage.setItem(SES, i.id); } catch (e) { PX.S.inst = i.id; } return true; };
+  PX.instLogin = () => false; const instLoginOld = (id, pass) => { const i = byId(String(id).trim().toUpperCase()); if (!i || i.status !== 'active' || !i.pw || i.pw !== pass) return false; try { sessionStorage.setItem(SES, i.id); } catch (e) { PX.S.inst = i.id; } return true; };
   const curInst = () => { let id = ''; try { id = sessionStorage.getItem(SES) || ''; } catch (e) { /* ignore */ } id = id || PX.S.inst || ''; const i = byId(id); return i && i.status === 'active' ? i : null; };
   PX.instName = () => { const i = curInst(); return i ? i.name : T('ইনস্টিটিউশন', 'Institution'); };
   A.instout = () => { try { sessionStorage.removeItem(SES); } catch (e) { /* ignore */ } PX.S.inst = ''; location.hash = '#login'; };
