@@ -9,8 +9,9 @@ Branch: `staging` only (staging.chaatro.com). Production (`main`) is untouched. 
 5. Logged-in sandbox payment: checkout prefills name/email; request carries `Authorization: Bearer <token>`; the server verifies it and stores `orders.user_id`. Check in Supabase: `select order_id, user_id, amount from orders order by created_at desc limit 5;`
 6. Guest sandbox payment: log out, pay -> order saved with `user_id` NULL.
 7. Prices are computed on the server (`api/_price.js` from `js/data.js`); the browser `amount` is ignored for course, subscription and bundle.
-8. Bundle sandbox payment: log in -> `#bundles` -> open a bundle -> Enrol -> choose EPS -> pay in the sandbox. The result page has "View my courses"; `#s-courses` lists every course of the bundle and `#s-pay` shows one payment row with the bundle name. A guest can also pay (user_id NULL) but the courses do not appear in any account automatically. Cash is still offered and, as before, is not stored.
+8. Bundle sandbox payment: log in -> `#bundles` -> open a bundle -> Enrol -> choose EPS -> pay in the sandbox. The result page has "View my courses"; `#s-courses` lists every course of the bundle and `#s-pay` shows one payment row with the bundle name. A guest can also pay (user_id NULL) but the courses do not appear in any account automatically.
 9. P2P is closed: `js/portal-p2p.js` is not loaded and `/api/eps/init` answers `P2P_CLOSED` for `kind: p2p`.
+10. Payment is online only (EPS) for courses, bundles and subscriptions; there is no cash option.
 
 New real students see an empty dashboard (no sample courses, payments, tickets, referrals). Public catalog (courses, coupons) is not student data.
 

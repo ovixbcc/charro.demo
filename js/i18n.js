@@ -490,7 +490,7 @@ add('ck_online_d', 'বিকাশ, কার্ড ও মোবাইল ব�
 add('ck_soon', 'এখনও চালু হয়নি', 'Not available yet');
 add('ck_cash', 'ক্যাশ পেমেন্ট', 'Cash payment');
 add('ck_cash_d', 'টাকা হাতে হাতে বা আমাদের টিমের নির্দেশনা অনুযায়ী জমা', 'Pay in cash as guided by our team');
-add('ck_online_err', 'অনলাইন পেমেন্ট এখনও চালু হয়নি। চেকআউট করতে ক্যাশ পেমেন্ট বেছে নিন।', 'Online payment is not available yet. Choose cash payment to check out.');
+add('ck_online_err', 'অনলাইন পেমেন্ট এখনও চালু হয়নি। অনুগ্রহ করে একটু পরে আবার চেষ্টা করুন।', 'Online payment is not available yet. Please try again later.');
 add('ck_cash_note', 'অর্ডার জমা দিলে আমাদের টিম আপনাকে ফোনে টাকা জমা দেওয়ার নির্দেশনা জানাবে। পেমেন্ট নিশ্চিত হলে কোর্স আপনার অ্যাকাউন্টে যুক্ত হবে।', 'After you place the order our team will call you with instructions for paying in cash. Once payment is confirmed the course is added to your account.');
 add('ck_summary', 'অর্ডারের সারাংশ', 'Order summary');
 add('ck_change', 'কোর্স বা প্ল্যান বদলান', 'Change course or plan');
