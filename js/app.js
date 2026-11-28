@@ -859,12 +859,16 @@
 
   /* ---------- checkout ---------- */
   function payNote() {
+    if (payClosed()) return `<p class="paynote bad">${ic('close')}${closedMsg()}</p>`;
     if (CO.pay === 'online' && epsOn()) return `<p class="paynote ok">${ic('check')}${lang === 'bn' ? 'পেমেন্ট সম্পন্ন করতে আপনাকে EPS-এর নিরাপদ পেজে নিয়ে যাওয়া হবে।' : 'You will be taken to the secure EPS page to complete the payment.'}</p>`;
     return CO.pay === 'cash' ? `<p class="paynote ok">${ic('check')}${t('ck_cash_note')}</p>` : `<p class="paynote bad">${ic('close')}${t('ck_online_err')}</p>`;
   }
 
   /* ---------- EPS অনলাইন পেমেন্ট ---------- */
   const epsOn = () => !!(window.PGW && PGW.epsOn());
+  /* live site + sandbox gateway: no payment of any kind is taken (nothing would be recorded or real) */
+  const payClosed = () => !!(window.CHCFG && CHCFG.payBlocked);
+  const closedMsg = () => (lang === 'bn' ? 'অনলাইন পেমেন্ট এখনও চালু হয়নি। চালু হলে এখানেই জানানো হবে।' : 'Online payment is not open yet. We will announce it when it is.');
   const PEND = 'chaatro_eps_pending';
   /* logged-in: send the Supabase access token (the server verifies it and sets orders.user_id); guests send none */
   async function epsHeaders() { const h = { 'Content-Type': 'application/json' }, tk = window.CHAUTH ? await CHAUTH.token() : null; if (tk) h.Authorization = 'Bearer ' + tk; return h; }
@@ -1085,7 +1089,7 @@
     const r = route();
     if ((r.name === 'login' || r.name === 'signup') && authUser()) { location.replace('#s-home'); return; }
     /* portals need a real Supabase login; teacher/admin/institution roles do not exist server-side yet (PX.view blocks them) */
-    if (r.name === 'portal') { if (!authUser()) { location.replace('#login'); return; } if (!r.role) { location.replace('#s-home'); return; } }
+    if (r.name === 'portal') { if (!authUser()) { if (window.CHAUTH && !CHAUTH.settled) { $('#app').innerHTML = `<section class="sec"><div class="wrap" style="padding:80px 0;text-align:center">${lang === 'bn' ? 'লোড হচ্ছে…' : 'Loading…'}</div></section>`; return; } location.replace('#login'); return; } if (!r.role) { location.replace('#s-home'); return; } }
     const snap = keep && r.name !== 'portal' ? snapshot() : null;
     const V = {
       home: viewHome, blog: viewBlog, post: () => viewPost(r.id), checkout: () => viewCheckout(r.id), epsres: () => viewEpsRes(r.id), bundles: viewBundles, bundle: () => viewBundle(r.id), bpay: () => viewBundlePay(r.id), courses: viewCourses, course: () => viewCourse(r.id), teachers: viewTeachers, teacher: () => viewTeacher(r.id),
@@ -1224,6 +1228,7 @@
     if (kind === 'login' || kind === 'signup') return;
     showErrors(f, errs); if (Object.keys(errs).length) return;
     if (dest) { location.hash = dest; return; }
+    if ((kind === 'checkout' || kind === 'enroll' || kind === 'bcheckout') && payClosed()) { const e = $('#e-pay') || $('.m-box .err'); if (e) e.textContent = closedMsg(); else alert(closedMsg()); return; }
     if (kind === 'bcheckout') {
       const b = byId(BUNDLES, f.dataset.id), k0 = bdFinal(b), k = Object.assign({}, k0, { price: k0.final }), oid = 'CHT-' + String(100000 + Math.floor(Math.random() * 899999));
       mkRc(f, oid, [[t('bd_tag'), L(b.title)]].concat(k.cs.map(x => [t('nav_courses'), L(x.title)])), money(k.price));

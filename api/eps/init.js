@@ -7,6 +7,8 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ ok: false, error: 'Method not allowed' }); return; }
   const c = E.cfg(), miss = E.missing(c);
   if (miss.length) { res.status(503).json({ ok: false, code: 'NOT_CONFIGURED', error: 'EPS is not configured on the server. Missing: ' + miss.join(', ') }); return; }
+  /* Production must not run sandbox payments: they are not real money. Staging/preview deployments are unaffected. */
+  if (String(process.env.VERCEL_ENV || '') === 'production' && c.sandbox) { res.status(503).json({ ok: false, code: 'SANDBOX_BLOCKED', error: 'Online payment is not open yet. Please try again later.' }); return; }
   let b = req.body; if (typeof b === 'string') { try { b = JSON.parse(b); } catch (e) { b = {}; } } b = b || {};
   const phone = String(b.phone || '').replace(/\D/g, '').replace(/^88/, '');
   if (!/^01\d{9}$/.test(phone)) { res.status(400).json({ ok: false, error: 'Enter a valid mobile number (01XXXXXXXXX)' }); return; }
