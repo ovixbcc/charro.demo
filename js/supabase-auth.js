@@ -61,6 +61,16 @@
   /* a fresh access token (supabase-js refreshes it if it is about to expire); null when not logged in */
   A.token = async () => { const sb = await load(); if (!sb) return null; try { const { data } = await sb.auth.getSession(); return data && data.session ? data.session.access_token : null; } catch (e) { return null; } };
 
+  /* the logged-in student's own PAID orders (RLS "orders read own" lets a user read only their own rows). Falls back if the new columns are not applied yet. */
+  A.orders = async () => {
+    const sb = await load(); if (!sb || !A.user) return [];
+    try {
+      let r = await sb.from('orders').select('txn,order_id,kind,cid,fmt,plan,amount,product,status,created_at').eq('status', 'SUCCESS').order('created_at', { ascending: true });
+      if (r.error) r = await sb.from('orders').select('txn,order_id,amount,product,status,created_at').eq('status', 'SUCCESS').order('created_at', { ascending: true });
+      return r.error ? [] : (r.data || []);
+    } catch (e) { return []; }
+  };
+
   A.signOut = async () => {
     const sb = await load();
     try { if (sb) await sb.auth.signOut(); } catch (e) { /* local session is cleared anyway */ }
