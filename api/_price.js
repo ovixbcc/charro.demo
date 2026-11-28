@@ -41,8 +41,7 @@ const price = b => {
   }
   if (kind === 'p2p') {
     /* P2P-র দাম টিচারের সঙ্গে ঠিক হয় এবং এখনো শুধু ব্রাউজারে থাকে (ডাটাবেসে নেই), তাই সার্ভার যাচাই করতে পারে না — শুধু সীমা বসানো হয়। */
-    const a = Math.round(Number(b.amount) * 100) / 100; if (!(a >= 100 && a <= 100000)) throw bad('Invalid amount');
-    return { amount: a, unverified: true };
+    throw bad('P2P online payment is temporarily closed.', 'P2P_CLOSED');
   }
   throw bad('Unknown order type');
 };
