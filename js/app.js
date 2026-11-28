@@ -463,7 +463,7 @@
 
     ${!REVIEWS.length ? '' : sec('sec-soft', sechead(t('rev_t'), t('rev_d')), scroller(REVIEWS.map(r => `<div class="scr-i scr-r">${reviewCard(r)}</div>`).join(''), 'reviews'))}
 
-    ${sec('', sechead(t('blog_t'), t('blog_home_d'), `<a class="btn btn-o" href="#blog">${t('all_posts')}${ic('arrow')}</a>`), `<div class="grid grid-b">${BLOG.slice(0, 3).map(blogCard).join('')}</div>`)}
+    ${BLOG.length ? sec('', sechead(t('blog_t'), t('blog_home_d'), `<a class="btn btn-o" href="#blog">${t('all_posts')}${ic('arrow')}</a>`), `<div class="grid grid-b">${BLOG.slice(0, 3).map(blogCard).join('')}</div>`) : ''}
 
     ${sec('', '', `<div class="cta"><div><h2>${t('cta_t')}</h2><p>${t('cta_d')}</p></div><div class="cta-b"><a class="btn btn-w" href="#signup">${t('signup')}</a><a class="btn btn-ow" href="#become-teacher">${t('nav_become')}</a></div></div>`)}`;
   }
@@ -626,7 +626,6 @@
         <fieldset class="co-g"><legend>${t('pay_channel')}</legend>${chans.map((x, i) => `<label class="opt ${i === 0 ? 'on' : ''}"><input type="radio" name="chan" value="${x[0]}" ${i === 0 ? 'checked' : ''}><span><b>${x[1]}</b></span></label>`).join('')}</fieldset>
         <dl class="sum"><div class="tot"><dt>${t('sum_total')}</dt><dd>${money(k.total)}</dd></div><div class="now"><dt>${k.one ? t('sum_now') : t('sum_first')}</dt><dd>${money(k.now)}</dd></div></dl>
         <button class="btn btn-p btn-block btn-lg" type="submit">${t('confirm_pay')}</button>
-        <p class="co-note">${t('demo_pay')}</p>
       </form>`, 'm-sm');
   }
 
@@ -789,7 +788,6 @@
         <label class="ck agree"><input type="checkbox" name="agree" id="agree"><span>${t('agree')} <a href="#policy-terms">${t('p_terms')}</a></span></label>
         <small class="err" id="e-agree" role="alert"></small>
         <button class="btn btn-p btn-lg btn-block" type="submit">${t('submit_app')}${ic('arrow')}</button>
-        <p class="mute sm center">${t('demo_form')}</p>
       </form></div></div>`)}`;
   }
 
@@ -848,7 +846,7 @@
   }
   function viewBlog() {
     return pagehead(t('blog_t'), t('blog_d'), `<span>/</span><span>${t('nav_blog')}</span>`) +
-      sec('', '', `<div class="grid grid-b">${BLOG.map(blogCard).join('')}</div>`);
+      sec('', '', BLOG.length ? `<div class="grid grid-b">${BLOG.map(blogCard).join('')}</div>` : `<p class="mute">${lang === 'bn' ? 'এখনও কোনো লেখা প্রকাশিত হয়নি।' : 'No posts have been published yet.'}</p>`);
   }
   function viewPost(id) {
     const b = byId(BLOG, id); if (!b) return view404();
@@ -987,9 +985,9 @@
         ${fld({ name: 'c_phone', label: t('f_phone'), req: true, type: 'tel', ph: '01XXXXXXXXX', auto: 'tel' })}
         ${selFld({ name: 'c_topic', label: t('ct_topic'), opts: [['s', t('ct_t1')], ['t', t('ct_t2')], ['p', t('ct_t3')], ['o', t('ct_t4')]] })}
         ${areaFld({ name: 'c_msg', label: t('ct_msg'), req: true, rows: 5 })}
-        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ct_send')}</button><p class="mute sm center">${t('demo_form')}</p></form></div>
-        <div class="info info-1"><div>${ic('mail')}<span><small>${t('ct_email')}</small><b>support@chaatro.com</b><em class="mute sm">${t('ct_sample')}</em></span></div>
-        <div>${ic('phone')}<span><small>${t('ct_phone')}</small><b>${t('ct_sample')}</b></span></div><div>${ic('chat')}<span><small>${t('ct_chat')}</small><b>${t('ct_chat_v')}</b></span></div><div>${ic('clock')}<span><small>${t('ct_hours')}</small><b>${t('ct_hours_v')}</b></span></div></div></div>`);
+        <button class="btn btn-p btn-lg btn-block" type="submit">${t('ct_send')}</button></form></div>
+        <div class="info info-1"><div>${ic('mail')}<span><small>${t('ct_email')}</small><b>support@chaatro.com</b></span></div>
+      </div></div>`);
   }
 
   function viewAuth(mode) {

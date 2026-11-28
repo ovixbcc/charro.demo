@@ -283,48 +283,8 @@ function fromPlans(c, opts, seats) {
   const per = tot.filter(x => x.o.m > 0).sort((a, b) => a.o.m - b.o.m)[0];
   return { fullA: one.t.a, fullD: one.t.d, months: c.months, perA: per ? per.o.actual : round50(one.t.a / c.months), perD: per ? per.o.disc : round50(one.t.d / c.months), seats };
 }
-/* ব্লগ — নমুনা লেখা (ছাত্র.com টিম) */
-const BLOG = [
-  { id: 'b1', date: '2026-11-18', color: '#8C52FF', min: 4, tag: { bn: 'ক্যাডেট ভর্তি', en: 'Cadet admission' },
-    title: { bn: 'ক্যাডেট কলেজ ভর্তির প্রস্তুতি শুরু করবেন কীভাবে', en: 'How to start preparing for cadet college admission' },
-    ex: { bn: 'চার বিষয় একসঙ্গে সামলানোর একটি সহজ সাপ্তাহিক রুটিন।', en: 'A simple weekly routine for handling four subjects together.' },
-    body: [
-      { bn: 'শুরুতেই চারটি বিষয় (বাংলা, ইংরেজি, গণিত ও সাধারণ জ্ঞান) একসঙ্গে ভারী মনে হতে পারে। সমাধান হলো প্রতিদিনের সময়কে ছোট ছোট ভাগে ভাগ করা: একদিনে এক বিষয়ে গভীর পড়া, আর বাকি তিন বিষয়ে ১৫–২০ মিনিটের হালকা অনুশীলন।', en: 'Four subjects (Bangla, English, Math and General Knowledge) can feel heavy at the start. The fix is to split each day into small blocks: one subject in depth, and 15–20 minutes of light practice for the other three.' },
-      { bn: 'গণিত আর ইংরেজি দৈনিক অভ্যাস দাবি করে। প্রতিদিন কয়েকটি অঙ্ক আর কিছু নতুন শব্দ শেখার নিয়ম করলে কয়েক সপ্তাহেই পার্থক্য বোঝা যায়। সাধারণ জ্ঞানের জন্য সপ্তাহে একবার ছোট কুইজ ভালো কাজ করে।', en: 'Math and English reward daily habit. A few sums and a few new words every day make a visible difference within weeks. For General Knowledge, a short weekly quiz works well.' },
-      { bn: 'প্রতি সপ্তাহের শেষে একটি সময় ধরে পরীক্ষা দিন। কোথায় আটকে যাচ্ছেন, সেটাই পরের সপ্তাহের পড়ার তালিকা ঠিক করে দেয়।', en: 'At the end of each week, sit one timed test. Where you get stuck decides next week’s study list.' },
-    ] },
-  { id: 'b2', date: '2026-11-15', color: '#0E0B16', min: 4, tag: { bn: 'ক্র্যাশ কোর্স', en: 'Crash course' },
-    title: { bn: 'পরীক্ষার আগের কয়েক সপ্তাহে মডেল টেস্ট কেন কাজে লাগে', en: 'Why model tests help in the last weeks before the exam' },
-    ex: { bn: 'পড়া শেষ করা আর পরীক্ষা দিতে পারা এক জিনিস নয়।', en: 'Finishing the syllabus and performing in an exam are not the same thing.' },
-    body: [
-      { bn: 'অনেকে সিলেবাস শেষ করেও পরীক্ষার হলে সময়ের চাপে ভুল করে। মডেল টেস্ট সেই চাপের অভ্যাস তৈরি করে, কারণ এতে সময় ও নিয়ম পরীক্ষার মতোই থাকে।', en: 'Many students finish the syllabus yet slip under time pressure in the hall. Model tests build that habit because time and rules mirror the real exam.' },
-      { bn: 'টেস্টের পরের ব্যাখ্যা ক্লাসই আসল কাজ। কোন প্রশ্নে সময় গেল, কোনটা অনুমানে হলো, কোনটা ভুল বোঝা থেকে হলো, এটা আলাদা করে লিখে রাখুন।', en: 'The review class after the test is the real work. Note which questions ate time, which were guesses and which came from misunderstanding.' },
-      { bn: 'সপ্তাহে একটি বা দুটি টেস্টই যথেষ্ট, যদি প্রতিটির পর ভুলগুলো সত্যিই ঠিক করা হয়।', en: 'One or two tests a week are enough, provided you actually fix the mistakes after each.' },
-    ] },
-  { id: 'b3', date: '2026-11-12', color: '#6B34E0', min: 3, tag: { bn: 'ক্লাসের ধরন', en: 'Class types' },
-    title: { bn: '১-টু-১ নাকি গ্রুপ ক্লাস: কোনটা আপনার জন্য', en: '1-to-1 or group class: which is right for you' },
-    ex: { bn: 'খরচ, মনোযোগ আর প্রতিযোগিতা, তিনটি দিক থেকে তুলনা।', en: 'A comparison on three counts: cost, attention and competition.' },
-    body: [
-      { bn: '১-টু-১ ক্লাসে পুরো সময় শুধু আপনার প্রশ্ন ও গতির ওপর চলে। যার নির্দিষ্ট কোনো বিষয়ে দুর্বলতা আছে, তার জন্য এটি ভালো। খরচ তুলনামূলক বেশি।', en: 'A 1-to-1 class runs entirely on your questions and pace. It suits someone with a specific weak subject. The cost is higher.' },
-      { bn: 'গ্রুপ ক্লাসে সাতজনের ব্যাচ। খরচ কম, আর ভিন্ন স্কুলের সহপাঠীদের সঙ্গে সুস্থ প্রতিযোগিতা তৈরি হয়। যারা অন্যদের দেখে অনুপ্রেরণা পান, তাদের জন্য ভালো।', en: 'A group class has seven students. It costs less and brings healthy competition with classmates from other schools. It suits students who are motivated by seeing others.' },
-      { bn: 'অনেকে বেশি দুর্বল বিষয়ে ১-টু-১, বাকি বিষয়ে গ্রুপ বেছে নেন। দুটি মিলিয়ে নেওয়াও সম্ভব।', en: 'Many pick 1-to-1 for their weakest subject and group for the rest. Mixing both is possible.' },
-    ] },
-  { id: 'b4', date: '2026-11-09', color: '#4A2BA8', min: 3, tag: { bn: 'অনলাইন শেখা', en: 'Learning online' },
-    title: { bn: 'অনলাইন ক্লাসে মনোযোগ ধরে রাখার ছয়টি উপায়', en: 'Six ways to stay focused in online classes' },
-    ex: { bn: 'ফোনে ক্লাস করলেও মনোযোগ ধরে রাখা যায়, কয়েকটি ছোট অভ্যাসে।', en: 'You can stay focused even on a phone, with a few small habits.' },
-    body: [
-      { bn: 'ক্লাসের আগে নোটখাতা, কলম আর পানি হাতের কাছে রাখুন। ফোনের অন্য নোটিফিকেশন বন্ধ করে দিন।', en: 'Keep your notebook, pen and water ready before class. Turn off other phone notifications.' },
-      { bn: 'টিচার যা বোঝান, নিজের ভাষায় দুই লাইনে লিখে নিন। প্রশ্ন থাকলে সঙ্গে সঙ্গে চ্যাটে লিখুন, জমিয়ে রাখবেন না।', en: 'Write what the teacher explains in two lines of your own words. If you have a question, type it in the chat right away.' },
-      { bn: 'ক্লাস মিস হলে রেকর্ডিং ২৪ ঘণ্টা পর্যন্ত দেখা যায়, তাই সেদিনই দেখে নিন।', en: 'If you miss a class, the recording stays for 24 hours, so watch it the same day.' },
-    ] },
-  { id: 'b5', date: '2026-11-06', color: '#17102B', min: 3, tag: { bn: 'পড়ার কৌশল', en: 'Study tips' },
-    title: { bn: 'ভুল থেকে শেখার সহজ নিয়ম', en: 'A simple method for learning from mistakes' },
-    ex: { bn: 'একটি ভুলের খাতা কীভাবে নম্বর বাড়ায়।', en: 'How a mistake notebook raises your score.' },
-    body: [
-      { bn: 'প্রতিটি ভুল প্রশ্ন একটি খাতায় তুলুন, সঙ্গে সঠিক উত্তর আর ভুলের কারণ: জানতাম না, তাড়াহুড়ো, নাকি ভুল বুঝেছি।', en: 'Copy every wrong question into a notebook with the right answer and the reason: did not know, rushed, or misunderstood.' },
-      { bn: 'সপ্তাহে একবার শুধু এই খাতাটি দেখুন। একই ধরনের ভুল বারবার হলে সেই টপিক টিচারকে জানান।', en: 'Once a week, review just this notebook. If the same kind of mistake repeats, tell your teacher about that topic.' },
-    ] },
-];
+/* ব্লগ — এখন কোনো পোস্ট নেই; অ্যাডমিন ব্লগ থেকে যোগ হবে */
+const BLOG = [];
 
 /* প্রতিটি কোর্স একটি মাত্র ক্লাস-ধরনের: ১-টু-১ ও গ্রুপ আলাদা কোর্স */
 (function () {

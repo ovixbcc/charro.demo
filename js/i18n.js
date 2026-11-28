@@ -210,10 +210,9 @@ add('ch_bkash', 'বিকাশ', 'bKash');
 add('ch_ssl', 'SSLCommerz (কার্ড/মোবাইল ব্যাংকিং)', 'SSLCommerz (card / mobile banking)');
 add('ch_cash', 'ক্যাশ (ম্যানুয়াল)', 'Cash (manual)');
 add('confirm_pay', 'পেমেন্ট নিশ্চিত করুন', 'Confirm payment');
-add('demo_pay', 'ডেমো: এখানে আসল পেমেন্ট হয় না। ব্যাকএন্ড যুক্ত হলে পেমেন্ট গেটওয়ে চালু হবে।', 'Demo: no real payment is made here. The payment gateway goes live once the backend is connected.');
 add('close', 'বন্ধ করুন', 'Close');
 add('order_t', 'অর্ডার গৃহীত হয়েছে', 'Order received');
-add('order_d', 'এটি ডেমো অর্ডার। ব্যাকএন্ড যুক্ত হলে কোর্স আপনার ড্যাশবোর্ডে যোগ হবে।', 'This is a demo order. Once the backend is connected the course will appear on your dashboard.');
+add('order_d', 'ধন্যবাদ। আপনার অর্ডার গ্রহণ করা হয়েছে।', 'Thank you. Your order has been received.');
 add('order_id', 'অর্ডার নম্বর', 'Order number');
 
 /* teachers */
@@ -325,7 +324,6 @@ add('fs_ref', 'রেফারেল', 'Referral');
 add('f_ref_h', 'কেউ আপনাকে রেফার করে থাকলে তার কোড দিন', 'If someone referred you, enter their code');
 add('agree', 'আমি তথ্য সঠিক বলে নিশ্চিত করছি এবং মেনে নিচ্ছি:', 'I confirm the details are correct and accept the');
 add('submit_app', 'আবেদন জমা দিন', 'Submit application');
-add('demo_form', 'ডেমো: ফর্মের তথ্য এখনও কোথাও সংরক্ষিত হয় না।', 'Demo: form data is not saved anywhere yet.');
 add('done_t', 'আবেদন জমা হয়েছে', 'Application submitted');
 add('done_d', 'আমাদের টিম আপনার ডকুমেন্ট যাচাই করবে। অনুমোদন পেলে আপনি প্রোফাইল ও কোর্স যোগ করতে পারবেন।', 'Our team will verify your documents. Once approved you can add your profile and courses.');
 add('app_id', 'আবেদন নম্বর', 'Application ID');
@@ -400,14 +398,13 @@ add('ct_t4', 'অন্যান্য', 'Other');
 add('ct_msg', 'আপনার বার্তা', 'Your message');
 add('ct_send', 'বার্তা পাঠান', 'Send message');
 add('ct_email', 'ইমেইল', 'Email');
-add('ct_sample', 'নমুনা, চূড়ান্ত তথ্য পরে বসবে', 'Sample, final details to follow');
 add('ct_phone', 'ফোন', 'Phone');
 add('ct_chat', 'সাপোর্ট চ্যাট', 'Support chat');
 add('ct_chat_v', 'সাপোর্ট টুল যুক্ত হলে এখানে চালু হবে', 'Will appear here once the support tool is connected');
 add('ct_hours', 'সময়', 'Hours');
 add('ct_hours_v', 'চূড়ান্ত সময় পরে জানানো হবে', 'Final hours to be announced');
 add('ct_done', 'বার্তা পাঠানো হয়েছে', 'Message sent');
-add('ct_done_d', 'ডেমো: এটি এখনও কোথাও জমা হয়নি। ব্যাকএন্ড যুক্ত হলে আমাদের টিম উত্তর দেবে।', 'Demo: nothing is stored yet. Once the backend is connected our team will reply.');
+add('ct_done_d', 'আপনার বার্তার জন্য ধন্যবাদ।', 'Thank you for your message.');
 add('su_t', 'ছাত্র.com-এ স্বাগতম', 'Welcome to Chaatro.com');
 add('su_d', 'একটি অ্যাকাউন্ট খুলে কোর্স কিনুন, ক্লাসে যোগ দিন ও নিজের অগ্রগতি দেখুন।', 'Create an account to buy courses, join classes and track your progress.');
 add('li_t', 'আবার স্বাগতম', 'Welcome back');
@@ -426,7 +423,6 @@ add('have_acc', 'অ্যাকাউন্ট আছে?', 'Already have an ac
 add('no_acc', 'অ্যাকাউন্ট নেই?', 'No account yet?');
 add('teacher_q', 'টিচার হতে চান?', 'Want to teach?');
 add('au_done', 'ধন্যবাদ', 'Thank you');
-add('au_done_d', 'ডেমো: স্টুডেন্ট ড্যাশবোর্ড পরের ধাপে যুক্ত হবে।', 'Demo: the student dashboard comes in the next phase.');
 
 /* policies */
 add('pol_draft', 'খসড়া নীতিমালা', 'Draft policy');
@@ -446,7 +442,7 @@ add('pol_refund_p3', 'রিফান্ড বিষয়ে প্রশ্�
 add('pol_cookie_h1', 'কুকি কী', 'What cookies are');
 add('pol_cookie_p1', 'কুকি ছোট ফাইল, যা সাইট আপনার ব্রাউজারে রাখে, যেমন ভাষার পছন্দ মনে রাখতে।', 'Cookies are small files a site stores in your browser, for example to remember your language choice.');
 add('pol_cookie_h2', 'আমরা কী ব্যবহার করি', 'What we use');
-add('pol_cookie_p2', 'এই ডেমোতে শুধু ভাষার পছন্দ ব্রাউজারে রাখা হয়। বিজ্ঞাপন বা অ্যানালিটিক্স যুক্ত হলে এখানে জানানো হবে।', 'In this demo only your language choice is stored in the browser. If advertising or analytics are added, this page will say so.');
+add('pol_cookie_p2', 'এই সাইটে শুধু আপনার ভাষার পছন্দ ব্রাউজারে রাখা হয়। বিজ্ঞাপন বা অ্যানালিটিক্স যুক্ত হলে এখানে জানানো হবে।', 'This site only stores your language choice in the browser. If advertising or analytics are added, this page will say so.');
 add('pol_cookie_h3', 'নিয়ন্ত্রণ', 'Your control');
 add('pol_cookie_p3', 'ব্রাউজার সেটিংসে গিয়ে আপনি কুকি মুছতে বা বন্ধ করতে পারেন।', 'You can clear or block cookies in your browser settings.');
 add('pol_terms_h1', 'ক্লাস ও রেকর্ডিং', 'Classes and recordings');
