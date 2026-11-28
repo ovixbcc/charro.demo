@@ -81,7 +81,7 @@
     const er = f.querySelector('#eps-p2p-err'), btn = f.querySelector('button'), me = ME(), lbl = btn.innerHTML, oid = 'P2P-' + p.no;
     er.textContent = ''; btn.disabled = true; btn.textContent = T('EPS-এ নেওয়া হচ্ছে…', 'Redirecting to EPS…');
     try {
-      const r = await fetch('/api/eps/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: p.price, orderId: oid, name: me.name, phone: me.phone, email: me.email || '', product: 'P2P #' + p.no }) });
+      const r = await fetch('/api/eps/init', { method: 'POST', headers: await (window.CHEPS ? CHEPS.headers() : { 'Content-Type': 'application/json' }), body: JSON.stringify({ kind: 'p2p', amount: p.price, orderId: oid, name: me.name, phone: me.phone, email: me.email || '', product: 'P2P #' + p.no }) });
       const j = await r.json().catch(() => ({}));
       if (!j.ok) throw new Error(j.code === 'NOT_CONFIGURED' ? T('অনলাইন পেমেন্ট এখনও চালু হয়নি। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।', 'Online payment is not set up yet. Please contact support.') : (j.error || 'Payment could not start'));
       try { localStorage.setItem('chaatro_eps_pending', JSON.stringify({ kind: 'p2p', txn: j.txn, pid: p.id, amount: p.price, oid, snap: JSON.parse(JSON.stringify(p)), name: me.name, phone: me.phone, at: Date.now() })); } catch (x) {}

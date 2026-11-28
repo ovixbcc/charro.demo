@@ -74,8 +74,6 @@ add('bd_enrol', 'বান্ডেলে এনরোল করুন', 'Enrol 
 add('bd_note', 'সব কোর্স একসাথে চালু হবে। প্রতিটি কোর্সের ক্লাস আলাদা সময়ে।', 'All courses are activated together. Each has its own class schedule.');
 add('bd_coupon_note', 'বান্ডেলের সাথে কুপন প্রযোজ্য নয়।', 'Coupons do not apply to bundles.');
 
-add('demo_cred', 'ডেমো লগইন', 'Demo logins');
-add('demo_cred_d', 'টেস্টের জন্য: ইউজার আইডি ও পাসওয়ার্ড।', 'For testing: user ID and password.');
 add('e_login', 'ইউজার আইডি বা পাসওয়ার্ড ঠিক নয়', 'Incorrect user ID or password');
 add('fmt_tag_one', 'ওয়ান টু ওয়ান কোর্স', '1-to-1 course');
 add('fmt_tag_grp', 'গ্রুপ অফ ৭', 'Group of 7');
@@ -516,9 +514,3 @@ add('ck_secure', 'কোর্স ফি', 'Course fee');
 add('ft_short', 'দেশসেরা ভার্সিটির টিচারদের লাইভ ক্লাস, সারা বাংলাদেশে।', 'Live classes with top university teachers, across Bangladesh.');
 add('ft_prog_l', 'প্রোগ্রাম', 'Programs');
 
-add('demo_portal', 'ডেমো পোর্টাল', 'Demo portals');
-add('dp_note', 'লগইন ছাড়াই তিনটি পোর্টাল ঘুরে দেখুন।', 'Explore the three portals without logging in.');
-add('dp_student', 'স্টুডেন্ট', 'Student');
-add('dp_teacher', 'টিচার', 'Teacher');
-add('dp_admin', 'অ্যাডমিন', 'Admin');
-add('dp_inst', 'ইনস্টিটিউশন', 'Institution');
