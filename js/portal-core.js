@@ -125,7 +125,7 @@
     out.forEach(s => { if (s.date < TODAY) s.notes = [{ name: 'ক্লাস নোট — ' + s.topic.bn + '.pdf', size: 180 + H(s.id) % 400 }, ...(H(s.id) % 3 === 0 ? [{ name: 'অনুশীলনী ও সমাধান.pdf', size: 120 + H(s.id) % 200 }] : [])]; });
     return (DB.sess[cid] = out);
   };
-  PX.session = id => { const cid = id.split('-')[0]; return PX.sessions(cid).find(s => s.id === id); };
+  PX.session = id => { const c = COURSES.filter(x => id.startsWith(x.id + '-')).sort((a, b) => b.id.length - a.id.length)[0]; return c ? PX.sessions(c.id).find(s => s.id === id) : undefined; };
   PX.sstate = s => (DB.blocked.some(b => b.sid === s.id) ? 'cancelled' : s.date < TODAY ? 'done' : s.date === TODAY ? 'today' : 'upcoming');
   PX.roster = cid => crm.filter(u => u.courses.includes(cid));
   PX.attOf = (sid, uid) => { const m = DB.att[sid]; if (m && uid in m) return m[uid]; return H(sid + uid) % 6 !== 0; };

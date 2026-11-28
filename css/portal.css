@@ -296,3 +296,7 @@ fieldset { min-width: 0; }
 @media (max-width:600px){.pt-top{flex-wrap:wrap}.pt-top h1{min-width:6.5rem;overflow-wrap:normal;word-break:normal}}
 
 .sch{display:flex;gap:.6rem;justify-content:space-between;align-items:center;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:12px;padding:.6rem .8rem;margin:.4rem 0}.sch.proposed{border-color:#F2C46B}.sch.accepted{border-color:#9ED9B5}.sch.declined{border-color:#E9A0A0}.sch-a{display:flex;gap:.3rem;flex-wrap:wrap}
+
+.bid-h > span:not(.av){display:grid;flex:1;min-width:0}.bid-h > .av{flex:none}
+.alert .av{vertical-align:middle;margin-right:.35rem;display:inline-grid}
+.rsn{border-left:3px solid #F2C46B;padding-left:.5rem}
